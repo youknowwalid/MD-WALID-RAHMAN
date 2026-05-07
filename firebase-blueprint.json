@@ -75,6 +75,15 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "role", "content"]
+    },
+    "siteConfig": {
+      "title": "Site Configuration",
+      "description": "Global settings like hero image",
+      "type": "object",
+      "properties": {
+        "heroImage": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "firestore": {
@@ -101,6 +110,10 @@
     "testimonials": {
       "schema": "testimonial",
       "description": "Collection of client testimonials"
+    },
+    "siteConfig": {
+      "schema": "siteConfig",
+      "description": "Global configuration"
     }
   }
 }

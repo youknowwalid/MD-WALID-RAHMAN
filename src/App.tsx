@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { db, handleFirestoreError, OperationType } from './services/firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import AdminDashboard from './components/AdminDashboard';
 
 // --- Types ---
@@ -160,7 +160,7 @@ const SpotlightCursor = () => {
     <motion.div
       className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
       animate={{ 
-        background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(0, 180, 216, 0.05), transparent 80%)` 
+        background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(214, 255, 65, 0.05), transparent 80%)` 
       }}
     />
   );
@@ -244,6 +244,7 @@ function Portfolio() {
 
   const [hasResumeData, setHasResumeData] = useState(false);
   const [hasTestimonialData, setHasTestimonialData] = useState(false);
+  const [heroImage, setHeroImage] = useState('/input_file_0.png');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -313,12 +314,19 @@ function Portfolio() {
         }
       }, (error) => handleFirestoreError(error, OperationType.GET, 'testimonials'));
 
+    const unsubHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
+      if (snapshot.exists()) {
+        setHeroImage(snapshot.data().heroImage || '/input_file_0.png');
+      }
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
+
     return () => {
       unsubProjects();
       unsubServices();
       unsubBlog();
       unsubResume();
       unsubTestimonials();
+      unsubHero();
     };
   }, []);
 
@@ -364,7 +372,7 @@ function Portfolio() {
               href="https://calendly.com/youknowwalid/30min" 
               target="_blank" 
               rel="noreferrer"
-              className="hidden lg:block px-6 py-2.5 bg-transparent border border-accent text-accent rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(0,180,216,0.3)] hover:bg-accent hover:text-black transition-all text-center"
+              className="hidden lg:block px-6 py-2.5 bg-transparent border border-accent text-accent rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(214, 255, 65, 0.3)] hover:bg-accent hover:text-black transition-all text-center"
             >
               Let's Talk
             </a>
@@ -419,7 +427,7 @@ function Portfolio() {
               </motion.p>
               <h1 className="text-6xl md:text-8xl font-black mb-6 leading-tight tracking-tighter uppercase">
                 Hello, I'm <br />
-                <span className="text-gradient">
+                <span className="text-accent text-glow">
                   <Typewriter text="Walid Rahman." />
                 </span>
               </h1>
@@ -470,7 +478,7 @@ function Portfolio() {
               <div className="relative w-[420px] h-[420px]">
                 {/* Abstract Background Element */}
                 <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
-                <div className="absolute inset-6 rounded-full border border-accent/40 shadow-[0_0_50px_rgba(0,180,216,0.1)]" />
+                <div className="absolute inset-6 rounded-full border border-accent/40 shadow-[0_0_50px_rgba(214, 255, 65, 0.1)]" />
 
                 <motion.div
                   animate={{ 
@@ -485,7 +493,7 @@ function Portfolio() {
                   className="absolute inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10"
                 >
                   <img 
-                    src="/input_file_0.png" 
+                    src={heroImage} 
                     alt="Walid Rahman"
                     className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
                     referrerPolicy="no-referrer"
@@ -589,7 +597,7 @@ function Portfolio() {
                   transition={{ delay: i * 0.1 }}
                   className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors"
                 >
-                  <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(0,180,216,1)] transition-all" />
+                  <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(214, 255, 65, 1)] transition-all" />
                   <div className="mb-2">
                     <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
                     <h3 className="text-2xl font-black">{item.role}</h3>
@@ -768,7 +776,7 @@ function Portfolio() {
                   transition={{ delay: i * 0.1 }}
                   className={cn(
                     "p-10 bg-bg-card rounded-3xl border border-white/5 relative",
-                    plan.accent && "scale-105 z-10 border-accent/40 shadow-[0_0_40px_rgba(0,180,216,0.2)]"
+                    plan.accent && "scale-105 z-10 border-accent/40 shadow-[0_0_40px_rgba(214, 255, 65, 0.2)]"
                   )}
                 >
                   {plan.accent && (
@@ -887,7 +895,7 @@ function Portfolio() {
                 <label className="block text-sm font-bold mb-2">Message</label>
                 <textarea rows={4} className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all resize-none" placeholder="Tell me about your project..."></textarea>
               </div>
-              <button className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all">
+              <button className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all">
                 Send Message
               </button>
             </motion.form>

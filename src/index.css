@@ -3,7 +3,7 @@
 
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --color-accent: #00b4d8;
+  --color-accent: #d6ff41;
   --color-bg-dark: #0a0a0a;
   --color-bg-card: #111111;
 }
@@ -32,7 +32,7 @@
 
 @layer utilities {
   .text-glow {
-    text-shadow: 0 0 20px rgba(0, 180, 216, 0.5);
+    text-shadow: 0 0 20px rgba(214, 255, 65, 0.5);
   }
   
   .bg-glass {
@@ -40,7 +40,7 @@
   }
 
   .accent-shadow {
-    box-shadow: 0 10px 30px rgba(0, 180, 216, 0.4);
+    box-shadow: 0 10px 30px rgba(214, 255, 65, 0.3);
   }
 
   .text-gradient {
@@ -59,6 +59,15 @@
       rgba(255, 255, 255, 0) 100%
     );
     background-size: 200% 100%;
+  }
+
+  .accent-glow-hover:hover {
+    box-shadow: 0 0 30px rgba(214, 255, 65, 0.15);
+  }
+
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
   }
 }
 

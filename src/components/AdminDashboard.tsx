@@ -14,7 +14,10 @@ import {
   Loader2,
   ChevronLeft,
   Database,
-  Users
+  Users,
+  Settings,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { 
   auth, 
@@ -72,7 +75,108 @@ const TABS = [
   { id: 'blogPosts', label: 'Blog', icon: FileText },
   { id: 'resume', label: 'Resume', icon: FileText },
   { id: 'testimonials', label: 'Feedback', icon: Users },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
+
+const ImageUpload = ({ 
+  label, 
+  value, 
+  onChange, 
+  recommendation 
+}: { 
+  label: string; 
+  value: string; 
+  onChange: (val: string) => void;
+  recommendation?: string;
+}) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      // Resize image using canvas to keep Base64 size reasonable (< 1MB)
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Max dimensions
+          const MAX_SIZE = 800;
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Use low quality for jpg to save space
+          const base64 = canvas.toDataURL('image/jpeg', 0.6);
+          onChange(base64);
+          setIsUploading(false);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Upload error:", error);
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm text-gray-400">{label}</label>
+      <div className="flex gap-4 items-start">
+        <div className="relative group">
+          {value ? (
+            <img src={value} alt="Preview" className="w-32 h-32 object-cover rounded-xl border border-white/10" />
+          ) : (
+            <div className="w-32 h-32 bg-white/5 border border-dashed border-white/10 rounded-xl flex items-center justify-center">
+              <ImageIcon className="w-8 h-8 text-gray-600" />
+            </div>
+          )}
+          <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
+            <Upload className="w-6 h-6" />
+            <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+          </label>
+        </div>
+        <div className="flex-1 space-y-3">
+          <input 
+            type="text" 
+            value={value} 
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Or paste an image URL..."
+            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none"
+          />
+          {recommendation && (
+            <p className="text-xs text-accent italic">{recommendation}</p>
+          )}
+          {isUploading && (
+            <div className="flex items-center gap-2 text-xs text-accent">
+              <Loader2 className="w-3 h-3 animate-spin" /> Processing image...
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -82,6 +186,8 @@ export default function AdminDashboard() {
   const [items, setItems] = useState<any[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [heroImage, setHeroImage] = useState('');
+  const [uploadValue, setUploadValue] = useState('');
 
   const checkAdminStatus = async (currentUser: User) => {
     try {
@@ -141,8 +247,16 @@ export default function AdminDashboard() {
 
   const loadItems = async () => {
     setLoading(true);
-    const data = await getCollection(activeTab);
-    setItems(data || []);
+    if (activeTab === 'settings') {
+      const configDoc = await getDoc(doc(db, 'siteConfig', 'hero'));
+      if (configDoc.exists()) {
+        setHeroImage(configDoc.data().heroImage || '');
+      }
+      setItems([]);
+    } else {
+      const data = await getCollection(activeTab);
+      setItems(data || []);
+    }
     setLoading(false);
   };
 
@@ -151,7 +265,16 @@ export default function AdminDashboard() {
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
 
-    if (editingItem) {
+    // Inject uploaded image if present
+    if (uploadValue) {
+      if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = uploadValue;
+      if (activeTab === 'testimonials') data.avatar = uploadValue;
+    }
+
+    if (activeTab === 'settings') {
+      await updateDocument('siteConfig', 'hero', { heroImage, updatedAt: new Date().toISOString() });
+      alert('Settings saved!');
+    } else if (editingItem) {
       await updateDocument(activeTab, editingItem.id, data);
     } else {
       await addDocument(activeTab, data);
@@ -159,6 +282,7 @@ export default function AdminDashboard() {
     
     setEditingItem(null);
     setIsAdding(false);
+    setUploadValue('');
     loadItems();
   };
 
@@ -208,7 +332,7 @@ export default function AdminDashboard() {
           <button 
             onClick={handleLogin}
             disabled={isLoggingIn}
-            className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in with Google"}
           </button>
@@ -265,26 +389,53 @@ export default function AdminDashboard() {
         <div className="flex justify-between items-center mb-10">
           <div>
             <h2 className="text-3xl font-black">{TABS.find(t => t.id === activeTab)?.label} Management</h2>
-            <p className="text-gray-400">Total items: {items.length}</p>
+            {activeTab !== 'settings' && <p className="text-gray-400">Total items: {items.length}</p>}
           </div>
           <div className="flex gap-4">
-            <button 
-              onClick={handleSeedData}
-              className="flex items-center gap-2 border border-white/10 text-gray-400 font-bold px-6 py-3 rounded-xl hover:bg-white/5 transition-all"
-              title="Import Default Data"
-            >
-              <Database className="w-5 h-5" />
-              Seed Default
-            </button>
-            <button 
-              onClick={() => setIsAdding(true)}
-              className="flex items-center gap-2 bg-accent text-black font-black px-6 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              Add New
-            </button>
+            {activeTab !== 'settings' && (
+              <button 
+                onClick={handleSeedData}
+                className="flex items-center gap-2 border border-white/10 text-gray-400 font-bold px-6 py-3 rounded-xl hover:bg-white/5 transition-all"
+                title="Import Default Data"
+              >
+                <Database className="w-5 h-5" />
+                Seed Default
+              </button>
+            )}
+            {activeTab !== 'settings' && (
+              <button 
+                onClick={() => { setIsAdding(true); setUploadValue(''); }}
+                className="flex items-center gap-2 bg-accent text-black font-black px-6 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Add New
+              </button>
+            )}
           </div>
         </div>
+
+        {activeTab === 'settings' && (
+          <div className="bg-bg-card p-10 rounded-3xl border border-white/5 max-w-2xl">
+            <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
+              <ImageIcon className="text-accent" /> Hero Section Settings
+            </h3>
+            <form onSubmit={handleSave} className="space-y-8">
+              <ImageUpload 
+                label="Main Hero Image" 
+                value={heroImage} 
+                onChange={setHeroImage} 
+                recommendation="Recommended: 1200x800px or larger with a simple background for best results."
+              />
+              
+              <button 
+                type="submit" 
+                className="bg-accent text-black font-black px-10 py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2"
+              >
+                <Save className="w-5 h-5" /> Save Configuration
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Form Overlay */}
         <AnimatePresence>
@@ -298,10 +449,10 @@ export default function AdminDashboard() {
               <motion.div 
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
-                className="bg-bg-card w-full max-w-2xl rounded-3xl border border-white/10 p-8 relative"
+                className="bg-bg-card w-full max-w-2xl rounded-3xl border border-white/10 p-8 relative overflow-y-auto max-h-[90vh]"
               >
                 <button 
-                  onClick={() => { setIsAdding(false); setEditingItem(null); }}
+                  onClick={() => { setIsAdding(false); setEditingItem(null); setUploadValue(''); }}
                   className="absolute top-6 right-6 text-gray-500 hover:text-white"
                 >
                   <X />
@@ -326,8 +477,12 @@ export default function AdminDashboard() {
                         <input name="link" defaultValue={editingItem?.link} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Image URL</label>
-                        <input name="image" defaultValue={editingItem?.image} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <ImageUpload 
+                          label="Project Image" 
+                          value={uploadValue || editingItem?.image} 
+                          onChange={setUploadValue} 
+                          recommendation="Recommended: 800x600px JPG/PNG."
+                        />
                       </div>
                     </>
                   )}
@@ -364,8 +519,12 @@ export default function AdminDashboard() {
                         <input name="date" defaultValue={editingItem?.date} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Image URL</label>
-                        <input name="image" defaultValue={editingItem?.image} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <ImageUpload 
+                          label="Post Header Image" 
+                          value={uploadValue || editingItem?.image} 
+                          onChange={setUploadValue} 
+                          recommendation="Recommended: 800x500px JPG/PNG."
+                        />
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Excerpt</label>
@@ -405,9 +564,13 @@ export default function AdminDashboard() {
                         <label className="block text-sm text-gray-400 mb-2">Role / Position</label>
                         <input name="role" defaultValue={editingItem?.role} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
-                      <div>
-                        <label className="block text-sm text-gray-400 mb-2">Avatar URL</label>
-                        <input name="avatar" defaultValue={editingItem?.avatar} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      <div className="col-span-2">
+                        <ImageUpload 
+                          label="Client Avatar" 
+                          value={uploadValue || editingItem?.avatar} 
+                          onChange={setUploadValue} 
+                          recommendation="Recommended: 150x150px circle avatar."
+                        />
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Feedback Content</label>
@@ -426,7 +589,7 @@ export default function AdminDashboard() {
                     </button>
                     <button 
                       type="submit" 
-                      className="bg-accent text-black font-black px-10 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all flex items-center gap-2"
+                      className="bg-accent text-black font-black px-10 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2"
                     >
                       <Save className="w-5 h-5" />
                       {editingItem ? 'Update' : 'Save'} Item

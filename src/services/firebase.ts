@@ -139,7 +139,7 @@ export const addDocument = async (collectionName: string, data: any) => {
 export const updateDocument = async (collectionName: string, id: string, data: any) => {
   try {
     const docRef = doc(db, collectionName, id);
-    await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+    await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id}`);
   }

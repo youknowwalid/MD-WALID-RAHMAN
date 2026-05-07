@@ -112,6 +112,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /siteConfig/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn() && request.auth.uid == userId;
       // Allow self-registration. Mark walidxdxdxd@gmail.com as admin by default.
