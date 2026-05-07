@@ -322,6 +322,11 @@ export default function AdminDashboard() {
         if (activeTab === 'testimonials') data.avatar = editingItem.avatar;
       }
 
+      // Tags formatting
+      if (data.tags) {
+        data.tags = (data.tags as string).split(',').map(t => t.trim()).filter(t => t !== '');
+      }
+
       // Feature formatting for pricing plans
       if (activeTab === 'pricingPlans') {
         data.features = (data.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
@@ -598,7 +603,7 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <label className="block text-sm text-gray-400 mb-2">Link</label>
-                        <input name="link" defaultValue={editingItem?.link} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <input name="link" defaultValue={editingItem?.link} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="External URL (optional)" />
                       </div>
                       <div className="col-span-2">
                         <ImageUpload 
@@ -607,6 +612,14 @@ export default function AdminDashboard() {
                           onChange={setUploadValue} 
                           recommendation="Recommended: 800x600px JPG/PNG."
                         />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Detailed Content (Markdown supported)</label>
+                        <textarea name="content" defaultValue={editingItem?.content} rows={6} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" placeholder="Explain the project challenge, solution, and results..." />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Tags (Comma separated)</label>
+                        <input name="tags" defaultValue={editingItem?.tags?.join(', ')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="React, UI/UX, Design System" />
                       </div>
                     </>
                   )}
@@ -642,6 +655,10 @@ export default function AdminDashboard() {
                         <label className="block text-sm text-gray-400 mb-2">Date String</label>
                         <input name="date" defaultValue={editingItem?.date} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Author</label>
+                        <input name="author" defaultValue={editingItem?.author} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="Walid Rahman" />
+                      </div>
                       <div className="col-span-2">
                         <ImageUpload 
                           label="Post Header Image" 
@@ -653,6 +670,14 @@ export default function AdminDashboard() {
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Excerpt</label>
                         <textarea name="excerpt" defaultValue={editingItem?.excerpt} required rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Full Story / Content (Markdown supported)</label>
+                        <textarea name="content" defaultValue={editingItem?.content} rows={10} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Tags (Comma separated)</label>
+                        <input name="tags" defaultValue={editingItem?.tags?.join(', ')} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="Design, AI, Innovation" />
                       </div>
                     </>
                   )}

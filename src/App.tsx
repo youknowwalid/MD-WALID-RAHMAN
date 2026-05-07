@@ -8,7 +8,6 @@ import {
   Megaphone, 
   CheckCircle2, 
   ExternalLink, 
-  Github, 
   Linkedin, 
   Mail, 
   Phone, 
@@ -16,8 +15,6 @@ import {
   ChevronRight, 
   Download, 
   MessageSquare, 
-  Award, 
-  Users, 
   Star,
   ArrowRight,
   Menu,
@@ -30,62 +27,21 @@ import { cn } from '@/src/lib/utils';
 import { db, handleFirestoreError, OperationType, addDocument } from './services/firebase';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import AdminDashboard from './components/AdminDashboard';
+import ProjectDetail from './components/ProjectDetail';
+import BlogDetail from './components/BlogDetail';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
-// --- Types ---
-interface NavLink {
-  name: string;
-  href: string;
-}
-
-interface Stat {
-  label: string;
-  value: string;
-  number: number;
-}
-
-interface Project {
-  id?: string;
-  title: string;
-  category: string;
-  image: string;
-  link: string;
-}
-
-interface Service {
-  id: string;
-  title: string;
-  description: string;
-  icon?: any;
-  iconName?: string;
-}
-
-interface Skill {
-  name: string;
-  level: number;
-}
-
-interface Testimonial {
-  name: string;
-  role: string;
-  content: string;
-  avatar: string;
-}
-
-interface BlogPost {
-  id?: string;
-  title: string;
-  date: string;
-  excerpt: string;
-  image: string;
-}
-
-interface PricingPlan {
-  id?: string;
-  name: string;
-  price: string;
-  features: string[];
-  accent: boolean;
-}
+import { 
+  Project, 
+  BlogPost, 
+  Service, 
+  NavLink, 
+  Stat, 
+  Skill, 
+  Testimonial, 
+  PricingPlan 
+} from './types';
 
 // --- Icons Mapping ---
 const ICON_MAP: Record<string, any> = {
@@ -96,14 +52,14 @@ const ICON_MAP: Record<string, any> = {
 };
 
 // --- Constants ---
-const NAV_LINKS: NavLink[] = [
-  { name: 'Home', href: '#home' },
-  { name: 'About', href: '#about' },
-  { name: 'Resume', href: '#resume' },
-  { name: 'Services', href: '#services' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Contact', href: '#contact' },
-  { name: 'Blog', href: '#blog' },
+const NAV_LINKS = [
+  { name: 'Home', href: '/#home' },
+  { name: 'About', href: '/#about' },
+  { name: 'Resume', href: '/#resume' },
+  { name: 'Services', href: '/#services' },
+  { name: 'Projects', href: '/#projects' },
+  { name: 'Contact', href: '/#contact' },
+  { name: 'Blog', href: '/#blog' },
 ];
 
 const STATS: Stat[] = [
@@ -133,10 +89,42 @@ const SKILLS: Skill[] = [
 ];
 
 const DEFAULT_PROJECTS: Project[] = [
-  { title: 'Nexus Brand Identity', category: 'Branding', image: 'https://picsum.photos/seed/nexus/800/600', link: '#' },
-  { title: 'Volt E-Commerce', category: 'Web App', image: 'https://picsum.photos/seed/volt/800/600', link: '#' },
-  { title: 'Lumina Dashboard', category: 'UI/UX', image: 'https://picsum.photos/seed/lumina/800/600', link: '#' },
-  { title: 'Orbit Marketing', category: 'Social Media', image: 'https://picsum.photos/seed/orbit/800/600', link: '#' },
+  { 
+    id: 'nexus-brand',
+    title: 'Nexus Brand Identity', 
+    category: 'Branding', 
+    image: 'https://picsum.photos/seed/nexus/800/600', 
+    link: '/projects/nexus-brand',
+    content: 'Nexus is a revolutionary brand identity project that focused on bridging the gap between corporate rigidity and creative fluidity. We developed a comprehensive design system that includes a dynamic logo, custom typography, and a vibrant color palette that scales across multi-channel touchpoints.',
+    tags: ['Branding', 'Identity', 'Strategy']
+  },
+  { 
+    id: 'volt-ecommerce',
+    title: 'Volt E-Commerce', 
+    category: 'Web App', 
+    image: 'https://picsum.photos/seed/volt/800/600', 
+    link: '/projects/volt-ecommerce',
+    content: 'The Volt E-Commerce platform was built to solve the performance bottlenecks of traditional online stores. Using a headless architecture, we achieved sub-second page loads and a conversion rate increase of 45%. The project involved complex integrations with inventory systems and custom payment gateways.',
+    tags: ['E-Commerce', 'Next.js', 'Headless']
+  },
+  { 
+    id: 'lumina-dashboard',
+    title: 'Lumina Dashboard', 
+    category: 'UI/UX', 
+    image: 'https://picsum.photos/seed/lumina/800/600', 
+    link: '/projects/lumina-dashboard',
+    content: 'Lumina is a data visualization dashboard designed for energy sector executives. The challenge was to transform massive amounts of real-time data into actionable insights through an intuitive and aesthetically pleasing interface. We utilized D3.js for custom visualizations and focused heavily on user centered design principles.',
+    tags: ['UI/UX', 'Dashboard', 'Data Viz']
+  },
+  { 
+    id: 'orbit-marketing',
+    title: 'Orbit Marketing', 
+    category: 'Social Media', 
+    image: 'https://picsum.photos/seed/orbit/800/600', 
+    link: '/projects/orbit-marketing',
+    content: 'Orbit is a social media marketing campaign that leveraged the power of community and storytelling. We created a series of high-impact visuals and videos that resulted in a 300% increase in engagement for our client. The strategy focused on cross-platform consistency and authentic brand voice.',
+    tags: ['Marketing', 'Social', 'Campaign']
+  },
 ];
 
 const TESTIMONIALS: Testimonial[] = [
@@ -146,10 +134,46 @@ const TESTIMONIALS: Testimonial[] = [
 ];
 
 const DEFAULT_BLOG_POSTS: BlogPost[] = [
-  { title: 'The Future of Minimalism', date: 'May 10, 2024', excerpt: 'Exploring how minimalist design is evolving in the age of AI.', image: 'https://picsum.photos/seed/blog1/800/500' },
-  { title: 'Building Scalable Brands', date: 'Apr 28, 2024', excerpt: 'Key strategies for creating a brand that grows with your business.', image: 'https://picsum.photos/seed/blog2/800/500' },
-  { title: 'UX Patterns to Watch', date: 'Apr 15, 2024', excerpt: 'Current trends in user experience that are shaping digital products.', image: 'https://picsum.photos/seed/blog3/800/500' },
-  { title: 'Brand Consistency', date: 'Mar 30, 2024', excerpt: 'Why maintaining a consistent voice is crucial for long-term success.', image: 'https://picsum.photos/seed/blog4/800/500' },
+  { 
+    id: 'future-minimalism',
+    title: 'The Future of Minimalism', 
+    date: 'May 10, 2024', 
+    excerpt: 'Exploring how minimalist design is evolving in the age of AI.', 
+    image: 'https://picsum.photos/seed/blog1/800/500',
+    content: 'Minimalism has long been a staple of modern design, but as we enter the age of Artificial Intelligence, the philosophy is undergoing a significant transformation. No longer just about "less is more," minimalism today is about "intentionality" and "relevance." AI allows designers to create interfaces that are hyper-personalized, removing unnecessary elements based on specific user contexts. In this post, we explore how cognitive load and data-driven design are shaping the next generation of minimalist aesthetics.',
+    author: 'Walid Rahman',
+    tags: ['Design', 'AI', 'Minimalism']
+  },
+  { 
+    id: 'building-scalable-brands',
+    title: 'Building Scalable Brands', 
+    date: 'Apr 28, 2024', 
+    excerpt: 'Key strategies for creating a brand that grows with your business.', 
+    image: 'https://picsum.photos/seed/blog2/800/500',
+    content: 'Scaling a brand requires more than just a great logo; it requires a modular system that can adapt to different markets, languages, and products without losing its core identity. We call this "Brand Elasticity." In this article, we break down the five pillars of brand scalability: Consistency, Adaptability, Documentation, Authenticity, and Scalable Visual Language. Learn how top tech brands manage to feel the same whether you are using their app on an iPhone or seeing a billboard in Tokyo.',
+    author: 'Walid Rahman',
+    tags: ['Marketing', 'Branding', 'Business']
+  },
+  { 
+    id: 'ux-patterns-watch',
+    title: 'UX Patterns to Watch', 
+    date: 'Apr 15, 2024', 
+    excerpt: 'Current trends in user experience that are shaping digital products.', 
+    image: 'https://picsum.photos/seed/blog3/800/500',
+    content: 'The way users interact with digital products is changing rapidly. From micro-interactions to voice interfaces, the expectations for a "good" experience are higher than ever. Some of the patterns we are seeing emerge include: Micro-animations that provide immediate feedback, conversational UI for complex tasks, and "invisible" interfaces that anticipate user needs. We dive deep into why these patterns are gaining traction and how you can implement them in your next project to increase user delight and retention.',
+    author: 'Walid Rahman',
+    tags: ['UX', 'UI', 'Trends']
+  },
+  { 
+    id: 'brand-consistency',
+    title: 'Brand Consistency', 
+    date: 'Mar 30, 2024', 
+    excerpt: 'Why maintaining a consistent voice is crucial for long-term success.', 
+    image: 'https://picsum.photos/seed/blog4/800/500',
+    content: 'Trust is built through consistency. When a brand speaks with one voice across all departments—from customer support to social media—it creates a sense of reliability that consumers crave. In this post, we explore how consistency impacts customer loyalty and brand equity. We also provide a checklist for maintaining your brand voice, including tips on creating a comprehensive style guide and training your team to embody the brand values in every interaction.',
+    author: 'Walid Rahman',
+    tags: ['Branding', 'Strategy', 'Trust']
+  },
 ];
 
 const DEFAULT_PRICING_PLANS: PricingPlan[] = [
@@ -399,94 +423,10 @@ function Portfolio() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent rounded-full blur-[150px] opacity-10 pointer-events-none z-0" />
       <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-5 pointer-events-none z-0" />
       
+      <Navbar />
       <SpotlightCursor />
 
-      {/* --- Navbar --- */}
-      <nav className={cn(
-        "fixed top-0 left-0 w-full z-40 transition-all duration-300 px-6 md:px-12 py-4",
-        isScrolled ? "bg-glass py-3" : "bg-transparent"
-      )}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <a href="#home" className="text-xl font-black tracking-tighter hover:text-accent transition-colors">
-            youknowwalid<span className="text-accent">.</span>
-          </a>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-8">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-all hover:text-accent relative py-1",
-                  activeSection === link.href.replace('#', '') ? "text-accent" : "text-gray-400"
-                )}
-              >
-                {link.name}
-                {activeSection === link.href.replace('#', '') && (
-                  <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />
-                )}
-              </a>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4">
-            <a 
-              href="https://calendly.com/youknowwalid/30min" 
-              target="_blank" 
-              rel="noreferrer"
-              className="hidden lg:block px-6 py-2.5 bg-transparent border border-accent text-accent rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(214, 255, 65, 0.3)] hover:bg-accent hover:text-black transition-all text-center"
-            >
-              Let's Talk
-            </a>
-            {/* Admin entry point */}
-            <Link to="/admin" className="text-white/10 hover:text-accent p-2 transition-colors">
-              <FileText className="w-4 h-4" />
-            </Link>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button className="lg:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {isMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="lg:hidden absolute top-full left-0 w-full bg-bg-card/95 backdrop-blur-2xl border-b border-white/5 p-8 flex flex-col gap-6 z-50 shadow-2xl"
-              >
-                {NAV_LINKS.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={cn(
-                      "text-2xl font-black uppercase tracking-tighter transition-all",
-                      activeSection === link.href.replace('#', '') ? "text-accent" : "text-gray-400"
-                    )}
-                  >
-                    {link.name}
-                  </a>
-                ))}
-                <a 
-                  href="https://calendly.com/youknowwalid/30min" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="mt-4 px-8 py-4 bg-accent text-black rounded-xl text-sm font-bold uppercase tracking-widest text-center"
-                >
-                  Let's Talk
-                </a>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </nav>
-
-        {/* --- Sections --- */}
+      {/* --- Sections --- */}
         <main className="relative z-10">
           {/* Hero Section */}
           <section id="home" className="min-h-screen flex items-center relative overflow-hidden px-6 pt-20 pb-12 md:py-20">
@@ -839,11 +779,12 @@ function Portfolio() {
                     <span className="text-accent text-sm font-bold uppercase mb-2 tracking-widest">{project.category}</span>
                     <h3 className="text-3xl font-black mb-4">{project.title}</h3>
                     <div className="flex gap-4">
-                      {project.link && project.link !== '#' && (
-                        <a href={project.link} target="_blank" rel="noreferrer" className="p-3 bg-accent rounded-full text-black hover:scale-110 transition-transform">
-                          <ExternalLink className="w-5 h-5" />
-                        </a>
-                      )}
+                      <Link 
+                        to={`/projects/${project.id || project.title.toLowerCase().replace(/\s+/g, '-')}`} 
+                        className="p-3 bg-accent rounded-full text-black hover:scale-110 transition-transform"
+                      >
+                        <ExternalLink className="w-5 h-5" />
+                      </Link>
                     </div>
                   </div>
                 </motion.div>
@@ -971,12 +912,14 @@ function Portfolio() {
                   transition={{ delay: i * 0.1 }}
                   className="group cursor-pointer"
                 >
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all">
-                    <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" />
-                  </div>
-                  <div className="text-xs text-accent font-bold uppercase mb-2">{post.date}</div>
-                  <h4 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h4>
-                  <p className="text-gray-500 text-sm line-clamp-2">{post.excerpt}</p>
+                  <Link to={`/blog/${post.id || post.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all">
+                      <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" />
+                    </div>
+                    <div className="text-xs text-accent font-bold uppercase mb-2">{post.date}</div>
+                    <h4 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h4>
+                    <p className="text-gray-500 text-sm line-clamp-2">{post.excerpt}</p>
+                  </Link>
                 </motion.div>
               ))}
             </div>
@@ -1132,6 +1075,8 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Portfolio />} />
+        <Route path="/projects/:projectId" element={<ProjectDetail />} />
+        <Route path="/blog/:blogId" element={<BlogDetail />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
