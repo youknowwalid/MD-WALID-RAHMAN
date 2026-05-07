@@ -92,6 +92,22 @@ export default function AdminDashboard() {
     }
   };
 
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleLogin = async () => {
+    setAuthError(null);
+    setIsLoggingIn(true);
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      setAuthError(error.message || "Failed to sign in. Please try again.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-bg-dark flex items-center justify-center">
@@ -112,11 +128,15 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-black mb-4">Admin Access</h1>
           <p className="text-gray-400 mb-8">Please sign in with your authorized admin account to manage the portfolio.</p>
           <button 
-            onClick={signInWithGoogle}
-            className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all flex items-center justify-center gap-2"
+            onClick={handleLogin}
+            disabled={isLoggingIn}
+            className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            Sign in with Google
+            {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in with Google"}
           </button>
+          {authError && (
+            <p className="mt-4 text-red-400 text-sm bg-red-400/10 p-3 rounded-lg">{authError}</p>
+          )}
           {!isAdmin && user && (
             <p className="mt-4 text-red-400 text-sm">Access denied. Your account does not have admin privileges.</p>
           )}
