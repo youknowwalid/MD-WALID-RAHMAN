@@ -500,7 +500,7 @@ function Portfolio() {
                   <img 
                     src={heroImage} 
                     alt="Walid Rahman"
-                    className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                    className="w-full h-full object-cover transition-all duration-700"
                     referrerPolicy="no-referrer"
                   />
                   {/* Overlay Card UI */}
@@ -827,7 +827,7 @@ function Portfolio() {
                   className="group cursor-pointer"
                 >
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all">
-                    <img src={post.image} alt={post.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" />
+                    <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" />
                   </div>
                   <div className="text-xs text-accent font-bold uppercase mb-2">{post.date}</div>
                   <h4 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h4>
