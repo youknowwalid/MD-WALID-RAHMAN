@@ -22,7 +22,8 @@ import {
   ArrowRight,
   Menu,
   X,
-  FileText
+  FileText,
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { db, handleFirestoreError, OperationType } from './services/firebase';
@@ -891,6 +892,12 @@ function Portfolio() {
                 <li>Nikunja 2, Dhaka 1229</li>
                 <li>info@walidrahman.com</li>
                 <li>+880 1744 588 644</li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-bold mb-4 uppercase text-xs tracking-widest text-accent">Admin</h5>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><Link to="/admin" className="hover:text-accent transition-colors flex items-center gap-2"><LayoutDashboard className="w-4 h-4" /> Management Panel</Link></li>
               </ul>
             </div>
           </div>
