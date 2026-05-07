@@ -19,26 +19,8 @@ import {
   Upload,
   Image as ImageIcon,
   DollarSign,
-  MessageSquare,
-  GripVertical
+  MessageSquare
 } from 'lucide-react';
-import { 
-  DndContext, 
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { 
   auth, 
   db, 
@@ -206,111 +188,6 @@ const ImageUpload = ({
   );
 };
 
-const SortableItem = ({ 
-  item, 
-  activeTab, 
-  onEdit, 
-  onDelete 
-}: { 
-  item: any; 
-  activeTab: string; 
-  onEdit: (item: any) => void;
-  onDelete: (id: string) => void;
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({ id: item.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 100 : 0,
-    position: (isDragging ? 'relative' : 'static') as any,
-  };
-
-  return (
-    <div 
-      ref={setNodeRef} 
-      style={style}
-      className={`bg-bg-card p-6 rounded-2xl border border-white/5 flex items-center gap-6 group hover:border-accent/30 transition-all ${isDragging ? 'shadow-2xl border-accent/50 scale-[1.02] z-50' : ''}`}
-    >
-      <div 
-        {...attributes} 
-        {...listeners} 
-        className="cursor-grab active:cursor-grabbing p-2 hover:bg-white/5 rounded-lg transition-colors text-gray-600 hover:text-accent"
-      >
-        <GripVertical className="w-5 h-5" />
-      </div>
-
-      {item.image && (
-        <img src={item.image} alt={item.title || item.name} className="w-20 h-20 object-cover rounded-xl border border-white/10" referrerPolicy="no-referrer" />
-      )}
-      {item.avatar && (
-        <img src={item.avatar} alt={item.name} className="w-20 h-20 object-cover rounded-full border border-white/10" referrerPolicy="no-referrer" />
-      )}
-      
-      {activeTab === 'contactSubmissions' && (
-        <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent shrink-0">
-          <MessageSquare className="w-6 h-6" />
-        </div>
-      )}
-
-      <div className="flex-1">
-        <h4 className="text-xl font-bold mb-1">
-          {activeTab === 'contactSubmissions' ? item.subject : (item.title || item.name || item.role)}
-        </h4>
-        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-          {item.category && <span>{item.category}</span>}
-          {item.id && activeTab === 'services' && <span>ID: {item.id}</span>}
-          {item.date && <span>{item.date}</span>}
-          {item.year && <span>{item.year}</span>}
-          {item.company && <span>{item.company}</span>}
-          
-          {activeTab === 'pricingPlans' && (
-            <>
-              <span className="text-accent font-bold">{item.price}</span>
-              <span>{item.features?.length} Features</span>
-            </>
-          )}
-          
-          {activeTab === 'contactSubmissions' && (
-            <>
-              <span className="text-white font-medium">From: {item.name} ({item.email})</span>
-            </>
-          )}
-        </div>
-        {activeTab === 'contactSubmissions' && (
-          <p className="mt-3 text-gray-400 text-sm italic border-l-2 border-accent/20 pl-4">
-            "{item.message}"
-          </p>
-        )}
-      </div>
-
-      <div className="flex gap-2">
-        <button 
-          onClick={() => onEdit(item)}
-          className="p-3 bg-white/5 rounded-xl hover:bg-accent hover:text-black transition-all"
-          title="Edit"
-        >
-          <Edit2 className="w-5 h-5" />
-        </button>
-        <button 
-          onClick={() => onDelete(item.id)}
-          className="p-3 bg-white/5 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all"
-          title="Delete"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
-};
-
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -429,47 +306,6 @@ export default function AdminDashboard() {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && active.id !== over.id) {
-      setItems((prevItems) => {
-        const oldIndex = prevItems.findIndex((item) => item.id === active.id);
-        const newIndex = prevItems.findIndex((item) => item.id === over.id);
-        
-        const newOrder = arrayMove(prevItems, oldIndex, newIndex);
-        
-        // Update Firestore in background
-        saveNewOrder(newOrder);
-        
-        return newOrder;
-      });
-    }
-  };
-
-  const saveNewOrder = async (newOrder: any[]) => {
-    try {
-      // We only update the orderIndex for each item
-      const promises = newOrder.map((item, index) => 
-        updateDocument(activeTab, item.id, { orderIndex: index })
-      );
-      await Promise.all(promises);
-    } catch (error) {
-      console.error("Failed to save new order:", error);
-    }
-  };
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -505,8 +341,6 @@ export default function AdminDashboard() {
       } else if (editingItem) {
         await updateDocument(activeTab, editingItem.id, data);
       } else {
-        // Set default orderIndex for new items
-        data.orderIndex = items.length;
         await addDocument(activeTab, data);
       }
       
@@ -918,53 +752,73 @@ export default function AdminDashboard() {
 
         {/* Items List */}
         <div className="grid gap-4">
-          {activeTab === 'contactSubmissions' ? (
-            items.map((item) => (
-              <div 
-                key={item.id}
-                className="bg-bg-card p-6 rounded-2xl border border-white/5 flex items-center gap-6 group hover:border-accent/30 transition-all"
-              >
+          {items.map((item) => (
+            <motion.div 
+              layout
+              key={item.id}
+              className="bg-bg-card p-6 rounded-2xl border border-white/5 flex items-center gap-6 group hover:border-accent/30 transition-all"
+            >
+              {item.image && (
+                <img src={item.image} alt={item.title || item.name} className="w-20 h-20 object-cover rounded-xl border border-white/10" referrerPolicy="no-referrer" />
+              )}
+              {item.avatar && (
+                <img src={item.avatar} alt={item.name} className="w-20 h-20 object-cover rounded-full border border-white/10" referrerPolicy="no-referrer" />
+              )}
+              
+              {activeTab === 'contactSubmissions' && (
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent shrink-0">
                   <MessageSquare className="w-6 h-6" />
                 </div>
+              )}
 
-                <div className="flex-1">
-                  <h4 className="text-xl font-bold mb-1">{item.subject}</h4>
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                    <span className="text-white font-medium">From: {item.name} ({item.email})</span>
-                  </div>
-                  <p className="mt-3 text-gray-400 text-sm italic border-l-2 border-accent/20 pl-4">"{item.message}"</p>
+              <div className="flex-1">
+                <h4 className="text-xl font-bold mb-1">
+                  {activeTab === 'contactSubmissions' ? item.subject : (item.title || item.name || item.role)}
+                </h4>
+                <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                  {item.category && <span>{item.category}</span>}
+                  {item.id && activeTab === 'services' && <span>ID: {item.id}</span>}
+                  {item.date && <span>{item.date}</span>}
+                  {item.year && <span>{item.year}</span>}
+                  {item.company && <span>{item.company}</span>}
+                  
+                  {activeTab === 'pricingPlans' && (
+                    <>
+                      <span className="text-accent font-bold">{item.price}</span>
+                      <span>{item.features?.length} Features</span>
+                    </>
+                  )}
+                  
+                  {activeTab === 'contactSubmissions' && (
+                    <>
+                      <span className="text-white font-medium">From: {item.name} ({item.email})</span>
+                    </>
+                  )}
                 </div>
+                {activeTab === 'contactSubmissions' && (
+                  <p className="mt-3 text-gray-400 text-sm italic border-l-2 border-accent/20 pl-4">
+                    "{item.message}"
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {activeTab !== 'contactSubmissions' && (
+                  <button 
+                    onClick={() => setEditingItem(item)}
+                    className="p-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                )}
                 <button 
                   onClick={() => handleDelete(item.id)}
-                  className="p-3 bg-white/5 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all"
+                  className="p-3 rounded-xl border border-white/10 hover:bg-red-400/10 text-gray-400 hover:text-red-400 transition-all"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
-            ))
-          ) : (
-            <DndContext 
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext 
-                items={items.map(i => i.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {items.map((item) => (
-                  <SortableItem 
-                    key={item.id} 
-                    item={item} 
-                    activeTab={activeTab} 
-                    onEdit={setEditingItem}
-                    onDelete={handleDelete}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-          )}
+            </motion.div>
+          ))}
           {items.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-500 bg-bg-card rounded-3xl border border-dashed border-white/10">
               No items found. Start by adding a new one!

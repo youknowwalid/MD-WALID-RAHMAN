@@ -290,69 +290,81 @@ function Portfolio() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-    // Real-time Firestore Updates
-    useEffect(() => {
-      const setupListener = (colName: string, setter: (data: any[]) => void, extra?: (data: any) => any) => {
-        let unsubFallback: (() => void) | null = null;
-        
-        const unsub = onSnapshot(query(collection(db, colName), orderBy('orderIndex', 'asc')), (snapshot) => {
-          setter(snapshot.docs.map(doc => {
-            const data = { id: doc.id, ...doc.data() as any };
-            return extra ? extra(data) : data;
-          }));
-        }, (error) => {
-          console.warn(`ORDERED fetch failed for ${colName}, falling back to createdAt.`);
-          unsubFallback = onSnapshot(query(collection(db, colName), orderBy('createdAt', 'desc')), (snapshot) => {
-            setter(snapshot.docs.map(doc => {
-              const data = { id: doc.id, ...doc.data() as any };
-              return extra ? extra(data) : data;
-            }));
-          });
-        });
-        
-        return () => {
-          unsub();
-          if (unsubFallback) unsubFallback();
-        };
-      };
-
-      const unsubProjects = setupListener('projects', setProjects);
-      const unsubServices = setupListener('services', setServices, (data) => ({
-        ...data,
-        icon: ICON_MAP[data.iconName] || Palette
-      }));
-      const unsubBlog = setupListener('blogPosts', setBlogPosts);
-      const unsubResume = setupListener('resume', (data) => {
-        setResume(data);
-        setHasResumeData(data.length > 0);
-      });
-      const unsubTestimonials = setupListener('testimonials', (data) => {
-        setTestimonials(data);
-        setHasTestimonialData(data.length > 0);
-      });
-      const unsubPricing = setupListener('pricingPlans', setPricingPlans);
-
-      const unsubHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          setHeroImage(data.heroImage || '/input_file_0.png');
-          setHeroStatus(data.heroStatus || 'Active Now');
-          setHeroAvailability(data.heroAvailability || 'Available for new projects');
-          setCvUrl(data.cvUrl || '#');
-          setResumeImage(data.resumeImage || '');
+  // Real-time Firestore Updates
+  useEffect(() => {
+    const unsubProjects = onSnapshot(query(collection(db, 'projects'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
         }
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'projects'));
 
-      return () => {
-        unsubProjects();
-        unsubServices();
-        unsubBlog();
-        unsubResume();
-        unsubTestimonials();
-        unsubHero();
-        unsubPricing();
-      };
-    }, []);
+    const unsubServices = onSnapshot(query(collection(db, 'services'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setServices(snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() as any,
+            icon: ICON_MAP[doc.data().iconName] || Palette
+          })));
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'services'));
+
+    const unsubBlog = onSnapshot(query(collection(db, 'blogPosts'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setBlogPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'blogPosts'));
+
+    const unsubResume = onSnapshot(query(collection(db, 'resume'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setResume(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+          setHasResumeData(true);
+        } else {
+          setHasResumeData(false);
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'resume'));
+
+    const unsubTestimonials = onSnapshot(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+          setHasTestimonialData(true);
+        } else {
+          setHasTestimonialData(false);
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'testimonials'));
+
+    const unsubHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setHeroImage(data.heroImage || '/input_file_0.png');
+        setHeroStatus(data.heroStatus || 'Active Now');
+        setHeroAvailability(data.heroAvailability || 'Available for new projects');
+        setCvUrl(data.cvUrl || '#');
+        setResumeImage(data.resumeImage || '');
+      }
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
+
+    const unsubPricing = onSnapshot(query(collection(db, 'pricingPlans'), orderBy('createdAt', 'asc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setPricingPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'pricingPlans'));
+
+    return () => {
+      unsubProjects();
+      unsubServices();
+      unsubBlog();
+      unsubResume();
+      unsubTestimonials();
+      unsubHero();
+      unsubPricing();
+    };
+  }, []);
 
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
