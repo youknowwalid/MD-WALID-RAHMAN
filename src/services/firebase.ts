@@ -118,11 +118,28 @@ export const logout = () => signOut(auth);
 // --- Generic CRUD Helpers ---
 export const getCollection = async (collectionName: string) => {
   try {
-    const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+    // Try to order by orderIndex first, then createdAt
+    // Note: Firestore requires an index for multiple orderBys or complex queries.
+    // We'll keep it simple: if it's a collection that supports reordering, we use orderIndex.
+    const collectionsWithOrder = ['projects', 'services', 'blogPosts', 'resume', 'testimonials', 'pricingPlans'];
+    let q;
+    if (collectionsWithOrder.includes(collectionName)) {
+      q = query(collection(db, collectionName), orderBy('orderIndex', 'asc'));
+    } else {
+      q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+    }
+    
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    handleFirestoreError(error, OperationType.LIST, collectionName);
+    // Fallback if orderIndex doesn't exist yet or index is missing
+    try {
+      const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (innerError) {
+      handleFirestoreError(innerError, OperationType.LIST, collectionName);
+    }
   }
 };
 
