@@ -366,6 +366,23 @@ function Portfolio() {
     };
   }, []);
 
+  // Auto-scrolling testimonials
+  useEffect(() => {
+    if (testimonials.length <= 1) return;
+    const interval = setInterval(() => {
+      const track = document.getElementById('testimonial-track');
+      if (track) {
+        const isAtEnd = track.scrollLeft + track.offsetWidth >= track.scrollWidth - 10;
+        if (isAtEnd) {
+          track.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: 480, behavior: 'smooth' });
+        }
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [testimonials]);
+
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -858,35 +875,95 @@ function Portfolio() {
         </section>
 
         {/* Testimonials */}
-        <section className="py-32 px-6 overflow-hidden">
+        <section className="py-32 px-6 bg-bg-card/20 overflow-hidden relative">
+          {/* Decorative Background */}
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] -z-10" />
+          
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Clients" title="Kind Words" />
-            <div className="flex gap-8 overflow-x-auto pb-12 snap-x hide-scrollbar">
-              {testimonials.map((t, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: 100 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.2 }}
-                  className="min-w-[350px] md:min-w-[450px] p-8 bg-bg-card rounded-3xl snap-center"
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="relative p-1 rounded-full border border-accent/30">
-                      <img src={t.avatar} alt={t.name} className="w-12 h-12 rounded-full" referrerPolicy="no-referrer" />
-                      <div className="absolute inset-0 border border-accent rounded-full animate-[spin_10s_linear_infinite]" />
+            
+            <div className="relative mt-20">
+              <div 
+                className="flex gap-8 overflow-x-auto pb-12 snap-x hide-scrollbar scroll-smooth" 
+                id="testimonial-track"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {testimonials.map((t, i) => (
+                  <motion.div
+                    key={t.id || i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    className="min-w-[320px] md:min-w-[450px] p-10 bg-bg-card rounded-[40px] snap-center border border-white/5 relative group hover:border-accent/30 transition-all flex flex-col"
+                  >
+                    <div className="absolute top-10 right-10 text-accent/10 opacity-40 group-hover:opacity-100 transition-opacity">
+                      <MessageSquare className="w-12 h-12" />
                     </div>
-                    <div>
-                      <h4 className="font-bold">{t.name}</h4>
-                      <p className="text-sm text-accent">{t.role}</p>
+                    
+                    <div className="flex gap-1 mb-8">
+                      {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-accent text-accent" />)}
                     </div>
-                  </div>
-                  <p className="text-gray-400 italic">"{t.content}"</p>
-                  <div className="flex mt-6 text-accent">
-                    {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-current" />)}
-                  </div>
-                </motion.div>
-              ))}
+
+                    <p className="text-xl text-gray-300 leading-relaxed italic mb-10 flex-grow">
+                      "{t.content}"
+                    </p>
+
+                    <div className="flex items-center gap-4 pt-8 border-t border-white/5">
+                      <div className="relative w-14 h-14 shrink-0">
+                        <div className="absolute -inset-1 bg-gradient-to-tr from-accent to-transparent rounded-full opacity-30 group-hover:opacity-100 transition-opacity" />
+                        <img 
+                          src={t.avatar} 
+                          alt={t.name} 
+                          className="w-full h-full rounded-full object-cover relative z-10 border-2 border-bg-card" 
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-black text-white">{t.name}</h4>
+                        <p className="text-sm text-accent font-bold uppercase tracking-widest">{t.role}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Navigation Indicators & Controls */}
+              <div className="flex flex-col md:flex-row justify-between items-center gap-8 mt-12">
+                <div className="flex gap-2">
+                  {testimonials.map((_, i) => (
+                    <motion.div 
+                      key={i} 
+                      className="h-1.5 rounded-full bg-white/10"
+                      initial={false}
+                      animate={{ width: 12 }} // Can be dynamic if we track active
+                    />
+                  ))}
+                </div>
+
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => {
+                      const track = document.getElementById('testimonial-track');
+                      if (track) track.scrollBy({ left: -480, behavior: 'smooth' });
+                    }}
+                    className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black transition-all group"
+                    aria-label="Previous testimonial"
+                  >
+                    <ChevronRight className="w-6 h-6 rotate-180 group-hover:-translate-x-1 transition-transform" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const track = document.getElementById('testimonial-track');
+                      if (track) track.scrollBy({ left: 480, behavior: 'smooth' });
+                    }}
+                    className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black transition-all group"
+                    aria-label="Next testimonial"
+                  >
+                    <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </section>

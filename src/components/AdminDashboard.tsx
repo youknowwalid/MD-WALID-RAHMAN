@@ -313,10 +313,13 @@ export default function AdminDashboard() {
       const formData = new FormData(e.target as HTMLFormElement);
       const data: any = Object.fromEntries(formData.entries());
 
-      // Inject uploaded image if present
+      // Inject uploaded image if present or preserve existing
       if (uploadValue) {
         if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = uploadValue;
         if (activeTab === 'testimonials') data.avatar = uploadValue;
+      } else if (editingItem) {
+        if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = editingItem.image;
+        if (activeTab === 'testimonials') data.avatar = editingItem.avatar;
       }
 
       // Feature formatting for pricing plans
