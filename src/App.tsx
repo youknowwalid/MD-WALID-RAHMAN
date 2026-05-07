@@ -366,22 +366,6 @@ function Portfolio() {
     };
   }, []);
 
-  // Auto-scrolling testimonials
-  useEffect(() => {
-    if (testimonials.length <= 1) return;
-    const interval = setInterval(() => {
-      const track = document.getElementById('testimonial-track');
-      if (track) {
-        const isAtEnd = track.scrollLeft + track.offsetWidth >= track.scrollWidth - 10;
-        if (isAtEnd) {
-          track.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          track.scrollBy({ left: 480, behavior: 'smooth' });
-        }
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [testimonials]);
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -875,95 +859,55 @@ function Portfolio() {
         </section>
 
         {/* Testimonials */}
-        <section className="py-16 md:py-32 px-6 bg-bg-card/20 overflow-hidden relative">
+        <section className="py-16 md:py-32 bg-bg-card/20 overflow-hidden relative">
           {/* Decorative Background */}
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] -z-10" />
           
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto px-6 mb-16">
             <SectionHeader label="Clients" title="Kind Words" />
-            
-            <div className="relative mt-20">
-              <div 
-                className="flex gap-8 overflow-x-auto pb-12 snap-x hide-scrollbar scroll-smooth" 
-                id="testimonial-track"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {testimonials.map((t, i) => (
-                  <motion.div
-                    key={t.id || i}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: i * 0.1 }}
-                    className="min-w-[280px] md:min-w-[450px] p-6 md:p-10 bg-bg-card rounded-[40px] snap-center border border-white/5 relative group hover:border-accent/30 transition-all flex flex-col"
-                  >
-                    <div className="absolute top-6 right-6 md:top-10 md:right-10 text-accent/10 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <MessageSquare className="w-8 h-8 md:w-12 md:h-12" />
-                    </div>
-                    
-                    <div className="flex gap-1 mb-6 md:mb-8">
-                      {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 md:w-4 md:h-4 fill-accent text-accent" />)}
-                    </div>
+          </div>
 
-                    <p className="text-base md:text-xl text-gray-300 leading-relaxed italic mb-8 md:mb-10 flex-grow">
-                      "{t.content}"
-                    </p>
+          <div className="relative flex overflow-hidden group/marquee">
+            <div 
+              className="flex gap-6 py-4 px-3 animate-marquee group-hover/marquee:[animation-play-state:paused]"
+              style={{ 
+                animationDuration: `${Math.max(20, testimonials.length * 4)}s` 
+              }}
+            >
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div
+                  key={`${t.id}-${i}`}
+                  className="w-[320px] md:w-[400px] h-[200px] p-5 md:p-6 bg-bg-card rounded-2xl border border-white/5 relative group hover:border-accent/30 transition-all flex flex-col shrink-0"
+                >
+                  <div className="absolute top-4 right-4 text-accent/10 opacity-40">
+                    <MessageSquare className="w-5 h-5" />
+                  </div>
+                  
+                  <div className="flex gap-0.5 mb-2">
+                    {[1,2,3,4,5].map(s => <Star key={s} className="w-2 h-2 md:w-2.5 md:h-2.5 fill-accent text-accent" />)}
+                  </div>
 
-                    <div className="flex items-center gap-4 pt-6 md:pt-8 border-t border-white/5">
-                      <div className="relative w-10 h-10 md:w-14 md:h-14 shrink-0">
-                        <div className="absolute -inset-1 bg-gradient-to-tr from-accent to-transparent rounded-full opacity-30 group-hover:opacity-100 transition-opacity" />
-                        <img 
-                          src={t.avatar} 
-                          alt={t.name} 
-                          className="w-full h-full rounded-full object-cover relative z-10 border-2 border-bg-card" 
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                      <div>
-                        <h4 className="text-base md:text-lg font-black text-white">{t.name}</h4>
-                        <p className="text-[10px] md:text-sm text-accent font-bold uppercase tracking-widest">{t.role}</p>
-                      </div>
+                  <p className="text-[11px] md:text-[13px] text-gray-400 leading-snug italic mb-4 flex-grow line-clamp-3">
+                    "{t.content}"
+                  </p>
+
+                  <div className="flex items-center gap-3 pt-3 border-t border-white/5">
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 shrink-0">
+                      <div className="absolute -inset-1 bg-gradient-to-tr from-accent to-transparent rounded-full opacity-30" />
+                      <img 
+                        src={t.avatar} 
+                        alt={t.name} 
+                        className="w-full h-full rounded-full object-cover relative z-10 border-2 border-bg-card" 
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Navigation Indicators & Controls */}
-              <div className="flex flex-col md:flex-row justify-between items-center gap-8 mt-12">
-                <div className="flex gap-2">
-                  {testimonials.map((_, i) => (
-                    <motion.div 
-                      key={i} 
-                      className="h-1.5 rounded-full bg-white/10"
-                      initial={false}
-                      animate={{ width: 12 }} // Can be dynamic if we track active
-                    />
-                  ))}
+                    <div>
+                      <h4 className="text-lg md:text-[22px] font-black text-white leading-none mb-1">{t.name}</h4>
+                      <p className="text-[10px] md:text-[12px] text-accent font-bold uppercase tracking-wider">{t.role}</p>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="flex gap-4">
-                  <button 
-                    onClick={() => {
-                      const track = document.getElementById('testimonial-track');
-                      if (track) track.scrollBy({ left: -480, behavior: 'smooth' });
-                    }}
-                    className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black transition-all group"
-                    aria-label="Previous testimonial"
-                  >
-                    <ChevronRight className="w-6 h-6 rotate-180 group-hover:-translate-x-1 transition-transform" />
-                  </button>
-                  <button 
-                    onClick={() => {
-                      const track = document.getElementById('testimonial-track');
-                      if (track) track.scrollBy({ left: 480, behavior: 'smooth' });
-                    }}
-                    className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black transition-all group"
-                    aria-label="Next testimonial"
-                  >
-                    <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
