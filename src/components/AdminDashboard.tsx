@@ -202,6 +202,57 @@ export default function AdminDashboard() {
   const [cvUrl, setCvUrl] = useState('');
   const [resumeImage, setResumeImage] = useState('');
   const [uploadValue, setUploadValue] = useState('');
+  const [socialUploadValue, setSocialUploadValue] = useState('');
+  const [currentSocialData, setCurrentSocialData] = useState({
+    title: '',
+    description: '',
+    image: '',
+    slug: ''
+  });
+
+  useEffect(() => {
+    if (editingItem && (activeTab === 'projects' || activeTab === 'blogPosts')) {
+      setCurrentSocialData({
+        title: editingItem.socialTitle || editingItem.title || '',
+        description: editingItem.socialDescription || editingItem.excerpt || editingItem.content?.slice(0, 160) || '',
+        image: editingItem.socialImage || editingItem.image || '',
+        slug: editingItem.slug || ''
+      });
+      setSocialUploadValue(editingItem.socialImage || '');
+    } else if (isAdding) {
+      setCurrentSocialData({ title: '', description: '', image: '', slug: '' });
+      setSocialUploadValue('');
+    }
+  }, [editingItem, isAdding, activeTab]);
+
+  const SocialPreview = ({ data }: { data: typeof currentSocialData }) => (
+    <div className="mt-10 border-t border-white/10 pt-10">
+      <h4 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-6">Live Social Preview (Facebook)</h4>
+      <div className="bg-white rounded-lg overflow-hidden max-w-md border border-gray-200 text-black">
+        <div className="aspect-[1200/630] bg-gray-100 flex items-center justify-center overflow-hidden border-b border-gray-200">
+          {data.image || socialUploadValue ? (
+            <img src={socialUploadValue || data.image} alt="Social" className="w-full h-full object-cover" />
+          ) : (
+            <div className="text-gray-400 text-xs text-center p-4">
+              <ImageIcon className="w-8 h-8 mx-auto mb-2 opacity-20" />
+              Upload social image to preview
+            </div>
+          )}
+        </div>
+        <div className="p-4 bg-[#f2f3f5]">
+          <div className="text-[12px] text-gray-500 uppercase font-medium truncate mb-1">
+            YOUKNOWWALID.PRO / {data.slug || 'your-slug'}
+          </div>
+          <div className="text-lg font-bold leading-tight line-clamp-2 mb-1">
+            {data.title || 'Your Social Title Will Appear Here'}
+          </div>
+          <div className="text-[14px] text-gray-600 line-clamp-2 leading-relaxed">
+            {data.description || 'Provide a compelling description for social media users to click through to your site.'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const [isUploadingCV, setIsUploadingCV] = useState(false);
 
@@ -320,6 +371,12 @@ export default function AdminDashboard() {
       } else if (editingItem) {
         if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = editingItem.image;
         if (activeTab === 'testimonials') data.avatar = editingItem.avatar;
+      }
+
+      if (socialUploadValue) {
+        data.socialImage = socialUploadValue;
+      } else if (editingItem) {
+        data.socialImage = editingItem.socialImage;
       }
 
       // Tags formatting
@@ -595,13 +652,17 @@ export default function AdminDashboard() {
                     <>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Project Title</label>
-                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" onChange={(e) => setCurrentSocialData(prev => ({ ...prev, title: e.target.value }))} />
                       </div>
                       <div>
                         <label className="block text-sm text-gray-400 mb-2">Category</label>
                         <input name="category" defaultValue={editingItem?.category} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div>
+                        <label className="block text-sm text-gray-400 mb-2">Permalink / Slug</label>
+                        <input name="slug" defaultValue={editingItem?.slug} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="e.g. project-awesome" onChange={(e) => setCurrentSocialData(prev => ({ ...prev, slug: e.target.value }))} />
+                      </div>
+                      <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Link</label>
                         <input name="link" defaultValue={editingItem?.link} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="External URL (optional)" />
                       </div>
@@ -612,6 +673,31 @@ export default function AdminDashboard() {
                           onChange={setUploadValue} 
                           recommendation="Recommended: 800x600px JPG/PNG."
                         />
+                      </div>
+                      <div className="col-span-2 pt-6 border-t border-white/5">
+                        <h4 className="text-accent font-bold uppercase text-xs tracking-widest mb-4">Social Media SEO</h4>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Social Title</label>
+                        <input name="socialTitle" defaultValue={editingItem?.socialTitle} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="Catchy title for FB/LinkedIn" onChange={(e) => setCurrentSocialData(prev => ({ ...prev, title: e.target.value }))} />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Social Description</label>
+                        <textarea name="socialDescription" defaultValue={editingItem?.socialDescription} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" placeholder="Hook users from their feed..." onChange={(e) => setCurrentSocialData(prev => ({ ...prev, description: e.target.value }))} />
+                      </div>
+                      <div className="col-span-2">
+                        <ImageUpload 
+                          label="Social Image (1200x630)" 
+                          value={socialUploadValue || editingItem?.socialImage} 
+                          onChange={setSocialUploadValue} 
+                          recommendation="Recommended: 1200x630px for optimal social sharing."
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <SocialPreview data={currentSocialData} />
+                      </div>
+                      <div className="col-span-2 pt-6 border-t border-white/5">
+                        <h4 className="text-accent font-bold uppercase text-xs tracking-widest mb-4">Content</h4>
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Detailed Content (Markdown supported)</label>
@@ -649,7 +735,11 @@ export default function AdminDashboard() {
                     <>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Post Title</label>
-                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" onChange={(e) => setCurrentSocialData(prev => ({ ...prev, title: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Permalink / Slug</label>
+                        <input name="slug" defaultValue={editingItem?.slug} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="e.g. future-of-minimalism" onChange={(e) => setCurrentSocialData(prev => ({ ...prev, slug: e.target.value }))} />
                       </div>
                       <div>
                         <label className="block text-sm text-gray-400 mb-2">Date String</label>
@@ -666,6 +756,31 @@ export default function AdminDashboard() {
                           onChange={setUploadValue} 
                           recommendation="Recommended: 800x500px JPG/PNG."
                         />
+                      </div>
+                      <div className="col-span-2 pt-6 border-t border-white/5">
+                        <h4 className="text-accent font-bold uppercase text-xs tracking-widest mb-4">Social Media SEO</h4>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Social Title</label>
+                        <input name="socialTitle" defaultValue={editingItem?.socialTitle} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="SEO optimized title" onChange={(e) => setCurrentSocialData(prev => ({ ...prev, title: e.target.value }))} />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Social Description</label>
+                        <textarea name="socialDescription" defaultValue={editingItem?.socialDescription} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" placeholder="Short summary for social feeds..." onChange={(e) => setCurrentSocialData(prev => ({ ...prev, description: e.target.value }))} />
+                      </div>
+                      <div className="col-span-2">
+                        <ImageUpload 
+                          label="Social Image (1200x630)" 
+                          value={socialUploadValue || editingItem?.socialImage} 
+                          onChange={setSocialUploadValue} 
+                          recommendation="Recommended: 1200x630px for optimal social sharing."
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <SocialPreview data={currentSocialData} />
+                      </div>
+                      <div className="col-span-2 pt-6 border-t border-white/5">
+                        <h4 className="text-accent font-bold uppercase text-xs tracking-widest mb-4">Content</h4>
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Excerpt</label>

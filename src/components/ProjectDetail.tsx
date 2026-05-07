@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, ExternalLink, Calendar, Tag, User } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { Project } from '../types';
 import Navbar from './Navbar';
@@ -59,16 +59,26 @@ export default function ProjectDetail() {
       try {
         if (!projectId) return;
         
-        // Try Firestore first
+        // Try Firestore by ID first
         const docRef = doc(db, 'projects', projectId);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
           setProject({ id: docSnap.id, ...docSnap.data() } as Project);
         } else {
-          // Fallback to local defaults
-          const localProject = DEFAULT_PROJECTS.find(p => p.id === projectId);
-          setProject(localProject || null);
+          // If not found by ID, try looking up by slug
+          const projectsRef = collection(db, 'projects');
+          const q = query(projectsRef, where('slug', '==', projectId), limit(1));
+          const querySnapshot = await getDocs(q);
+          
+          if (!querySnapshot.empty) {
+            const firstDoc = querySnapshot.docs[0];
+            setProject({ id: firstDoc.id, ...firstDoc.data() } as Project);
+          } else {
+            // Fallback to local defaults
+            const localProject = DEFAULT_PROJECTS.find(p => p.id === projectId || p.slug === projectId);
+            setProject(localProject || null);
+          }
         }
       } catch (error) {
         console.error("Error fetching project:", error);

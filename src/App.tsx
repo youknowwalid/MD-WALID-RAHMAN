@@ -780,7 +780,7 @@ function Portfolio() {
                     <h3 className="text-3xl font-black mb-4">{project.title}</h3>
                     <div className="flex gap-4">
                       <Link 
-                        to={`/projects/${project.id || project.title.toLowerCase().replace(/\s+/g, '-')}`} 
+                        to={`/projects/${project.slug || project.id || project.title.toLowerCase().replace(/\s+/g, '-')}`} 
                         className="p-3 bg-accent rounded-full text-black hover:scale-110 transition-transform"
                       >
                         <ExternalLink className="w-5 h-5" />
@@ -912,7 +912,7 @@ function Portfolio() {
                   transition={{ delay: i * 0.1 }}
                   className="group cursor-pointer"
                 >
-                  <Link to={`/blog/${post.id || post.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <Link to={`/blog/${post.slug || post.id || post.title.toLowerCase().replace(/\s+/g, '-')}`}>
                     <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all">
                       <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" />
                     </div>

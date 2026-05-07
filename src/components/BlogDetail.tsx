@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, Calendar, User, Clock, Share2, Facebook, Linkedin, Twitter } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { BlogPost } from '../types';
 import Navbar from './Navbar';
@@ -42,14 +42,25 @@ export default function BlogDetail() {
       try {
         if (!blogId) return;
         
+        // Try Firestore by ID first
         const docRef = doc(db, 'blogPosts', blogId);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
           setPost({ id: docSnap.id, ...docSnap.data() } as BlogPost);
         } else {
-          const localPost = DEFAULT_BLOG_POSTS.find(p => p.id === blogId);
-          setPost(localPost || null);
+          // Try looking up by slug
+          const postsRef = collection(db, 'blogPosts');
+          const q = query(postsRef, where('slug', '==', blogId), limit(1));
+          const querySnapshot = await getDocs(q);
+          
+          if (!querySnapshot.empty) {
+            const firstDoc = querySnapshot.docs[0];
+            setPost({ id: firstDoc.id, ...firstDoc.data() } as BlogPost);
+          } else {
+            const localPost = DEFAULT_BLOG_POSTS.find(p => p.id === blogId || p.slug === blogId);
+            setPost(localPost || null);
+          }
         }
       } catch (error) {
         console.error("Error fetching blog post:", error);

@@ -3,6 +3,7 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Project {
   id?: string;
+  slug?: string;
   title: string;
   category: string;
   image: string;
@@ -10,10 +11,14 @@ export interface Project {
   content?: string;
   gallery?: string[];
   tags?: string[];
+  socialTitle?: string;
+  socialDescription?: string;
+  socialImage?: string;
 }
 
 export interface BlogPost {
   id?: string;
+  slug?: string;
   title: string;
   date: string;
   excerpt: string;
@@ -21,6 +26,9 @@ export interface BlogPost {
   content?: string;
   author?: string;
   tags?: string[];
+  socialTitle?: string;
+  socialDescription?: string;
+  socialImage?: string;
 }
 
 export interface Service {
