@@ -21,6 +21,7 @@ import {
   X,
   FileText,
   LayoutDashboard,
+  Clock,
   Loader2
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
@@ -177,9 +178,33 @@ const DEFAULT_BLOG_POSTS: BlogPost[] = [
 ];
 
 const DEFAULT_PRICING_PLANS: PricingPlan[] = [
-  { name: 'Basic Plan', price: '$19.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
-  { name: 'Standard Plan', price: '$39.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: true },
-  { name: 'Premium Plan', price: '$99.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
+  { 
+    name: 'Basic Plan', 
+    price: '$350', 
+    features: ['Website Design (up to 3 pages)', 'Basic Brand Identity & Logo', 'Social Media Management (2 platforms)', 'Copywriting (4 posts/month)', '1 Revision Round', '3 Hours / Day Consultation'],
+    unavailableFeatures: ['Mobile App Design', 'Product Design', 'Paid Ads / Campaigns', 'SEO & Analytics', 'UI/UX Design'],
+    buttonText: "Let's Talk",
+    buttonUrl: "https://wa.me/8801744588644?text=Hi!%20I%20was%20looking%20at%20your%20portfolio%20and%20I'm%20interested%20in%20the%20$350%20Basic%20Plan.%20Can%20we%20discuss%20my%20project?",
+    accent: false 
+  },
+  { 
+    name: 'Standard Plan', 
+    price: '$500', 
+    features: ['Website Design (up to 8 pages)', 'Mobile App Design', 'Full Brand Identity & Logo Kit', 'Social Media Management (4 platforms)', 'Copywriting (12 posts/month)', 'Paid Ads / Campaigns (1 campaign)', 'Basic SEO & Monthly Report', '3 Revision Rounds', '6 Hours / Day Consultation'],
+    unavailableFeatures: ['Product Design', 'UI/UX Design & Prototyping'],
+    buttonText: 'Get Started',
+    buttonUrl: "https://wa.me/8801744588644?text=Hi!%20I%20was%20looking%20at%20your%20portfolio%20and%20I'd%20like%20to%20get%20started%20with%20the%20$500%20Standard%20Plan.%20Let's%20talk!",
+    accent: true 
+  },
+  { 
+    name: 'Premium Plan', 
+    price: '$1200', 
+    features: ['Website Design (Unlimited pages)', 'Mobile App & Product Design', 'Full Brand Identity + Style Guide', 'UI/UX Design & Prototyping', 'Social Media Management (All platforms)', 'Unlimited Paid Ads / Campaigns', 'Unlimited Copywriting', 'Full SEO, Analytics & Growth Strategy', 'Dedicated Account Manager', 'Unlimited Revision Rounds', '9 Hours / Day Consultation'],
+    unavailableFeatures: [],
+    buttonText: 'Inquire Now',
+    buttonUrl: "https://wa.me/8801744588644?text=Hi!%20I%20was%20looking%20at%20your%20portfolio%20and%20I%20need%20the%20$1200%20Premium%20Plan%20for%20my%20project.",
+    accent: false 
+  },
 ];
 
 // --- Components ---
@@ -877,21 +902,67 @@ function Portfolio() {
                   )}
                   <h3 className="text-2xl font-black mb-4">{plan.name}</h3>
                   <div className="text-5xl font-black mb-8">{plan.price}<span className="text-lg text-gray-500 font-normal">/month</span></div>
-                  <ul className="space-y-4 mb-10">
-                    {plan.features.map(f => (
-                      <li key={f} className="flex items-center gap-3 text-gray-400 text-sm">
-                        <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button className={cn(
-                    "w-full py-4 rounded-xl font-black transition-all overflow-hidden relative group",
-                    plan.accent ? "bg-accent text-black" : "border border-white/20 hover:bg-white/5"
-                  )}>
-                    <span className="relative z-10">Choose Plan</span>
+                  
+                  <div className="space-y-6 mb-10 overflow-hidden">
+                    {/* Consultation Highlight Box */}
+                    {plan.features.find(f => f.toLowerCase().includes('consultation')) && (
+                      <div className="p-4 bg-accent/10 border border-accent/20 rounded-2xl flex items-center gap-4 mb-8">
+                        <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(214,255,65,0.4)]">
+                          <Clock className="w-5 h-5 text-black" />
+                        </div>
+                        <div>
+                          <div className="text-accent font-black text-sm leading-tight">
+                            {plan.features.find(f => f.toLowerCase().includes('consultation'))?.split(' Consultation')[0]}
+                          </div>
+                          <div className="text-[10px] text-accent/60 font-bold uppercase tracking-wider">
+                            Consultation included
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] mb-4">Available Services</h4>
+                      <ul className="space-y-3">
+                        {plan.features.filter(f => !f.toLowerCase().includes('consultation')).map(f => (
+                          <li key={f} className="flex items-start gap-3 text-white text-[13px] font-medium group">
+                            <div className="w-5 h-5 rounded-full border border-accent/30 flex items-center justify-center bg-accent/5 group-hover:bg-accent transition-colors shrink-0 mt-0.5">
+                              <CheckCircle2 className="w-3 h-3 text-accent group-hover:text-black transition-colors" />
+                            </div>
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {plan.unavailableFeatures && plan.unavailableFeatures.length > 0 && (
+                      <div>
+                        <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-4">Not Available</h4>
+                        <ul className="space-y-3">
+                          {plan.unavailableFeatures.map(f => (
+                            <li key={f} className="flex items-start gap-3 text-gray-600 text-[13px] opacity-60">
+                              <div className="w-5 h-5 rounded-full border border-white/5 flex items-center justify-center bg-white/5 shrink-0 mt-0.5">
+                                <X className="w-3 h-3 text-gray-700" />
+                              </div>
+                              <span>{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  <a 
+                    href={plan.buttonUrl || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(
+                      "flex items-center justify-center w-full py-4 rounded-xl font-black transition-all overflow-hidden relative group text-sm uppercase tracking-widest",
+                      plan.accent ? "bg-accent text-black shadow-[0_0_20px_rgba(214,255,65,0.3)]" : "border border-white/20 hover:bg-white/5 text-white"
+                    )}
+                  >
+                    <span className="relative z-10">{plan.buttonText || "Choose Plan"}</span>
                     <div className="absolute inset-0 shimmer animate-[shimmer_2s_infinite] opacity-0 group-hover:opacity-100" />
-                  </button>
+                  </a>
                 </motion.div>
               ))}
             </div>

@@ -68,5 +68,8 @@ export interface PricingPlan {
   name: string;
   price: string;
   features: string[];
+  unavailableFeatures?: string[];
+  buttonText?: string;
+  buttonUrl?: string;
   accent: boolean;
 }

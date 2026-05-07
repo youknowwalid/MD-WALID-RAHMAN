@@ -387,6 +387,7 @@ export default function AdminDashboard() {
       // Feature formatting for pricing plans
       if (activeTab === 'pricingPlans') {
         data.features = (data.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
+        data.unavailableFeatures = (data.unavailableFeatures as string || '').split(',').map(f => f.trim()).filter(f => f !== '');
         data.accent = data.accent === 'true';
       }
 
@@ -854,6 +855,10 @@ export default function AdminDashboard() {
                         <input name="price" defaultValue={editingItem?.price} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div>
+                        <label className="block text-sm text-gray-400 mb-2">Button Text</label>
+                        <input name="buttonText" defaultValue={editingItem?.buttonText} placeholder="e.g. Choose Plan" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
                         <label className="block text-sm text-gray-400 mb-2">Make Accent/Featured?</label>
                         <select name="accent" defaultValue={String(!!editingItem?.accent)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
                           <option value="false" className="bg-bg-dark">Normal</option>
@@ -861,8 +866,16 @@ export default function AdminDashboard() {
                         </select>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Features (Comma separated)</label>
+                        <label className="block text-sm text-gray-400 mb-2">Button URL (WhatsApp/Link)</label>
+                        <input name="buttonUrl" defaultValue={editingItem?.buttonUrl} placeholder="https://wa.me/..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Available Features (Comma separated)</label>
                         <textarea name="features" defaultValue={editingItem?.features?.join(', ')} required rows={4} placeholder="Feature 1, Feature 2, Feature 3" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Not Available Services (Comma separated)</label>
+                        <textarea name="unavailableFeatures" defaultValue={editingItem?.unavailableFeatures?.join(', ')} rows={4} placeholder="Service 1, Service 2" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
                       </div>
                     </>
                   )}
