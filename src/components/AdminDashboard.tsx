@@ -12,7 +12,9 @@ import {
   Briefcase, 
   FileText,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  Database,
+  Users
 } from 'lucide-react';
 import { 
   auth, 
@@ -24,6 +26,43 @@ import {
   updateDocument, 
   removeDocument 
 } from '../services/firebase';
+
+// Default data to seed if empty
+const SEED_DATA: Record<string, any[]> = {
+  projects: [
+    { title: 'Nexus Brand Identity', category: 'Branding', image: 'https://picsum.photos/seed/nexus/800/600', link: '#' },
+    { title: 'Volt E-Commerce', category: 'Web App', image: 'https://picsum.photos/seed/volt/800/600', link: '#' },
+    { title: 'Lumina Dashboard', category: 'UI/UX', image: 'https://picsum.photos/seed/lumina/800/600', link: '#' },
+    { title: 'Orbit Marketing', category: 'Social Media', image: 'https://picsum.photos/seed/orbit/800/600', link: '#' },
+  ],
+  services: [
+    { id: '01', title: 'Brand Identity', description: 'Crafting unique visual identities that resonate with your target audience.', iconName: 'Palette' },
+    { id: '02', title: 'Web Development', description: 'Building fast, responsive, and modern websites using the latest technologies.', iconName: 'Braces' },
+    { id: '03', title: 'Digital Marketing', description: 'Strategic marketing campaigns to grow your brand and reach new customers.', iconName: 'Megaphone' },
+    { id: '04', title: 'Product Strategy', description: 'Defining the roadmap and vision for your digital products.', iconName: 'Laptop' },
+    { id: '05', title: 'UI/UX Design', description: 'Designing intuitive and beautiful user experiences.', iconName: 'Palette' },
+    { id: '06', title: 'Content Creation', description: 'Engaging content that tells your brands story across all platforms.', iconName: 'Megaphone' },
+  ],
+  blogPosts: [
+    { title: 'The Future of Minimalism', date: 'May 10, 2024', excerpt: 'Exploring how minimalist design is evolving in the age of AI.', image: 'https://picsum.photos/seed/blog1/800/500' },
+    { title: 'Building Scalable Brands', date: 'Apr 28, 2024', excerpt: 'Key strategies for creating a brand that grows with your business.', image: 'https://picsum.photos/seed/blog2/800/500' },
+    { title: 'UX Patterns to Watch', date: 'Apr 15, 2024', excerpt: 'Current trends in user experience that are shaping digital products.', image: 'https://picsum.photos/seed/blog3/800/500' },
+    { title: 'Brand Consistency', date: 'Mar 30, 2024', excerpt: 'Why maintaining a consistent voice is crucial for long-term success.', image: 'https://picsum.photos/seed/blog4/800/500' },
+  ],
+  resume: [
+    { year: '2024 - Present', role: 'Executive Director', company: 'De Jure Academy', desc: 'Directing strategic vision and growth.' },
+    { year: '2023 - 2024', role: 'Creative Director', company: 'Arani Advertising Ltd.', desc: 'Leading creative campaigns.' },
+    { year: '2023 - 2024', role: 'Manager', company: 'PMUK', desc: 'Managing operational workflows.' },
+    { year: '2022 - 2023', role: 'Manager', company: 'Restoreit AB', desc: 'Overseeing service quality.' },
+    { year: '2020 - 2022', role: 'Project Manager', company: 'JBL Bangladesh / EDISON Group', desc: 'Coordinating high-profile projects.' },
+    { year: '2019 - 2020', role: 'Creative Lead', company: 'Jadroo Group', desc: 'Conceptualizing brand stories.' },
+  ],
+  testimonials: [
+    { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transform our brand completely. His attention to detail and creative vision are unmatched.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
+    { name: 'Michael Chen', role: 'Founder, EcoStream', content: 'Working with Walid was a game-changer for our digital presence. He truly understands modern brand development.', avatar: 'https://i.pravatar.cc/150?u=michael' },
+    { name: 'Elena Rodriguez', role: 'Marketing Director, Vora', content: 'The website Walid built for us exceeded all expectations. Fast, beautiful, and highly functional.', avatar: 'https://i.pravatar.cc/150?u=elena' },
+  ]
+};
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -31,6 +70,8 @@ const TABS = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
+  { id: 'resume', label: 'Resume', icon: FileText },
+  { id: 'testimonials', label: 'Feedback', icon: Users },
 ];
 
 export default function AdminDashboard() {
@@ -128,6 +169,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSeedData = async () => {
+    if (items.length > 0) {
+      if (!window.confirm('This collection already has items. Do you want to add default items anyway?')) return;
+    }
+    
+    setLoading(true);
+    const dataToSeed = SEED_DATA[activeTab];
+    if (dataToSeed) {
+      for (const item of dataToSeed) {
+        await addDocument(activeTab, item);
+      }
+      alert(`Imported ${dataToSeed.length} items into ${activeTab}.`);
+      loadItems();
+    }
+    setLoading(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-bg-dark flex items-center justify-center">
@@ -209,13 +267,23 @@ export default function AdminDashboard() {
             <h2 className="text-3xl font-black">{TABS.find(t => t.id === activeTab)?.label} Management</h2>
             <p className="text-gray-400">Total items: {items.length}</p>
           </div>
-          <button 
-            onClick={() => setIsAdding(true)}
-            className="flex items-center gap-2 bg-accent text-black font-black px-6 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Add New
-          </button>
+          <div className="flex gap-4">
+            <button 
+              onClick={handleSeedData}
+              className="flex items-center gap-2 border border-white/10 text-gray-400 font-bold px-6 py-3 rounded-xl hover:bg-white/5 transition-all"
+              title="Import Default Data"
+            >
+              <Database className="w-5 h-5" />
+              Seed Default
+            </button>
+            <button 
+              onClick={() => setIsAdding(true)}
+              className="flex items-center gap-2 bg-accent text-black font-black px-6 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Add New
+            </button>
+          </div>
         </div>
 
         {/* Form Overlay */}
@@ -306,6 +374,48 @@ export default function AdminDashboard() {
                     </>
                   )}
 
+                  {activeTab === 'resume' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Role / Title</label>
+                        <input name="role" defaultValue={editingItem?.role} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Company / Institution</label>
+                        <input name="company" defaultValue={editingItem?.company} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Year / Duration</label>
+                        <input name="year" defaultValue={editingItem?.year} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Description (Optional)</label>
+                        <textarea name="desc" defaultValue={editingItem?.desc} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                    </>
+                  )}
+
+                  {activeTab === 'testimonials' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Client Name</label>
+                        <input name="name" defaultValue={editingItem?.name} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Role / Position</label>
+                        <input name="role" defaultValue={editingItem?.role} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Avatar URL</label>
+                        <input name="avatar" defaultValue={editingItem?.avatar} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Feedback Content</label>
+                        <textarea name="content" defaultValue={editingItem?.content} required rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                    </>
+                  )}
+
                   <div className="col-span-2 flex justify-end gap-4 mt-4">
                     <button 
                       type="button" 
@@ -337,14 +447,19 @@ export default function AdminDashboard() {
               className="bg-bg-card p-6 rounded-2xl border border-white/5 flex items-center gap-6 group hover:border-accent/30 transition-all"
             >
               {item.image && (
-                <img src={item.image} alt={item.title} className="w-20 h-20 object-cover rounded-xl border border-white/10" referrerPolicy="no-referrer" />
+                <img src={item.image} alt={item.title || item.name} className="w-20 h-20 object-cover rounded-xl border border-white/10" referrerPolicy="no-referrer" />
+              )}
+              {item.avatar && (
+                <img src={item.avatar} alt={item.name} className="w-20 h-20 object-cover rounded-full border border-white/10" referrerPolicy="no-referrer" />
               )}
               <div className="flex-1">
-                <h4 className="text-xl font-bold mb-1">{item.title}</h4>
+                <h4 className="text-xl font-bold mb-1">{item.title || item.name || item.role}</h4>
                 <div className="flex gap-4 text-sm text-gray-500">
                   {item.category && <span>{item.category}</span>}
                   {item.id && activeTab === 'services' && <span>ID: {item.id}</span>}
                   {item.date && <span>{item.date}</span>}
+                  {item.year && <span>{item.year}</span>}
+                  {item.company && <span>{item.company}</span>}
                 </div>
               </div>
               <div className="flex gap-2">

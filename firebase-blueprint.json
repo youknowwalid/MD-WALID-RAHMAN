@@ -49,6 +49,32 @@
         "isAdmin": { "type": "boolean" }
       },
       "required": ["uid", "email"]
+    },
+    "resumeItem": {
+      "title": "Resume Item",
+      "description": "An experience or education entry",
+      "type": "object",
+      "properties": {
+        "year": { "type": "string" },
+        "role": { "type": "string" },
+        "company": { "type": "string" },
+        "desc": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["year", "role", "company"]
+    },
+    "testimonial": {
+      "title": "Testimonial",
+      "description": "Client feedback",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "content": { "type": "string" },
+        "avatar": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "role", "content"]
     }
   },
   "firestore": {
@@ -67,6 +93,14 @@
     "users": {
         "schema": "user",
         "description": "Collection of system users"
+    },
+    "resume": {
+      "schema": "resumeItem",
+      "description": "Collection of resume items"
+    },
+    "testimonials": {
+      "schema": "testimonial",
+      "description": "Collection of client testimonials"
     }
   }
 }

@@ -239,6 +239,11 @@ function Portfolio() {
   const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
   const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(DEFAULT_BLOG_POSTS);
+  const [resume, setResume] = useState<any[]>([]); // Initialize empty then use defaults if none from DB
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(TESTIMONIALS);
+
+  const [hasResumeData, setHasResumeData] = useState(false);
+  const [hasTestimonialData, setHasTestimonialData] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -288,10 +293,32 @@ function Portfolio() {
         }
       }, (error) => handleFirestoreError(error, OperationType.GET, 'blogPosts'));
 
+    const unsubResume = onSnapshot(query(collection(db, 'resume'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setResume(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+          setHasResumeData(true);
+        } else {
+          setHasResumeData(false);
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'resume'));
+
+    const unsubTestimonials = onSnapshot(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+          setHasTestimonialData(true);
+        } else {
+          setHasTestimonialData(false);
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'testimonials'));
+
     return () => {
       unsubProjects();
       unsubServices();
       unsubBlog();
+      unsubResume();
+      unsubTestimonials();
     };
   }, []);
 
@@ -546,14 +573,14 @@ function Portfolio() {
           <div className="max-w-4xl mx-auto">
             <SectionHeader label="Resume" title="My Journey" />
             <div className="space-y-12">
-              {[
+              {(hasResumeData ? resume : [
                 { year: '2024 - Present', role: 'Executive Director', company: 'De Jure Academy', desc: '' },
                 { year: '2023 - 2024', role: 'Creative Director', company: 'Arani Advertising Ltd.', desc: '' },
                 { year: '2023 - 2024', role: 'Manager', company: 'PMUK', desc: '' },
                 { year: '2022 - 2023', role: 'Manager', company: 'Restoreit AB', desc: '' },
                 { year: '2020 - 2022', role: 'Project Manager', company: 'JBL Bangladesh / EDISON Group', desc: '' },
                 { year: '2019 - 2020', role: 'Creative Lead', company: 'Jadroo Group', desc: '' },
-              ].map((item, i) => (
+              ]).map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 30 }}
@@ -694,7 +721,7 @@ function Portfolio() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Clients" title="Kind Words" />
             <div className="flex gap-8 overflow-x-auto pb-12 snap-x hide-scrollbar">
-              {TESTIMONIALS.map((t, i) => (
+              {testimonials.map((t, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, x: 100 }}
