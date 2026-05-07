@@ -24,72 +24,72 @@ service cloud.firestore {
 
     function isValidProject(data) {
       return data.keys().hasAll(['title', 'category', 'image', 'link', 'createdAt']) &&
-             data.keys().size() == 5 &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
              data.title is string && data.title.size() <= 200 &&
              data.category is string && data.category.size() <= 100 &&
-             data.image is string && data.image.size() <= 1000 &&
+             data.image is string && data.image.size() <= 1000000 &&
              data.link is string && data.link.size() <= 1000 &&
-             (data.createdAt == request.time || data.createdAt is string); // Allow string fallback for draft simplicity
+             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp); 
     }
 
     function isValidService(data) {
       return data.keys().hasAll(['id', 'title', 'description', 'iconName', 'createdAt']) &&
-             data.keys().size() == 5 &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
              data.id is string && data.id.size() <= 10 &&
              data.title is string && data.title.size() <= 200 &&
              data.description is string && data.description.size() <= 1000 &&
              data.iconName is string && data.iconName.size() <= 100 &&
-             (data.createdAt == request.time || data.createdAt is string);
+             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
     }
 
     function isValidBlogPost(data) {
       return data.keys().hasAll(['title', 'date', 'excerpt', 'image', 'createdAt']) &&
-             data.keys().size() == 5 &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
              data.title is string && data.title.size() <= 200 &&
              data.date is string && data.date.size() <= 100 &&
              data.excerpt is string && data.excerpt.size() <= 1000 &&
-             data.image is string && data.image.size() <= 1000 &&
-             (data.createdAt == request.time || data.createdAt is string);
+             data.image is string && data.image.size() <= 1000000 &&
+             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
     }
 
     function isValidResumeItem(data) {
       return data.keys().hasAll(['year', 'role', 'company', 'desc', 'createdAt']) &&
-             data.keys().size() == 5 &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
              data.year is string && data.year.size() <= 100 &&
              data.role is string && data.role.size() <= 200 &&
              data.company is string && data.company.size() <= 200 &&
              data.desc is string && data.desc.size() <= 2000 &&
-             (data.createdAt == request.time || data.createdAt is string);
+             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
     }
 
     function isValidTestimonial(data) {
       return data.keys().hasAll(['name', 'role', 'content', 'avatar', 'createdAt']) &&
-             data.keys().size() == 5 &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
              data.name is string && data.name.size() <= 100 &&
              data.role is string && data.role.size() <= 200 &&
              data.content is string && data.content.size() <= 2000 &&
-             data.avatar is string && data.avatar.size() <= 1000 &&
-             (data.createdAt == request.time || data.createdAt is string);
+             data.avatar is string && data.avatar.size() <= 1000000 &&
+             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
     }
 
     function isValidPricingPlan(data) {
       return data.keys().hasAll(['name', 'price', 'features', 'accent', 'createdAt']) &&
-             data.keys().size() == 5 &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
              data.name is string && data.name.size() <= 100 &&
              data.price is string && data.price.size() <= 20 &&
              data.features is list && data.features.size() <= 20 &&
              data.accent is bool &&
-             (data.createdAt == request.time || data.createdAt is string);
+             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
     }
 
     function isValidContactSubmission(data) {
       return data.keys().hasAll(['name', 'email', 'subject', 'message', 'createdAt']) &&
-             data.keys().size() == 5 &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
              data.name is string && data.name.size() <= 100 &&
              data.email is string && data.email.size() <= 200 &&
              data.subject is string && data.subject.size() <= 200 &&
              data.message is string && data.message.size() <= 5000 &&
-             (data.createdAt == request.time || data.createdAt is string);
+             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
     }
 
     function isValidUser(data) {

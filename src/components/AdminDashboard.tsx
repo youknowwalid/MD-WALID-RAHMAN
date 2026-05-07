@@ -304,43 +304,53 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const data: any = Object.fromEntries(formData.entries());
+    setIsSaving(true);
+    try {
+      const formData = new FormData(e.target as HTMLFormElement);
+      const data: any = Object.fromEntries(formData.entries());
 
-    // Inject uploaded image if present
-    if (uploadValue) {
-      if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = uploadValue;
-      if (activeTab === 'testimonials') data.avatar = uploadValue;
-    }
+      // Inject uploaded image if present
+      if (uploadValue) {
+        if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = uploadValue;
+        if (activeTab === 'testimonials') data.avatar = uploadValue;
+      }
 
-    // Feature formatting for pricing plans
-    if (activeTab === 'pricingPlans') {
-      data.features = (data.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
-      data.accent = data.accent === 'true';
-    }
+      // Feature formatting for pricing plans
+      if (activeTab === 'pricingPlans') {
+        data.features = (data.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
+        data.accent = data.accent === 'true';
+      }
 
-    if (activeTab === 'settings') {
-      await updateDocument('siteConfig', 'hero', { 
-        heroImage, 
-        heroStatus,
-        heroAvailability,
-        cvUrl,
-        resumeImage,
-        updatedAt: new Date().toISOString() 
-      });
-      alert('Settings saved!');
-    } else if (editingItem) {
-      await updateDocument(activeTab, editingItem.id, data);
-    } else {
-      await addDocument(activeTab, data);
+      if (activeTab === 'settings') {
+        await updateDocument('siteConfig', 'hero', { 
+          heroImage, 
+          heroStatus,
+          heroAvailability,
+          cvUrl,
+          resumeImage,
+          updatedAt: new Date().toISOString() 
+        });
+        alert('Settings saved!');
+      } else if (editingItem) {
+        await updateDocument(activeTab, editingItem.id, data);
+      } else {
+        await addDocument(activeTab, data);
+      }
+      
+      setEditingItem(null);
+      setIsAdding(false);
+      setUploadValue('');
+      loadItems();
+    } catch (error) {
+      console.error("Save error:", error);
+      alert("Failed to save. Please check console for details.");
+    } finally {
+      setIsSaving(false);
     }
-    
-    setEditingItem(null);
-    setIsAdding(false);
-    setUploadValue('');
-    loadItems();
   };
 
   const handleDelete = async (id: string) => {
@@ -538,9 +548,11 @@ export default function AdminDashboard() {
               
               <button 
                 type="submit" 
-                className="bg-accent text-black font-black px-10 py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2"
+                disabled={isSaving}
+                className="bg-accent text-black font-black px-10 py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="w-5 h-5" /> Save Configuration
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                {isSaving ? 'Saving...' : 'Save Configuration'}
               </button>
             </form>
           </div>
@@ -722,10 +734,11 @@ export default function AdminDashboard() {
                     </button>
                     <button 
                       type="submit" 
-                      className="bg-accent text-black font-black px-10 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2"
+                      disabled={isSaving}
+                      className="bg-accent text-black font-black px-10 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Save className="w-5 h-5" />
-                      {editingItem ? 'Update' : 'Save'} Item
+                      {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                      {isSaving ? 'Processing...' : (editingItem ? 'Update Item' : 'Save Item')}
                     </button>
                   </div>
                 </form>
