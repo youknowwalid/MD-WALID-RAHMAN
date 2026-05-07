@@ -23,73 +23,75 @@ service cloud.firestore {
     // --- Validation Helpers ---
 
     function isValidProject(data) {
-      return data.keys().hasAll(['title', 'category', 'image', 'link', 'createdAt']) &&
-             data.keys().size() >= 5 && data.keys().size() <= 6 &&
-             data.title is string && data.title.size() <= 200 &&
-             data.category is string && data.category.size() <= 100 &&
-             data.image is string && data.image.size() <= 1000000 &&
-             data.link is string && data.link.size() <= 1000 &&
-             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp); 
-    }
-
-    function isValidService(data) {
-      return data.keys().hasAll(['id', 'title', 'description', 'iconName', 'createdAt']) &&
-             data.keys().size() >= 5 && data.keys().size() <= 6 &&
-             data.id is string && data.id.size() <= 10 &&
-             data.title is string && data.title.size() <= 200 &&
-             data.description is string && data.description.size() <= 1000 &&
-             data.iconName is string && data.iconName.size() <= 100 &&
-             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
+      let required = data.keys().hasAll(['title', 'category', 'image']);
+      let types = data.get('title', '') is string && 
+                  data.get('category', '') is string && 
+                  data.get('image', '') is string;
+      // Optional fields if present should be correct types
+      let optional = (!data.keys().contains('link') || data.link is string) &&
+                     (!data.keys().contains('slug') || data.slug is string) &&
+                     (!data.keys().contains('content') || data.content is string) &&
+                     (!data.keys().contains('tags') || data.tags is list) &&
+                     (!data.keys().contains('socialTitle') || data.socialTitle is string) &&
+                     (!data.keys().contains('socialDescription') || data.socialDescription is string) &&
+                     (!data.keys().contains('socialImage') || data.socialImage is string);
+      return required && types && optional && data.keys().size() <= 20;
     }
 
     function isValidBlogPost(data) {
-      return data.keys().hasAll(['title', 'date', 'excerpt', 'image', 'createdAt']) &&
-             data.keys().size() >= 5 && data.keys().size() <= 6 &&
-             data.title is string && data.title.size() <= 200 &&
-             data.date is string && data.date.size() <= 100 &&
-             data.excerpt is string && data.excerpt.size() <= 1000 &&
-             data.image is string && data.image.size() <= 1000000 &&
-             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
-    }
-
-    function isValidResumeItem(data) {
-      return data.keys().hasAll(['year', 'role', 'company', 'desc', 'createdAt']) &&
-             data.keys().size() >= 5 && data.keys().size() <= 6 &&
-             data.year is string && data.year.size() <= 100 &&
-             data.role is string && data.role.size() <= 200 &&
-             data.company is string && data.company.size() <= 200 &&
-             data.desc is string && data.desc.size() <= 2000 &&
-             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
-    }
-
-    function isValidTestimonial(data) {
-      return data.keys().hasAll(['name', 'role', 'content', 'avatar', 'createdAt']) &&
-             data.keys().size() >= 5 && data.keys().size() <= 6 &&
-             data.name is string && data.name.size() <= 100 &&
-             data.role is string && data.role.size() <= 200 &&
-             data.content is string && data.content.size() <= 2000 &&
-             data.avatar is string && data.avatar.size() <= 1000000 &&
-             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
+      let required = data.keys().hasAll(['title', 'date', 'excerpt', 'image']);
+      let types = data.get('title', '') is string && 
+                  data.get('date', '') is string && 
+                  data.get('excerpt', '') is string && 
+                  data.get('image', '') is string;
+      let optional = (!data.keys().contains('slug') || data.slug is string) &&
+                     (!data.keys().contains('content') || data.content is string) &&
+                     (!data.keys().contains('author') || data.author is string) &&
+                     (!data.keys().contains('tags') || data.tags is list) &&
+                     (!data.keys().contains('socialTitle') || data.socialTitle is string) &&
+                     (!data.keys().contains('socialDescription') || data.socialDescription is string) &&
+                     (!data.keys().contains('socialImage') || data.socialImage is string);
+      return required && types && optional && data.keys().size() <= 20;
     }
 
     function isValidPricingPlan(data) {
-      return data.keys().hasAll(['name', 'price', 'features', 'accent', 'createdAt']) &&
-             data.keys().size() >= 5 && data.keys().size() <= 6 &&
-             data.name is string && data.name.size() <= 100 &&
-             data.price is string && data.price.size() <= 20 &&
-             data.features is list && data.features.size() <= 20 &&
-             data.accent is bool &&
-             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
+      let required = data.keys().hasAll(['name', 'price', 'features', 'accent']);
+      let types = data.get('name', '') is string && 
+                  data.get('price', '') is string && 
+                  data.get('features', []) is list && 
+                  data.get('accent', false) is bool;
+      let optional = (!data.keys().contains('unavailableFeatures') || data.unavailableFeatures is list) &&
+                     (!data.keys().contains('buttonText') || data.buttonText is string) &&
+                     (!data.keys().contains('buttonUrl') || data.buttonUrl is string);
+      return required && types && optional && data.keys().size() <= 15;
+    }
+
+    function isValidService(data) {
+      return data.keys().hasAll(['id', 'title', 'description', 'iconName']) &&
+             data.id is string && data.title is string && 
+             data.description is string && data.iconName is string &&
+             data.keys().size() <= 10;
+    }
+
+    function isValidResumeItem(data) {
+      return data.keys().hasAll(['year', 'role', 'company', 'desc']) &&
+             data.year is string && data.role is string && 
+             data.company is string && data.desc is string &&
+             data.keys().size() <= 10;
+    }
+
+    function isValidTestimonial(data) {
+      return data.keys().hasAll(['name', 'role', 'content', 'avatar']) &&
+             data.name is string && data.role is string && 
+             data.content is string && data.avatar is string &&
+             data.keys().size() <= 10;
     }
 
     function isValidContactSubmission(data) {
-      return data.keys().hasAll(['name', 'email', 'subject', 'message', 'createdAt']) &&
-             data.keys().size() >= 5 && data.keys().size() <= 6 &&
-             data.name is string && data.name.size() <= 100 &&
-             data.email is string && data.email.size() <= 200 &&
-             data.subject is string && data.subject.size() <= 200 &&
-             data.message is string && data.message.size() <= 5000 &&
-             (data.createdAt == request.time || data.createdAt is string || data.createdAt is timestamp);
+      return data.keys().hasAll(['name', 'email', 'subject', 'message']) &&
+             data.name is string && data.email is string && 
+             data.subject is string && data.message is string &&
+             data.keys().size() <= 10;
     }
 
     function isValidUser(data) {

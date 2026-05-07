@@ -9,7 +9,15 @@
         "category": { "type": "string" },
         "image": { "type": "string" },
         "link": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "slug": { "type": "string" },
+        "content": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "gallery": { "type": "array", "items": { "type": "string" } },
+        "socialTitle": { "type": "string" },
+        "socialDescription": { "type": "string" },
+        "socialImage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "category", "image"]
     },
@@ -22,7 +30,8 @@
         "title": { "type": "string" },
         "description": { "type": "string" },
         "iconName": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "title", "description"]
     },
@@ -35,7 +44,15 @@
         "date": { "type": "string" },
         "excerpt": { "type": "string" },
         "image": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "slug": { "type": "string" },
+        "content": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "author": { "type": "string" },
+        "socialTitle": { "type": "string" },
+        "socialDescription": { "type": "string" },
+        "socialImage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "date", "excerpt", "image"]
     },
@@ -97,8 +114,12 @@
         "name": { "type": "string" },
         "price": { "type": "string" },
         "features": { "type": "array", "items": { "type": "string" } },
+        "unavailableFeatures": { "type": "array", "items": { "type": "string" } },
+        "buttonText": { "type": "string" },
+        "buttonUrl": { "type": "string" },
         "accent": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "price", "features"]
     },
