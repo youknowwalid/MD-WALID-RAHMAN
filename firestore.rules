@@ -13,7 +13,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
     function incoming() {
@@ -23,121 +23,87 @@ service cloud.firestore {
     // --- Validation Helpers ---
 
     function isValidProject(data) {
-      let required = data.keys().hasAll(['title', 'category', 'image']);
-      let types = data.get('title', '') is string && 
-                  data.get('category', '') is string && 
-                  data.get('image', '') is string;
-      // Optional fields if present should be correct types
-      let optional = (!data.keys().contains('link') || data.link is string) &&
-                     (!data.keys().contains('slug') || data.slug is string) &&
-                     (!data.keys().contains('content') || data.content is string) &&
-                     (!data.keys().contains('tags') || data.tags is list) &&
-                     (!data.keys().contains('socialTitle') || data.socialTitle is string) &&
-                     (!data.keys().contains('socialDescription') || data.socialDescription is string) &&
-                     (!data.keys().contains('socialImage') || data.socialImage is string);
-      return required && types && optional && data.keys().size() <= 20;
+      return data.keys().hasAll(['title', 'category', 'image']) &&
+             data.get('title', '') is string && 
+             data.get('category', '') is string && 
+             data.get('image', '') is string &&
+             data.keys().size() <= 30;
     }
 
     function isValidBlogPost(data) {
-      let required = data.keys().hasAll(['title', 'date', 'excerpt', 'image']);
-      let types = data.get('title', '') is string && 
-                  data.get('date', '') is string && 
-                  data.get('excerpt', '') is string && 
-                  data.get('image', '') is string;
-      let optional = (!data.keys().contains('slug') || data.slug is string) &&
-                     (!data.keys().contains('content') || data.content is string) &&
-                     (!data.keys().contains('author') || data.author is string) &&
-                     (!data.keys().contains('tags') || data.tags is list) &&
-                     (!data.keys().contains('socialTitle') || data.socialTitle is string) &&
-                     (!data.keys().contains('socialDescription') || data.socialDescription is string) &&
-                     (!data.keys().contains('socialImage') || data.socialImage is string);
-      return required && types && optional && data.keys().size() <= 20;
+      return data.keys().hasAll(['title', 'date', 'excerpt', 'image']) &&
+             data.get('title', '') is string && 
+             data.get('date', '') is string && 
+             data.get('excerpt', '') is string && 
+             data.get('image', '') is string &&
+             data.keys().size() <= 30;
     }
 
     function isValidPricingPlan(data) {
-      let required = data.keys().hasAll(['name', 'price', 'features', 'accent']);
-      let types = data.get('name', '') is string && 
-                  data.get('price', '') is string && 
-                  data.get('features', []) is list && 
-                  data.get('accent', false) is bool;
-      let optional = (!data.keys().contains('unavailableFeatures') || data.unavailableFeatures is list) &&
-                     (!data.keys().contains('buttonText') || data.buttonText is string) &&
-                     (!data.keys().contains('buttonUrl') || data.buttonUrl is string);
-      return required && types && optional && data.keys().size() <= 15;
+      return data.keys().hasAll(['name', 'price', 'features', 'accent']) &&
+             data.get('name', '') is string && 
+             data.get('price', '') is string && 
+             data.get('features', []) is list && 
+             data.get('accent', false) is bool &&
+             data.keys().size() <= 30;
     }
 
     function isValidService(data) {
       return data.keys().hasAll(['id', 'title', 'description', 'iconName']) &&
-             data.id is string && data.title is string && 
-             data.description is string && data.iconName is string &&
-             data.keys().size() <= 10;
+             data.keys().size() <= 20;
     }
 
     function isValidResumeItem(data) {
       return data.keys().hasAll(['year', 'role', 'company', 'desc']) &&
-             data.year is string && data.role is string && 
-             data.company is string && data.desc is string &&
-             data.keys().size() <= 10;
+             data.keys().size() <= 20;
     }
 
     function isValidTestimonial(data) {
       return data.keys().hasAll(['name', 'role', 'content', 'avatar']) &&
-             data.name is string && data.role is string && 
-             data.content is string && data.avatar is string &&
-             data.keys().size() <= 10;
+             data.keys().size() <= 20;
     }
 
     function isValidContactSubmission(data) {
       return data.keys().hasAll(['name', 'email', 'subject', 'message']) &&
-             data.name is string && data.email is string && 
-             data.subject is string && data.message is string &&
-             data.keys().size() <= 10;
+             data.keys().size() <= 20;
     }
 
     function isValidUser(data) {
         return data.keys().hasAll(['uid', 'email', 'isAdmin']) &&
-               data.keys().size() == 3 &&
                data.uid == request.auth.uid &&
-               data.email == request.auth.token.email &&
-               data.isAdmin is bool;
+               data.keys().size() <= 10;
     }
 
     // --- Collection Matches ---
 
     match /projects/{projectId} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidProject(incoming());
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /services/{serviceId} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidService(incoming());
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /blogPosts/{postId} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidBlogPost(incoming());
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    match /resume/{itemId} {
+    match /resumeItems/{itemId} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidResumeItem(incoming());
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /testimonials/{id} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidTestimonial(incoming());
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /pricingPlans/{id} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidPricingPlan(incoming());
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /contactSubmissions/{id} {

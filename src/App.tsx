@@ -6,6 +6,7 @@ import {
   Braces, 
   Palette, 
   Megaphone, 
+  Check,
   CheckCircle2, 
   ExternalLink, 
   Linkedin, 
@@ -903,18 +904,18 @@ function Portfolio() {
                   <h3 className="text-2xl font-black mb-4">{plan.name}</h3>
                   <div className="text-5xl font-black mb-8">{plan.price}<span className="text-lg text-gray-500 font-normal">/month</span></div>
                   
-                  <div className="space-y-6 mb-10 overflow-hidden">
+                  <div className="space-y-6 mb-10 overflow-hidden text-left">
                     {/* Consultation Highlight Box */}
                     {plan.features.find(f => f.toLowerCase().includes('consultation')) && (
-                      <div className="p-4 bg-accent/10 border border-accent/20 rounded-2xl flex items-center gap-4 mb-8">
-                        <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(214,255,65,0.4)]">
+                      <div className="p-5 bg-accent/5 border border-accent/20 rounded-2xl flex items-center gap-4 mb-8">
+                        <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(214,255,65,0.3)]">
                           <Clock className="w-5 h-5 text-black" />
                         </div>
                         <div>
-                          <div className="text-accent font-black text-sm leading-tight">
+                          <div className="text-accent font-black text-base leading-tight">
                             {plan.features.find(f => f.toLowerCase().includes('consultation'))?.split(' Consultation')[0]}
                           </div>
-                          <div className="text-[10px] text-accent/60 font-bold uppercase tracking-wider">
+                          <div className="text-[10px] text-accent/60 font-bold uppercase tracking-[0.1em]">
                             Consultation included
                           </div>
                         </div>
@@ -925,25 +926,26 @@ function Portfolio() {
                       <h4 className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] mb-4">Available Services</h4>
                       <ul className="space-y-3">
                         {plan.features.filter(f => !f.toLowerCase().includes('consultation')).map(f => (
-                          <li key={f} className="flex items-start gap-3 text-white text-[13px] font-medium group">
-                            <div className="w-5 h-5 rounded-full border border-accent/30 flex items-center justify-center bg-accent/5 group-hover:bg-accent transition-colors shrink-0 mt-0.5">
-                              <CheckCircle2 className="w-3 h-3 text-accent group-hover:text-black transition-colors" />
+                          <li key={f} className="flex items-center gap-3 text-white text-[13px] font-medium">
+                            <div className="w-5 h-5 rounded-full border border-accent/30 flex items-center justify-center bg-transparent shrink-0">
+                              <Check className="w-3.5 h-3.5 text-accent" />
                             </div>
                             <span>{f}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
+
                     {plan.unavailableFeatures && plan.unavailableFeatures.length > 0 && (
                       <div>
                         <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-4">Not Available</h4>
                         <ul className="space-y-3">
                           {plan.unavailableFeatures.map(f => (
-                            <li key={f} className="flex items-start gap-3 text-gray-600 text-[13px] opacity-60">
-                              <div className="w-5 h-5 rounded-full border border-white/5 flex items-center justify-center bg-white/5 shrink-0 mt-0.5">
+                            <li key={f} className="flex items-center gap-3 text-gray-600 text-[13px] opacity-60">
+                              <div className="w-5 h-5 rounded-full border border-white/5 flex items-center justify-center bg-transparent shrink-0">
                                 <X className="w-3 h-3 text-gray-700" />
                               </div>
-                              <span>{f}</span>
+                              <span className="line-through decoration-gray-800">{f}</span>
                             </li>
                           ))}
                         </ul>
