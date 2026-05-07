@@ -85,6 +85,7 @@
         "heroStatus": { "type": "string" },
         "heroAvailability": { "type": "string" },
         "cvUrl": { "type": "string" },
+        "resumeImage": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },

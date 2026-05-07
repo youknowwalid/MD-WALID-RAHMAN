@@ -65,6 +65,14 @@
     box-shadow: 0 0 30px rgba(214, 255, 65, 0.15);
   }
 
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   @keyframes shimmer {
     from { background-position: -200% 0; }
     to { background-position: 200% 0; }

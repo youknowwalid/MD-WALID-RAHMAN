@@ -200,6 +200,7 @@ export default function AdminDashboard() {
   const [heroStatus, setHeroStatus] = useState('');
   const [heroAvailability, setHeroAvailability] = useState('');
   const [cvUrl, setCvUrl] = useState('');
+  const [resumeImage, setResumeImage] = useState('');
   const [uploadValue, setUploadValue] = useState('');
 
   const [isUploadingCV, setIsUploadingCV] = useState(false);
@@ -293,6 +294,7 @@ export default function AdminDashboard() {
         setHeroStatus(data.heroStatus || '');
         setHeroAvailability(data.heroAvailability || '');
         setCvUrl(data.cvUrl || '');
+        setResumeImage(data.resumeImage || '');
       }
       setItems([]);
     } else {
@@ -325,6 +327,7 @@ export default function AdminDashboard() {
         heroStatus,
         heroAvailability,
         cvUrl,
+        resumeImage,
         updatedAt: new Date().toISOString() 
       });
       alert('Settings saved!');
@@ -479,6 +482,13 @@ export default function AdminDashboard() {
                 value={heroImage} 
                 onChange={setHeroImage} 
                 recommendation="This is the main image in the floating frame. Recommended: 800x800px or larger."
+              />
+
+              <ImageUpload 
+                label="Resume Side Image" 
+                value={resumeImage} 
+                onChange={setResumeImage} 
+                recommendation="This image will appear next to your resume journey. Recommended: 800x1200px (Portrait)."
               />
               
               <div className="grid grid-cols-2 gap-6">

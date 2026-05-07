@@ -264,6 +264,7 @@ function Portfolio() {
   const [heroStatus, setHeroStatus] = useState('Active Now');
   const [heroAvailability, setHeroAvailability] = useState('Available for new projects');
   const [cvUrl, setCvUrl] = useState('#');
+  const [resumeImage, setResumeImage] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -343,6 +344,7 @@ function Portfolio() {
         setHeroStatus(data.heroStatus || 'Active Now');
         setHeroAvailability(data.heroAvailability || 'Available for new projects');
         setCvUrl(data.cvUrl || '#');
+        setResumeImage(data.resumeImage || '');
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
 
@@ -393,8 +395,8 @@ function Portfolio() {
   return (
     <div className="relative min-h-screen bg-bg-dark overflow-x-hidden selection:bg-accent/30 selection:text-white">
       {/* --- Immersive Background Elements --- */}
-      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-accent rounded-full blur-[150px] opacity-10 pointer-events-none z-0" />
-      <div className="absolute bottom-[5%] left-[-5%] w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-5 pointer-events-none z-0" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent rounded-full blur-[150px] opacity-10 pointer-events-none z-0" />
+      <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-5 pointer-events-none z-0" />
       
       <SpotlightCursor />
 
@@ -448,114 +450,125 @@ function Portfolio() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden absolute top-full left-0 w-full bg-bg-card border-b border-white/5 p-6 flex flex-col gap-4"
-            >
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-lg font-bold hover:text-accent"
-                >
-                  {link.name}
-                </a>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
-
-      {/* --- Sections --- */}
-      <main>
-        {/* Hero Section */}
-        <section id="home" className="min-h-screen flex items-center relative overflow-hidden px-6 pt-20">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-            <div className="z-10">
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-accent text-xs font-bold tracking-[0.3em] uppercase mb-4"
-              >
-                Brand Developer
-              </motion.p>
-              <h1 className="text-6xl md:text-8xl font-black mb-6 leading-tight tracking-tighter uppercase">
-                Hello, I'm <br />
-                <span className="text-accent text-glow">
-                  <Typewriter text="Walid Rahman." />
-                </span>
-              </h1>
+          {/* Mobile Menu */}
+          <AnimatePresence>
+            {isMenuOpen && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="text-xl md:text-2xl text-gray-400 mb-10 max-w-lg"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="lg:hidden absolute top-full left-0 w-full bg-bg-card/95 backdrop-blur-2xl border-b border-white/5 p-8 flex flex-col gap-6 z-50 shadow-2xl"
               >
-                A <span className="text-white font-bold underline decoration-accent underline-offset-4">Brand Developer</span> crafting premium digital experiences.
+                {NAV_LINKS.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={cn(
+                      "text-2xl font-black uppercase tracking-tighter transition-all",
+                      activeSection === link.href.replace('#', '') ? "text-accent" : "text-gray-400"
+                    )}
+                  >
+                    {link.name}
+                  </a>
+                ))}
+                <a 
+                  href="https://calendly.com/youknowwalid/30min" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="mt-4 px-8 py-4 bg-accent text-black rounded-xl text-sm font-bold uppercase tracking-widest text-center"
+                >
+                  Let's Talk
+                </a>
               </motion.div>
-              
-              <div className="flex flex-wrap gap-6">
-                <motion.a 
-                  href="https://wa.me/+8801744588644"
-                  target="_blank"
-                  rel="noreferrer"
-                  whileHover={{ scale: 1.05 }}
-                  className="bg-accent px-10 py-4 rounded-lg text-black font-black flex items-center gap-2 accent-shadow transition-all"
+            )}
+          </AnimatePresence>
+        </nav>
+
+        {/* --- Sections --- */}
+        <main className="relative z-10">
+          {/* Hero Section */}
+          <section id="home" className="min-h-screen flex items-center relative overflow-hidden px-6 pt-24 md:pt-20">
+            <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center w-full">
+              <div className="z-10 text-center lg:text-left">
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-accent text-xs font-bold tracking-[0.3em] uppercase mb-4"
                 >
-                  Start Project
-                </motion.a>
-                <motion.a 
-                  href={cvUrl}
-                  download="Walid_Rahman_CV.pdf"
-                  target="_blank"
-                  rel="noreferrer"
-                  whileHover={{ scale: 1.05 }}
-                  className="border border-white/20 px-10 py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-white"
-                >
-                  Download CV
-                </motion.a>
-              </div>
-
-              <div className="mt-16 grid grid-cols-3 gap-8 border-t border-white/5 pt-12">
-                <div className="space-y-1">
-                  <div className="text-3xl font-bold text-white">8+ <span className="text-accent text-lg">Yrs</span></div>
-                  <div className="text-[10px] text-gray-500 uppercase tracking-widest">Experience</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-3xl font-bold text-white">1K+</div>
-                  <div className="text-[10px] text-gray-500 uppercase tracking-widest">Clients Met</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-3xl font-bold text-white">97%</div>
-                  <div className="text-[10px] text-gray-500 uppercase tracking-widest">Success Rate</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative flex justify-center">
-              <div className="relative w-[420px] h-[420px]">
-                {/* Abstract Background Element */}
-                <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
-                <div className="absolute inset-6 rounded-full border border-accent/40 shadow-[0_0_50px_rgba(214, 255, 65, 0.1)]" />
-
+                  Brand Developer
+                </motion.p>
+                <h1 className="text-5xl md:text-8xl font-black mb-6 leading-tight tracking-tighter uppercase">
+                  Hello, I'm <br />
+                  <span className="text-accent text-glow">
+                    <Typewriter text="Walid Rahman." />
+                  </span>
+                </h1>
                 <motion.div
-                  animate={{ 
-                    y: [0, -10, 0],
-                    rotate: [2, 3, 2]
-                  }}
-                  transition={{ 
-                    duration: 5, 
-                    repeat: Infinity, 
-                    ease: "easeInOut" 
-                  }}
-                  className="absolute inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-lg md:text-2xl text-gray-400 mb-10 max-w-lg mx-auto lg:mx-0"
                 >
+                  A <span className="text-white font-bold underline decoration-accent underline-offset-4">Brand Developer</span> crafting premium digital experiences.
+                </motion.div>
+                
+                <div className="flex flex-wrap justify-center lg:justify-start gap-4 md:gap-6">
+                  <motion.a 
+                    href="https://wa.me/+8801744588644"
+                    target="_blank"
+                    rel="noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    className="bg-accent px-8 md:px-10 py-4 rounded-lg text-black font-black flex items-center gap-2 accent-shadow transition-all text-sm md:text-base"
+                  >
+                    Start Project
+                  </motion.a>
+                  <motion.a 
+                    href={cvUrl}
+                    download="Walid_Rahman_CV.pdf"
+                    target="_blank"
+                    rel="noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    className="border border-white/20 px-8 md:px-10 py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-white text-sm md:text-base"
+                  >
+                    Download CV
+                  </motion.a>
+                </div>
+
+                <div className="mt-16 grid grid-cols-3 gap-4 md:gap-8 border-t border-white/5 pt-12">
+                  <div className="space-y-1">
+                    <div className="text-2xl md:text-3xl font-bold text-white">8+ <span className="text-accent text-lg">Yrs</span></div>
+                    <div className="text-[8px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-tight">Experience</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-2xl md:text-3xl font-bold text-white">1K+</div>
+                    <div className="text-[8px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-tight">Clients Met</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-2xl md:text-3xl font-bold text-white">97%</div>
+                    <div className="text-[8px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-tight">Success Rate</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative flex justify-center order-first lg:order-last">
+                <div className="relative w-full max-w-[320px] md:max-w-[420px] aspect-square">
+                  {/* Abstract Background Element */}
+                  <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
+                  <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40 shadow-[0_0_50px_rgba(214, 255, 65, 0.1)]" />
+
+                  <motion.div
+                    animate={{ 
+                      y: [0, -10, 0],
+                      rotate: [1, 2, 1]
+                    }}
+                    transition={{ 
+                      duration: 5, 
+                      repeat: Infinity, 
+                      ease: "easeInOut" 
+                    }}
+                    className="absolute inset-8 md:inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10"
+                  >
                   <img 
                     src={heroImage} 
                     alt="Walid Rahman"
@@ -641,35 +654,91 @@ function Portfolio() {
         </section>
 
         {/* Resume Section */}
-        <section id="resume" className="py-32 px-6">
-          <div className="max-w-4xl mx-auto">
+        <section id="resume" className="py-32 px-6 overflow-hidden">
+          <div className="max-w-7xl mx-auto">
             <SectionHeader label="Resume" title="My Journey" />
-            <div className="space-y-12">
-              {(hasResumeData ? resume : [
-                { year: '2024 - Present', role: 'Executive Director', company: 'De Jure Academy', desc: '' },
-                { year: '2023 - 2024', role: 'Creative Director', company: 'Arani Advertising Ltd.', desc: '' },
-                { year: '2023 - 2024', role: 'Manager', company: 'PMUK', desc: '' },
-                { year: '2022 - 2023', role: 'Manager', company: 'Restoreit AB', desc: '' },
-                { year: '2020 - 2022', role: 'Project Manager', company: 'JBL Bangladesh / EDISON Group', desc: '' },
-                { year: '2019 - 2020', role: 'Creative Lead', company: 'Jadroo Group', desc: '' },
-              ]).map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors"
-                >
-                  <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(214, 255, 65, 1)] transition-all" />
-                  <div className="mb-2">
-                    <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
-                    <h3 className="text-2xl font-black">{item.role}</h3>
-                    <div className="text-gray-400 font-bold mb-4">{item.company}</div>
-                    {item.desc && <p className="text-gray-500 max-w-2xl">{item.desc}</p>}
-                  </div>
-                </motion.div>
-              ))}
+            <div className="grid lg:grid-cols-2 gap-16 items-start">
+              <div className="space-y-12">
+                {resumeImage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="lg:hidden w-full aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 mb-8"
+                  >
+                    <img src={resumeImage} alt="Journey" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  </motion.div>
+                )}
+                {(hasResumeData ? resume : [
+                  { year: '2024 - Present', role: 'Executive Director', company: 'De Jure Academy', desc: '' },
+                  { year: '2023 - 2024', role: 'Creative Director', company: 'Arani Advertising Ltd.', desc: '' },
+                  { year: '2023 - 2024', role: 'Manager', company: 'PMUK', desc: '' },
+                  { year: '2022 - 2023', role: 'Manager', company: 'Restoreit AB', desc: '' },
+                  { year: '2020 - 2022', role: 'Project Manager', company: 'JBL Bangladesh / EDISON Group', desc: '' },
+                  { year: '2019 - 2020', role: 'Creative Lead', company: 'Jadroo Group', desc: '' },
+                ]).map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors"
+                  >
+                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(214, 255, 65, 1)] transition-all" />
+                    <div className="mb-2">
+                      <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
+                      <h3 className="text-2xl font-black">{item.role}</h3>
+                      <div className="text-gray-400 font-bold mb-4">{item.company}</div>
+                      {item.desc && <p className="text-gray-500 max-w-2xl">{item.desc}</p>}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {resumeImage && (
+                <div className="relative sticky top-32 hidden lg:flex justify-center">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                    whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                    className="relative w-full max-w-[450px] aspect-[3/4]"
+                  >
+                    {/* Decorative items */}
+                    <div className="absolute -inset-4 border border-accent/20 rounded-[40px] -z-10 animate-pulse" />
+                    <div className="absolute -inset-8 border border-white/5 rounded-[60px] -z-20" />
+                    
+                    <motion.div
+                      animate={{ 
+                        y: [0, -15, 0],
+                        rotate: [0, 2, 0]
+                      }}
+                      transition={{ 
+                        duration: 6, 
+                        repeat: Infinity, 
+                        ease: "easeInOut" 
+                      }}
+                      className="w-full h-full rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative"
+                    >
+                      <img 
+                        src={resumeImage} 
+                        alt="Walid Rahman Journey" 
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-bg-dark/80 via-transparent to-transparent" />
+                      
+                      {/* Info Tag */}
+                      <div className="absolute bottom-8 left-8 right-8 p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+                        <div className="text-xs text-accent font-bold uppercase tracking-widest mb-1">Current Focus</div>
+                        <div className="text-lg font-black text-white">Strategic Brand Evolution</div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                </div>
+              )}
             </div>
           </div>
         </section>
