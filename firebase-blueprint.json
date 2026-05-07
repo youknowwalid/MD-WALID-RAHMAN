@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "project": {
+      "title": "Project",
+      "description": "A portfolio project item",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "link": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "image"]
+    },
+    "service": {
+      "title": "Service",
+      "description": "An offered service",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "iconName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "description"]
+    },
+    "blogPost": {
+      "title": "Blog Post",
+      "description": "A journal entry",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "image": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "date", "excerpt", "image"]
+    },
+    "user": {
+      "title": "User",
+      "description": "User profile and admin status",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "isAdmin": { "type": "boolean" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "projects": {
+      "schema": "project",
+      "description": "Collection of portfolio projects"
+    },
+    "services": {
+      "schema": "service",
+      "description": "Collection of services"
+    },
+    "blogPosts": {
+      "schema": "blogPost",
+      "description": "Collection of blog posts"
+    },
+    "users": {
+        "schema": "user",
+        "description": "Collection of system users"
+    }
+  }
+}

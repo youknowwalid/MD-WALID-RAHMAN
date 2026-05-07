@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // --- Validation Helpers ---
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['title', 'category', 'image', 'link', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.image is string && data.image.size() <= 1000 &&
+             data.link is string && data.link.size() <= 1000 &&
+             (data.createdAt == request.time || data.createdAt is string); // Allow string fallback for draft simplicity
+    }
+
+    function isValidService(data) {
+      return data.keys().hasAll(['id', 'title', 'description', 'iconName', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.id is string && data.id.size() <= 10 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.iconName is string && data.iconName.size() <= 100 &&
+             (data.createdAt == request.time || data.createdAt is string);
+    }
+
+    function isValidBlogPost(data) {
+      return data.keys().hasAll(['title', 'date', 'excerpt', 'image', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.date is string && data.date.size() <= 100 &&
+             data.excerpt is string && data.excerpt.size() <= 1000 &&
+             data.image is string && data.image.size() <= 1000 &&
+             (data.createdAt == request.time || data.createdAt is string);
+    }
+
+    function isValidUser(data) {
+        return data.keys().hasAll(['uid', 'email', 'isAdmin']) &&
+               data.keys().size() == 3 &&
+               data.uid == request.auth.uid &&
+               data.email == request.auth.token.email &&
+               data.isAdmin is bool;
+    }
+
+    // --- Collection Matches ---
+
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidProject(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /services/{serviceId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidService(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidBlogPost(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      // Allow self-registration. Mark walidxdxdxd@gmail.com as admin by default.
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming()) && 
+                    (incoming().email == "walidxdxdxd@gmail.com" ? incoming().isAdmin == true : incoming().isAdmin == false);
+      allow update: if isAdmin() && isValidUser(incoming());
+    }
+  }
+}

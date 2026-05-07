@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useSpring, useTransform, AnimatePresence, useInView } from 'motion/react';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   Laptop, 
   Braces, 
@@ -20,9 +21,13 @@ import {
   Star,
   ArrowRight,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { db, handleFirestoreError, OperationType } from './services/firebase';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import AdminDashboard from './components/AdminDashboard';
 
 // --- Types ---
 interface NavLink {
@@ -37,6 +42,7 @@ interface Stat {
 }
 
 interface Project {
+  id?: string;
   title: string;
   category: string;
   image: string;
@@ -47,7 +53,8 @@ interface Service {
   id: string;
   title: string;
   description: string;
-  icon: any;
+  icon?: any;
+  iconName?: string;
 }
 
 interface Skill {
@@ -63,11 +70,20 @@ interface Testimonial {
 }
 
 interface BlogPost {
+  id?: string;
   title: string;
   date: string;
   excerpt: string;
   image: string;
 }
+
+// --- Icons Mapping ---
+const ICON_MAP: Record<string, any> = {
+  Palette,
+  Braces,
+  Megaphone,
+  Laptop
+};
 
 // --- Constants ---
 const NAV_LINKS: NavLink[] = [
@@ -86,7 +102,7 @@ const STATS: Stat[] = [
   { label: 'Client Satisfactions', value: '97%', number: 97 },
 ];
 
-const SERVICES: Service[] = [
+const DEFAULT_SERVICES: Service[] = [
   { id: '01', title: 'Brand Identity', description: 'Crafting unique visual identities that resonate with your target audience.', icon: Palette },
   { id: '02', title: 'Web Development', description: 'Building fast, responsive, and modern websites using the latest technologies.', icon: Braces },
   { id: '03', title: 'Digital Marketing', description: 'Strategic marketing campaigns to grow your brand and reach new customers.', icon: Megaphone },
@@ -106,7 +122,7 @@ const SKILLS: Skill[] = [
   { name: 'Google Ads', level: 76 },
 ];
 
-const PROJECTS: Project[] = [
+const DEFAULT_PROJECTS: Project[] = [
   { title: 'Nexus Brand Identity', category: 'Branding', image: 'https://picsum.photos/seed/nexus/800/600', link: '#' },
   { title: 'Volt E-Commerce', category: 'Web App', image: 'https://picsum.photos/seed/volt/800/600', link: '#' },
   { title: 'Lumina Dashboard', category: 'UI/UX', image: 'https://picsum.photos/seed/lumina/800/600', link: '#' },
@@ -119,7 +135,7 @@ const TESTIMONIALS: Testimonial[] = [
   { name: 'Elena Rodriguez', role: 'Marketing Director, Vora', content: 'The website Walid built for us exceeded all expectations. Fast, beautiful, and highly functional.', avatar: 'https://i.pravatar.cc/150?u=elena' },
 ];
 
-const BLOG_POSTS: BlogPost[] = [
+const DEFAULT_BLOG_POSTS: BlogPost[] = [
   { title: 'The Future of Minimalism', date: 'May 10, 2024', excerpt: 'Exploring how minimalist design is evolving in the age of AI.', image: 'https://picsum.photos/seed/blog1/800/500' },
   { title: 'Building Scalable Brands', date: 'Apr 28, 2024', excerpt: 'Key strategies for creating a brand that grows with your business.', image: 'https://picsum.photos/seed/blog2/800/500' },
   { title: 'UX Patterns to Watch', date: 'Apr 15, 2024', excerpt: 'Current trends in user experience that are shaping digital products.', image: 'https://picsum.photos/seed/blog3/800/500' },
@@ -130,7 +146,6 @@ const BLOG_POSTS: BlogPost[] = [
 
 const SpotlightCursor = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const cursorRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -215,51 +230,18 @@ const Typewriter = ({ text }: { text: string }) => {
     </span>
   );
 };
-const StatCounter: React.FC<{ stat: Stat; delay: number }> = ({ stat, delay }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
 
-  useEffect(() => {
-    if (isInView) {
-      let start = 0;
-      const end = stat.number;
-      const duration = 2000;
-      const increment = end / (duration / 16);
-      
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(start));
-        }
-      }, 16);
-      return () => clearInterval(timer);
-    }
-  }, [isInView, stat.number]);
-
-  return (
-    <div ref={ref} className="text-center">
-      <div className="text-4xl md:text-5xl font-black text-accent mb-2">
-        {count}{stat.value.replace(/[0-9]/g, '')}
-      </div>
-      <div className="text-gray-400 text-sm">{stat.label}</div>
-    </div>
-  );
-};
-
-export default function App() {
+function Portfolio() {
   const [activeSection, setActiveSection] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
+  const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(DEFAULT_BLOG_POSTS);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-
-      // Active section detection
       const sections = NAV_LINKS.map(link => document.getElementById(link.href.replace('#', '')));
       const scrollPos = window.scrollY + 100;
 
@@ -276,6 +258,40 @@ export default function App() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Real-time Firestore Updates
+  useEffect(() => {
+    const unsubProjects = onSnapshot(query(collection(db, 'projects'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'projects'));
+
+    const unsubServices = onSnapshot(query(collection(db, 'services'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setServices(snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() as any,
+            icon: ICON_MAP[doc.data().iconName] || Palette
+          })));
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'services'));
+
+    const unsubBlog = onSnapshot(query(collection(db, 'blogPosts'), orderBy('createdAt', 'desc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setBlogPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'blogPosts'));
+
+    return () => {
+      unsubProjects();
+      unsubServices();
+      unsubBlog();
+    };
   }, []);
 
   return (
@@ -315,14 +331,20 @@ export default function App() {
             ))}
           </div>
 
-          <a 
-            href="https://calendly.com/youknowwalid/30min" 
-            target="_blank" 
-            rel="noreferrer"
-            className="hidden lg:block px-6 py-2.5 bg-transparent border border-accent text-accent rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(0,180,216,0.3)] hover:bg-accent hover:text-black transition-all text-center"
-          >
-            Let's Talk
-          </a>
+          <div className="flex items-center gap-4">
+            <a 
+              href="https://calendly.com/youknowwalid/30min" 
+              target="_blank" 
+              rel="noreferrer"
+              className="hidden lg:block px-6 py-2.5 bg-transparent border border-accent text-accent rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(0,180,216,0.3)] hover:bg-accent hover:text-black transition-all text-center"
+            >
+              Let's Talk
+            </a>
+            {/* Admin entry point */}
+            <Link to="/admin" className="text-white/10 hover:text-accent p-2 transition-colors">
+              <FileText className="w-4 h-4" />
+            </Link>
+          </div>
 
           {/* Mobile Menu Toggle */}
           <button className="lg:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -557,7 +579,7 @@ export default function App() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="What I Do" title="My Specialities" />
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {SERVICES.map((service, i) => (
+              {services.map((service, i) => (
                 <motion.div
                   key={service.id}
                   initial={{ opacity: 0, y: 30 }}
@@ -571,7 +593,7 @@ export default function App() {
                     {service.id}
                   </div>
                   <div className="mb-6 w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-black transition-all">
-                    <service.icon className="w-6 h-6" />
+                    {service.icon && <service.icon className="w-6 h-6" />}
                   </div>
                   <h3 className="text-2xl font-bold mb-4">{service.title}</h3>
                   <p className="text-gray-400">{service.description}</p>
@@ -628,9 +650,9 @@ export default function App() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Portfolio" title="Featured Work" />
             <div className="grid md:grid-cols-2 gap-8">
-              {PROJECTS.map((project, i) => (
+              {projects.map((project, i) => (
                 <motion.div
-                  key={project.title}
+                  key={project.id || project.title}
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
@@ -647,9 +669,11 @@ export default function App() {
                     <span className="text-accent text-sm font-bold uppercase mb-2 tracking-widest">{project.category}</span>
                     <h3 className="text-3xl font-black mb-4">{project.title}</h3>
                     <div className="flex gap-4">
-                      <button className="p-3 bg-accent rounded-full text-black hover:scale-110 transition-transform">
-                        <ExternalLink className="w-5 h-5" />
-                      </button>
+                      {project.link && project.link !== '#' && (
+                        <a href={project.link} target="_blank" rel="noreferrer" className="p-3 bg-accent rounded-full text-black hover:scale-110 transition-transform">
+                          <ExternalLink className="w-5 h-5" />
+                        </a>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -747,6 +771,32 @@ export default function App() {
           </div>
         </section>
 
+        {/* Blog Section */}
+        <section id="blog" className="py-32 px-6">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeader label="Journal" title="Latest Insights" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {blogPosts.map((post, i) => (
+                <motion.div
+                  key={post.id || post.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="group cursor-pointer"
+                >
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all">
+                    <img src={post.image} alt={post.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" />
+                  </div>
+                  <div className="text-xs text-accent font-bold uppercase mb-2">{post.date}</div>
+                  <h4 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h4>
+                  <p className="text-gray-500 text-sm line-clamp-2">{post.excerpt}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Contact Section */}
         <section id="contact" className="py-32 px-6">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16">
@@ -801,70 +851,36 @@ export default function App() {
                   <input type="email" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="john@example.com" />
                 </div>
               </div>
+              <div className="mb-6">
+                <label className="block text-sm font-bold mb-2">Subject</label>
+                <input type="text" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="Project Inquiry" />
+              </div>
               <div className="mb-8">
                 <label className="block text-sm font-bold mb-2">Message</label>
-                <textarea className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all min-h-[150px]" placeholder="How can I help you?"></textarea>
+                <textarea rows={4} className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all resize-none" placeholder="Tell me about your project..."></textarea>
               </div>
-              <button className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,180,216,0.6)] transition-all animate-pulse-hover">
+              <button className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,180,216,0.4)] transition-all">
                 Send Message
               </button>
             </motion.form>
-          </div>
-        </section>
-
-        {/* Blog Section */}
-        <section id="blog" className="py-32 px-6 bg-card-dark">
-          <div className="max-w-7xl mx-auto">
-            <SectionHeader label="Journal" title="Latest Insights" />
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {BLOG_POSTS.map((post, i) => (
-                <motion.div
-                  key={post.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="group cursor-pointer"
-                >
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 relative">
-                    <img 
-                      src={post.image} 
-                      alt={post.title} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute top-4 right-4 bg-accent text-black text-[10px] font-black px-2 py-1 rounded">
-                      {post.date}
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-accent transition-colors">{post.title}</h3>
-                  <p className="text-gray-400 text-sm mb-4 line-clamp-2">{post.excerpt}</p>
-                  <div className="text-accent text-sm font-bold flex items-center gap-1 group/link">
-                    Read More 
-                    <ChevronRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
           </div>
         </section>
       </main>
 
       {/* --- Footer --- */}
       <footer className="py-20 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
-          <div>
-            <a href="#home" className="text-3xl font-black tracking-tighter block mb-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+          <div className="max-w-sm">
+            <div className="text-2xl font-black mb-6 tracking-tighter">
               youknowwalid<span className="text-accent">.</span>
-            </a>
-            <p className="text-gray-500 max-w-xs">
-              Designing the future of digital brands one pixel at a time.
+            </div>
+            <p className="text-gray-500 mb-8">
+              A Brand Developer crafting premium digital experiences that bridge the gap between creative vision and technical excellence.
             </p>
           </div>
-          
-          <div className="flex gap-12">
+          <div className="grid grid-cols-2 gap-12 sm:gap-24">
             <div>
-              <h5 className="font-bold mb-4 uppercase text-xs tracking-widest text-accent">Links</h5>
+              <h5 className="font-bold mb-4 uppercase text-xs tracking-widest text-accent">Sitemap</h5>
               <ul className="space-y-2 text-sm text-gray-500">
                 {NAV_LINKS.slice(0, 4).map(l => <li key={l.name}><a href={l.href} className="hover:text-white transition-colors">{l.name}</a></li>)}
               </ul>
@@ -878,7 +894,6 @@ export default function App() {
               </ul>
             </div>
           </div>
-
           <div className="flex gap-4">
             <a href="https://facebook.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1">
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -891,10 +906,30 @@ export default function App() {
             </a>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 text-center text-gray-600 text-xs">
+        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 text-center text-xs text-gray-600">
           youknowwalid &copy; 2025 All Rights Reserved by Walid Rahman Swapnil
         </div>
       </footer>
     </div>
+  );
+}
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Portfolio />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
