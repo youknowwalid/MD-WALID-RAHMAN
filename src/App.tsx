@@ -200,7 +200,7 @@ const SectionHeader = ({ label, title }: { label: string; title: string }) => {
           initial={{ clipPath: 'inset(0 100% 0 0)' }}
           animate={isInView ? { clipPath: 'inset(0 0 0 0)' } : {}}
           transition={{ duration: 0.8, ease: "circOut" }}
-          className="text-4xl md:text-5xl font-black text-white"
+          className="text-3xl md:text-5xl font-black text-white"
         >
           {title}
         </motion.h2>
@@ -505,17 +505,17 @@ function Portfolio() {
         {/* --- Sections --- */}
         <main className="relative z-10">
           {/* Hero Section */}
-          <section id="home" className="min-h-screen flex items-center relative overflow-hidden px-6 pt-24 md:pt-20">
+          <section id="home" className="min-h-screen flex items-center relative overflow-hidden px-6 pt-20 pb-12 md:py-20">
             <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center w-full">
               <div className="z-10 text-center lg:text-left">
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-accent text-xs font-bold tracking-[0.3em] uppercase mb-4"
+                  className="text-accent text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-4"
                 >
                   Brand Developer
                 </motion.p>
-                <h1 className="text-5xl md:text-8xl font-black mb-6 leading-tight tracking-tighter uppercase">
+                <h1 className="text-3xl md:text-8xl font-black mb-4 md:mb-6 leading-tight tracking-tighter uppercase">
                   Hello, I'm <br />
                   <span className="text-accent text-glow">
                     <Typewriter text="Walid Rahman." />
@@ -525,18 +525,18 @@ function Portfolio() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="text-lg md:text-2xl text-gray-400 mb-10 max-w-lg mx-auto lg:mx-0"
+                  className="text-sm md:text-2xl text-gray-400 mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0"
                 >
                   A <span className="text-white font-bold underline decoration-accent underline-offset-4">Brand Developer</span> crafting premium digital experiences.
                 </motion.div>
                 
-                <div className="flex flex-wrap justify-center lg:justify-start gap-4 md:gap-6">
+                <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6">
                   <motion.a 
                     href="https://wa.me/+8801744588644"
                     target="_blank"
                     rel="noreferrer"
                     whileHover={{ scale: 1.05 }}
-                    className="bg-accent px-8 md:px-10 py-4 rounded-lg text-black font-black flex items-center gap-2 accent-shadow transition-all text-sm md:text-base"
+                    className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-black font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base"
                   >
                     Start Project
                   </motion.a>
@@ -546,13 +546,13 @@ function Portfolio() {
                     target="_blank"
                     rel="noreferrer"
                     whileHover={{ scale: 1.05 }}
-                    className="border border-white/20 px-8 md:px-10 py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-white text-sm md:text-base"
+                    className="border border-white/20 px-6 md:px-10 py-3 md:py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-white text-xs md:text-base"
                   >
                     Download CV
                   </motion.a>
                 </div>
 
-                <div className="mt-16 grid grid-cols-3 gap-4 md:gap-8 border-t border-white/5 pt-12">
+                <div className="mt-12 md:mt-16 grid grid-cols-3 gap-4 md:gap-8 border-t border-white/5 pt-8 md:pt-12">
                   <div className="space-y-1">
                     <div className="text-2xl md:text-3xl font-bold text-white">8+ <span className="text-accent text-lg">Yrs</span></div>
                     <div className="text-[8px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-tight">Experience</div>
@@ -614,17 +614,17 @@ function Portfolio() {
         </section>
 
         {/* About Section */}
-        <section id="about" className="py-32 px-6 bg-card-dark">
+        <section id="about" className="py-16 md:py-32 px-6 bg-card-dark">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="About Me" title="Crafting Digital Excellence" />
-            <div className="grid lg:grid-cols-2 gap-16">
+            <div className="grid lg:grid-cols-2 gap-10 md:gap-16">
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
               >
-                <p className="text-xl text-gray-400 leading-relaxed mb-8">
+                <p className="text-lg md:text-xl text-gray-400 leading-relaxed mb-8">
                   As a Team Leader with extensive expertise in digital marketing, ed-tech, e-commerce, and brand management, I drive strategic growth and innovation across diverse industries. With a background that spans art direction, product design, sales, and more, I bring a multifaceted perspective to every project.
                 </p>
                 <div className="flex flex-wrap gap-4">
@@ -671,17 +671,17 @@ function Portfolio() {
         </section>
 
         {/* Resume Section */}
-        <section id="resume" className="py-32 px-6 overflow-hidden">
+        <section id="resume" className="py-16 md:py-32 px-6 overflow-hidden">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Resume" title="My Journey" />
-            <div className="grid lg:grid-cols-2 gap-16 items-start">
-              <div className="space-y-12">
+            <div className="grid lg:grid-cols-2 gap-12 md:gap-16 items-start">
+              <div className="space-y-8 md:space-y-12">
                 {resumeImage && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="lg:hidden w-full aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 mb-8"
+                    className="lg:hidden w-full aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-8"
                   >
                     <img src={resumeImage} alt="Journey" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </motion.div>
@@ -703,12 +703,12 @@ function Portfolio() {
                     className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors"
                   >
                     <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(214, 255, 65, 1)] transition-all" />
-                    <div className="mb-2">
-                      <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
-                      <h3 className="text-2xl font-black">{item.role}</h3>
-                      <div className="text-gray-400 font-bold mb-4">{item.company}</div>
-                      {item.desc && <p className="text-gray-500 max-w-2xl">{item.desc}</p>}
-                    </div>
+                      <div className="mb-2">
+                        <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
+                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">{item.role}</h3>
+                        <div className="text-gray-400 font-bold mb-4">{item.company}</div>
+                        {item.desc && <p className="text-gray-500 max-w-2xl">{item.desc}</p>}
+                      </div>
                   </motion.div>
                 ))}
               </div>
@@ -761,10 +761,10 @@ function Portfolio() {
         </section>
 
         {/* Services Section */}
-        <section id="services" className="py-32 px-6 bg-bg-card/30">
+        <section id="services" className="py-16 md:py-32 px-6 bg-bg-card/30">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="What I Do" title="My Specialities" />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {services.map((service, i) => (
                 <motion.div
                   key={service.id}
@@ -790,15 +790,15 @@ function Portfolio() {
         </section>
 
         {/* Skills Section */}
-        <section id="skills" className="py-32 px-6">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <section id="skills" className="py-16 md:py-32 px-6">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
               <SectionHeader label="Excellence" title="Technical Arsenal" />
-              <p className="text-gray-400 text-lg mb-10">
+              <p className="text-gray-400 text-base md:text-lg mb-10">
                 My skills are refined through years of practical application in demanding environments. I focus on technologies that deliver performance and scalability.
               </p>
               <button className="flex items-center gap-2 font-bold text-accent group">
@@ -832,10 +832,10 @@ function Portfolio() {
         </section>
 
         {/* Projects Section */}
-        <section id="projects" className="py-32 px-6 bg-bg-card/50">
+        <section id="projects" className="py-16 md:py-32 px-6 bg-bg-card/50">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Portfolio" title="Featured Work" />
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-6 md:gap-8">
               {projects.map((project, i) => (
                 <motion.div
                   key={project.id || project.title}
@@ -875,7 +875,7 @@ function Portfolio() {
         </section>
 
         {/* Testimonials */}
-        <section className="py-32 px-6 bg-bg-card/20 overflow-hidden relative">
+        <section className="py-16 md:py-32 px-6 bg-bg-card/20 overflow-hidden relative">
           {/* Decorative Background */}
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] -z-10" />
           
@@ -895,22 +895,22 @@ function Portfolio() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: i * 0.1 }}
-                    className="min-w-[320px] md:min-w-[450px] p-10 bg-bg-card rounded-[40px] snap-center border border-white/5 relative group hover:border-accent/30 transition-all flex flex-col"
+                    className="min-w-[280px] md:min-w-[450px] p-6 md:p-10 bg-bg-card rounded-[40px] snap-center border border-white/5 relative group hover:border-accent/30 transition-all flex flex-col"
                   >
-                    <div className="absolute top-10 right-10 text-accent/10 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <MessageSquare className="w-12 h-12" />
+                    <div className="absolute top-6 right-6 md:top-10 md:right-10 text-accent/10 opacity-40 group-hover:opacity-100 transition-opacity">
+                      <MessageSquare className="w-8 h-8 md:w-12 md:h-12" />
                     </div>
                     
-                    <div className="flex gap-1 mb-8">
-                      {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-accent text-accent" />)}
+                    <div className="flex gap-1 mb-6 md:mb-8">
+                      {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 md:w-4 md:h-4 fill-accent text-accent" />)}
                     </div>
 
-                    <p className="text-xl text-gray-300 leading-relaxed italic mb-10 flex-grow">
+                    <p className="text-base md:text-xl text-gray-300 leading-relaxed italic mb-8 md:mb-10 flex-grow">
                       "{t.content}"
                     </p>
 
-                    <div className="flex items-center gap-4 pt-8 border-t border-white/5">
-                      <div className="relative w-14 h-14 shrink-0">
+                    <div className="flex items-center gap-4 pt-6 md:pt-8 border-t border-white/5">
+                      <div className="relative w-10 h-10 md:w-14 md:h-14 shrink-0">
                         <div className="absolute -inset-1 bg-gradient-to-tr from-accent to-transparent rounded-full opacity-30 group-hover:opacity-100 transition-opacity" />
                         <img 
                           src={t.avatar} 
@@ -920,8 +920,8 @@ function Portfolio() {
                         />
                       </div>
                       <div>
-                        <h4 className="text-lg font-black text-white">{t.name}</h4>
-                        <p className="text-sm text-accent font-bold uppercase tracking-widest">{t.role}</p>
+                        <h4 className="text-base md:text-lg font-black text-white">{t.name}</h4>
+                        <p className="text-[10px] md:text-sm text-accent font-bold uppercase tracking-widest">{t.role}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -969,10 +969,10 @@ function Portfolio() {
         </section>
 
         {/* Pricing Section */}
-        <section className="py-32 px-6 bg-card-dark">
+        <section className="py-16 md:py-32 px-6 bg-card-dark">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Investment" title="Pricing Plans" />
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-8 md:gap-10">
               {pricingPlans.map((plan, i) => (
                 <motion.div
                   key={plan.id || plan.name}
@@ -1014,7 +1014,7 @@ function Portfolio() {
         </section>
 
         {/* Blog Section */}
-        <section id="blog" className="py-32 px-6">
+        <section id="blog" className="py-16 md:py-32 px-6">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Journal" title="Latest Insights" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1040,15 +1040,15 @@ function Portfolio() {
         </section>
 
         {/* Contact Section */}
-        <section id="contact" className="py-32 px-6">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16">
+        <section id="contact" className="py-16 md:py-32 px-6">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 md:gap-16">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
               <SectionHeader label="Contact" title="Let's Build Something" />
-              <p className="text-gray-400 text-lg mb-12">
+              <p className="text-gray-400 text-base md:text-lg mb-12">
                 Have a project in mind or just want to say hi? I'm always open to discussing new opportunities and creative ideas.
               </p>
               <div className="space-y-6">
