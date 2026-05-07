@@ -187,6 +187,8 @@ export default function AdminDashboard() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [heroImage, setHeroImage] = useState('');
+  const [heroStatus, setHeroStatus] = useState('');
+  const [heroAvailability, setHeroAvailability] = useState('');
   const [uploadValue, setUploadValue] = useState('');
 
   const checkAdminStatus = async (currentUser: User) => {
@@ -250,7 +252,10 @@ export default function AdminDashboard() {
     if (activeTab === 'settings') {
       const configDoc = await getDoc(doc(db, 'siteConfig', 'hero'));
       if (configDoc.exists()) {
-        setHeroImage(configDoc.data().heroImage || '');
+        const data = configDoc.data();
+        setHeroImage(data.heroImage || '');
+        setHeroStatus(data.heroStatus || '');
+        setHeroAvailability(data.heroAvailability || '');
       }
       setItems([]);
     } else {
@@ -272,7 +277,12 @@ export default function AdminDashboard() {
     }
 
     if (activeTab === 'settings') {
-      await updateDocument('siteConfig', 'hero', { heroImage, updatedAt: new Date().toISOString() });
+      await updateDocument('siteConfig', 'hero', { 
+        heroImage, 
+        heroStatus,
+        heroAvailability,
+        updatedAt: new Date().toISOString() 
+      });
       alert('Settings saved!');
     } else if (editingItem) {
       await updateDocument(activeTab, editingItem.id, data);
@@ -421,11 +431,32 @@ export default function AdminDashboard() {
             </h3>
             <form onSubmit={handleSave} className="space-y-8">
               <ImageUpload 
-                label="Main Hero Image" 
+                label="Hero Profile Photo" 
                 value={heroImage} 
                 onChange={setHeroImage} 
-                recommendation="Recommended: 1200x800px or larger with a simple background for best results."
+                recommendation="This is the main image in the floating frame. Recommended: 800x800px or larger."
               />
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Status Badge (e.g. Active Now)</label>
+                  <input 
+                    value={heroStatus} 
+                    onChange={(e) => setHeroStatus(e.target.value)}
+                    placeholder="Active Now"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Availability Text</label>
+                  <input 
+                    value={heroAvailability} 
+                    onChange={(e) => setHeroAvailability(e.target.value)}
+                    placeholder="Available for projects"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
+                  />
+                </div>
+              </div>
               
               <button 
                 type="submit" 

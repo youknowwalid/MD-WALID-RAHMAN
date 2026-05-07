@@ -245,6 +245,8 @@ function Portfolio() {
   const [hasResumeData, setHasResumeData] = useState(false);
   const [hasTestimonialData, setHasTestimonialData] = useState(false);
   const [heroImage, setHeroImage] = useState('/input_file_0.png');
+  const [heroStatus, setHeroStatus] = useState('Active Now');
+  const [heroAvailability, setHeroAvailability] = useState('Available for new projects');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -316,7 +318,10 @@ function Portfolio() {
 
     const unsubHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
       if (snapshot.exists()) {
-        setHeroImage(snapshot.data().heroImage || '/input_file_0.png');
+        const data = snapshot.data();
+        setHeroImage(data.heroImage || '/input_file_0.png');
+        setHeroStatus(data.heroStatus || 'Active Now');
+        setHeroAvailability(data.heroAvailability || 'Available for new projects');
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
 
@@ -500,8 +505,8 @@ function Portfolio() {
                   />
                   {/* Overlay Card UI */}
                   <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10">
-                    <div className="text-[10px] text-accent font-bold uppercase tracking-wider mb-1">Active Now</div>
-                    <div className="text-xs text-white/80">Available for new projects</div>
+                    <div className="text-[10px] text-accent font-bold uppercase tracking-wider mb-1">{heroStatus}</div>
+                    <div className="text-xs text-white/80">{heroAvailability}</div>
                   </div>
                 </motion.div>
               </div>
