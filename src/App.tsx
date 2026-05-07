@@ -23,10 +23,11 @@ import {
   Menu,
   X,
   FileText,
-  LayoutDashboard
+  LayoutDashboard,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { db, handleFirestoreError, OperationType } from './services/firebase';
+import { db, handleFirestoreError, OperationType, addDocument } from './services/firebase';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import AdminDashboard from './components/AdminDashboard';
 
@@ -76,6 +77,14 @@ interface BlogPost {
   date: string;
   excerpt: string;
   image: string;
+}
+
+interface PricingPlan {
+  id?: string;
+  name: string;
+  price: string;
+  features: string[];
+  accent: boolean;
 }
 
 // --- Icons Mapping ---
@@ -141,6 +150,12 @@ const DEFAULT_BLOG_POSTS: BlogPost[] = [
   { title: 'Building Scalable Brands', date: 'Apr 28, 2024', excerpt: 'Key strategies for creating a brand that grows with your business.', image: 'https://picsum.photos/seed/blog2/800/500' },
   { title: 'UX Patterns to Watch', date: 'Apr 15, 2024', excerpt: 'Current trends in user experience that are shaping digital products.', image: 'https://picsum.photos/seed/blog3/800/500' },
   { title: 'Brand Consistency', date: 'Mar 30, 2024', excerpt: 'Why maintaining a consistent voice is crucial for long-term success.', image: 'https://picsum.photos/seed/blog4/800/500' },
+];
+
+const DEFAULT_PRICING_PLANS: PricingPlan[] = [
+  { name: 'Basic Plan', price: '$19.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
+  { name: 'Standard Plan', price: '$39.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: true },
+  { name: 'Premium Plan', price: '$99.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
 ];
 
 // --- Components ---
@@ -239,6 +254,7 @@ function Portfolio() {
   const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
   const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(DEFAULT_BLOG_POSTS);
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(DEFAULT_PRICING_PLANS);
   const [resume, setResume] = useState<any[]>([]); // Initialize empty then use defaults if none from DB
   const [testimonials, setTestimonials] = useState<Testimonial[]>(TESTIMONIALS);
 
@@ -247,6 +263,10 @@ function Portfolio() {
   const [heroImage, setHeroImage] = useState('/input_file_0.png');
   const [heroStatus, setHeroStatus] = useState('Active Now');
   const [heroAvailability, setHeroAvailability] = useState('Available for new projects');
+  const [cvUrl, setCvUrl] = useState('#');
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -322,8 +342,16 @@ function Portfolio() {
         setHeroImage(data.heroImage || '/input_file_0.png');
         setHeroStatus(data.heroStatus || 'Active Now');
         setHeroAvailability(data.heroAvailability || 'Available for new projects');
+        setCvUrl(data.cvUrl || '#');
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
+
+    const unsubPricing = onSnapshot(query(collection(db, 'pricingPlans'), orderBy('createdAt', 'asc')), 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          setPricingPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+        }
+      }, (error) => handleFirestoreError(error, OperationType.GET, 'pricingPlans'));
 
     return () => {
       unsubProjects();
@@ -332,14 +360,41 @@ function Portfolio() {
       unsubResume();
       unsubTestimonials();
       unsubHero();
+      unsubPricing();
     };
   }, []);
+
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormStatus('idle');
+    
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
+    };
+
+    try {
+      await addDocument('contactSubmissions', data);
+      setFormStatus('success');
+      (e.target as HTMLFormElement).reset();
+    } catch (error) {
+      console.error("Form error:", error);
+      setFormStatus('error');
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setFormStatus('idle'), 5000);
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-bg-dark overflow-x-hidden selection:bg-accent/30 selection:text-white">
       {/* --- Immersive Background Elements --- */}
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-accent rounded-full blur-[150px] opacity-10 pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-5 pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-accent rounded-full blur-[150px] opacity-10 pointer-events-none z-0" />
+      <div className="absolute bottom-[5%] left-[-5%] w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-5 pointer-events-none z-0" />
       
       <SpotlightCursor />
 
@@ -455,12 +510,16 @@ function Portfolio() {
                 >
                   Start Project
                 </motion.a>
-                <motion.button 
+                <motion.a 
+                  href={cvUrl}
+                  download="Walid_Rahman_CV.pdf"
+                  target="_blank"
+                  rel="noreferrer"
                   whileHover={{ scale: 1.05 }}
                   className="border border-white/20 px-10 py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-white"
                 >
                   Download CV
-                </motion.button>
+                </motion.a>
               </div>
 
               <div className="mt-16 grid grid-cols-3 gap-8 border-t border-white/5 pt-12">
@@ -768,13 +827,9 @@ function Portfolio() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Investment" title="Pricing Plans" />
             <div className="grid lg:grid-cols-3 gap-8">
-              {[
-                { name: 'Basic Plan', price: '$19.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
-                { name: 'Standard Plan', price: '$39.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: true },
-                { name: 'Premium Plan', price: '$99.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
-              ].map((plan, i) => (
+              {pricingPlans.map((plan, i) => (
                 <motion.div
-                  key={plan.name}
+                  key={plan.id || plan.name}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -880,29 +935,41 @@ function Portfolio() {
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
+              onSubmit={handleContactSubmit}
               className="p-10 bg-bg-card rounded-3xl border border-white/5"
             >
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-bold mb-2">Name</label>
-                  <input type="text" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="John Doe" />
+                  <input name="name" type="text" required className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="John Doe" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">Email</label>
-                  <input type="email" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="john@example.com" />
+                  <input name="email" type="email" required className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="john@example.com" />
                 </div>
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-bold mb-2">Subject</label>
-                <input type="text" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="Project Inquiry" />
+                <input name="subject" type="text" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="Project Inquiry" />
               </div>
               <div className="mb-8">
                 <label className="block text-sm font-bold mb-2">Message</label>
-                <textarea rows={4} className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all resize-none" placeholder="Tell me about your project..."></textarea>
+                <textarea name="message" rows={4} required className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all resize-none" placeholder="Tell me about your project..."></textarea>
               </div>
-              <button className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all">
-                Send Message
+              <button 
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : "Send Message"}
               </button>
+              
+              {formStatus === 'success' && (
+                <p className="mt-4 text-accent text-center font-bold">Thank you! Your message has been sent.</p>
+              )}
+              {formStatus === 'error' && (
+                <p className="mt-4 text-red-400 text-center font-bold">Something went wrong. Please try again.</p>
+              )}
             </motion.form>
           </div>
         </section>

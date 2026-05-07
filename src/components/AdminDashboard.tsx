@@ -17,7 +17,9 @@ import {
   Users,
   Settings,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  DollarSign,
+  MessageSquare
 } from 'lucide-react';
 import { 
   auth, 
@@ -64,7 +66,13 @@ const SEED_DATA: Record<string, any[]> = {
     { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transform our brand completely. His attention to detail and creative vision are unmatched.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
     { name: 'Michael Chen', role: 'Founder, EcoStream', content: 'Working with Walid was a game-changer for our digital presence. He truly understands modern brand development.', avatar: 'https://i.pravatar.cc/150?u=michael' },
     { name: 'Elena Rodriguez', role: 'Marketing Director, Vora', content: 'The website Walid built for us exceeded all expectations. Fast, beautiful, and highly functional.', avatar: 'https://i.pravatar.cc/150?u=elena' },
-  ]
+  ],
+  pricingPlans: [
+    { name: 'Basic Plan', price: '$19.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
+    { name: 'Standard Plan', price: '$39.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: true },
+    { name: 'Premium Plan', price: '$99.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
+  ],
+  contactSubmissions: []
 };
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -75,6 +83,8 @@ const TABS = [
   { id: 'blogPosts', label: 'Blog', icon: FileText },
   { id: 'resume', label: 'Resume', icon: FileText },
   { id: 'testimonials', label: 'Feedback', icon: Users },
+  { id: 'pricingPlans', label: 'Pricing', icon: DollarSign },
+  { id: 'contactSubmissions', label: 'Inquiries', icon: MessageSquare },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -189,7 +199,33 @@ export default function AdminDashboard() {
   const [heroImage, setHeroImage] = useState('');
   const [heroStatus, setHeroStatus] = useState('');
   const [heroAvailability, setHeroAvailability] = useState('');
+  const [cvUrl, setCvUrl] = useState('');
   const [uploadValue, setUploadValue] = useState('');
+
+  const [isUploadingCV, setIsUploadingCV] = useState(false);
+
+  const handleCVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file.');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File size too large. Please upload a PDF under 2MB.');
+      return;
+    }
+
+    setIsUploadingCV(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCvUrl(event.target?.result as string);
+      setIsUploadingCV(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const checkAdminStatus = async (currentUser: User) => {
     try {
@@ -256,6 +292,7 @@ export default function AdminDashboard() {
         setHeroImage(data.heroImage || '');
         setHeroStatus(data.heroStatus || '');
         setHeroAvailability(data.heroAvailability || '');
+        setCvUrl(data.cvUrl || '');
       }
       setItems([]);
     } else {
@@ -268,7 +305,7 @@ export default function AdminDashboard() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    const data = Object.fromEntries(formData.entries());
+    const data: any = Object.fromEntries(formData.entries());
 
     // Inject uploaded image if present
     if (uploadValue) {
@@ -276,11 +313,18 @@ export default function AdminDashboard() {
       if (activeTab === 'testimonials') data.avatar = uploadValue;
     }
 
+    // Feature formatting for pricing plans
+    if (activeTab === 'pricingPlans') {
+      data.features = (data.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
+      data.accent = data.accent === 'true';
+    }
+
     if (activeTab === 'settings') {
       await updateDocument('siteConfig', 'hero', { 
         heroImage, 
         heroStatus,
         heroAvailability,
+        cvUrl,
         updatedAt: new Date().toISOString() 
       });
       alert('Settings saved!');
@@ -457,6 +501,30 @@ export default function AdminDashboard() {
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm text-gray-400">Download CV (PDF)</label>
+                <div className="flex gap-4 items-center">
+                  <div className="flex-1">
+                    <input 
+                      type="text" 
+                      value={cvUrl} 
+                      onChange={(e) => setCvUrl(e.target.value)}
+                      placeholder="Paste PDF URL or upload below..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
+                    />
+                  </div>
+                  <label className="bg-white/5 border border-white/10 p-3 rounded-xl cursor-pointer hover:bg-white/10 transition-all flex items-center gap-2 text-sm">
+                    <Upload className="w-4 h-4" />
+                    <span>Upload PDF</span>
+                    <input type="file" accept="application/pdf" onChange={handleCVUpload} className="hidden" />
+                  </label>
+                </div>
+                {isUploadingCV && <p className="text-xs text-accent animate-pulse">Processing PDF...</p>}
+                {cvUrl && cvUrl.startsWith('data:') && (
+                  <p className="text-xs text-green-400">PDF successfully loaded from local file.</p>
+                )}
+              </div>
               
               <button 
                 type="submit" 
@@ -610,6 +678,30 @@ export default function AdminDashboard() {
                     </>
                   )}
 
+                  {activeTab === 'pricingPlans' && (
+                    <>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Plan Name</label>
+                        <input name="name" defaultValue={editingItem?.name} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Price String (e.g. $19.95)</label>
+                        <input name="price" defaultValue={editingItem?.price} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Make Accent/Featured?</label>
+                        <select name="accent" defaultValue={String(!!editingItem?.accent)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                          <option value="false" className="bg-bg-dark">Normal</option>
+                          <option value="true" className="bg-bg-dark">Accent (Highlighted)</option>
+                        </select>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Features (Comma separated)</label>
+                        <textarea name="features" defaultValue={editingItem?.features?.join(', ')} required rows={4} placeholder="Feature 1, Feature 2, Feature 3" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                    </>
+                  )}
+
                   <div className="col-span-2 flex justify-end gap-4 mt-4">
                     <button 
                       type="button" 
@@ -646,23 +738,52 @@ export default function AdminDashboard() {
               {item.avatar && (
                 <img src={item.avatar} alt={item.name} className="w-20 h-20 object-cover rounded-full border border-white/10" referrerPolicy="no-referrer" />
               )}
+              
+              {activeTab === 'contactSubmissions' && (
+                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent shrink-0">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+              )}
+
               <div className="flex-1">
-                <h4 className="text-xl font-bold mb-1">{item.title || item.name || item.role}</h4>
-                <div className="flex gap-4 text-sm text-gray-500">
+                <h4 className="text-xl font-bold mb-1">
+                  {activeTab === 'contactSubmissions' ? item.subject : (item.title || item.name || item.role)}
+                </h4>
+                <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                   {item.category && <span>{item.category}</span>}
                   {item.id && activeTab === 'services' && <span>ID: {item.id}</span>}
                   {item.date && <span>{item.date}</span>}
                   {item.year && <span>{item.year}</span>}
                   {item.company && <span>{item.company}</span>}
+                  
+                  {activeTab === 'pricingPlans' && (
+                    <>
+                      <span className="text-accent font-bold">{item.price}</span>
+                      <span>{item.features?.length} Features</span>
+                    </>
+                  )}
+                  
+                  {activeTab === 'contactSubmissions' && (
+                    <>
+                      <span className="text-white font-medium">From: {item.name} ({item.email})</span>
+                    </>
+                  )}
                 </div>
+                {activeTab === 'contactSubmissions' && (
+                  <p className="mt-3 text-gray-400 text-sm italic border-l-2 border-accent/20 pl-4">
+                    "{item.message}"
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
-                <button 
-                  onClick={() => setEditingItem(item)}
-                  className="p-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"
-                >
-                  <Edit2 className="w-5 h-5" />
-                </button>
+                {activeTab !== 'contactSubmissions' && (
+                  <button 
+                    onClick={() => setEditingItem(item)}
+                    className="p-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                )}
                 <button 
                   onClick={() => handleDelete(item.id)}
                   className="p-3 rounded-xl border border-white/10 hover:bg-red-400/10 text-gray-400 hover:text-red-400 transition-all"

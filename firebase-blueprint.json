@@ -78,12 +78,41 @@
     },
     "siteConfig": {
       "title": "Site Configuration",
-      "description": "Global settings like hero image",
+      "description": "Global settings like hero image and CV",
       "type": "object",
       "properties": {
         "heroImage": { "type": "string" },
+        "heroStatus": { "type": "string" },
+        "heroAvailability": { "type": "string" },
+        "cvUrl": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "pricingPlan": {
+      "title": "Pricing Plan",
+      "description": "Investment options",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "string" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "accent": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "features"]
+    },
+    "contactSubmission": {
+      "title": "Contact Submission",
+      "description": "Inquiries from the contact form",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message"]
     }
   },
   "firestore": {
@@ -114,6 +143,14 @@
     "siteConfig": {
       "schema": "siteConfig",
       "description": "Global configuration"
+    },
+    "pricingPlans": {
+      "schema": "pricingPlan",
+      "description": "Collection of pricing plans"
+    },
+    "contactSubmissions": {
+      "schema": "contactSubmission",
+      "description": "Collection of visitor inquiries"
     }
   }
 }
