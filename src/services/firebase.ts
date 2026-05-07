@@ -98,6 +98,13 @@ export const signInWithGoogle = async () => {
         email: user.email,
         isAdmin: user.email === 'walidxdxdxd@gmail.com' // Bootstrap admin
       });
+    } else if (user.email === 'walidxdxdxd@gmail.com' && !userDoc.data()?.isAdmin) {
+      // Repair if existing account wasn't marked admin (may require rule update)
+      try {
+        await updateDoc(userDocRef, { isAdmin: true });
+      } catch (e) {
+        console.warn("Could not self-repair admin status via client update. This is expected if rules are strict.");
+      }
     }
     return user;
   } catch (error) {

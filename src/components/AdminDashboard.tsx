@@ -42,12 +42,26 @@ export default function AdminDashboard() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
 
+  const checkAdminStatus = async (currentUser: User) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        setIsAdmin(userDoc.data()?.isAdmin || false);
+      } else {
+        // If doc doesn't exist yet, it might be being created
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      setIsAdmin(false);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        setIsAdmin(userDoc.data()?.isAdmin || false);
+        await checkAdminStatus(user);
       } else {
         setIsAdmin(false);
       }
@@ -55,6 +69,28 @@ export default function AdminDashboard() {
     });
     return unsubscribe;
   }, []);
+
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleLogin = async () => {
+    setAuthError(null);
+    setIsLoggingIn(true);
+    try {
+      const loggedInUser = await signInWithGoogle();
+      if (loggedInUser) {
+        // Wait a small bit for Firestore to propagate if repair happened
+        setTimeout(async () => {
+          await checkAdminStatus(loggedInUser);
+        }, 500);
+      }
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      setAuthError(error.message || "Failed to sign in. Please try again.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   useEffect(() => {
     if (isAdmin) {
@@ -89,22 +125,6 @@ export default function AdminDashboard() {
     if (window.confirm('Are you sure you want to delete this item?')) {
       await removeDocument(activeTab, id);
       loadItems();
-    }
-  };
-
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-
-  const handleLogin = async () => {
-    setAuthError(null);
-    setIsLoggingIn(true);
-    try {
-      await signInWithGoogle();
-    } catch (error: any) {
-      console.error("Login failed:", error);
-      setAuthError(error.message || "Failed to sign in. Please try again.");
-    } finally {
-      setIsLoggingIn(false);
     }
   };
 

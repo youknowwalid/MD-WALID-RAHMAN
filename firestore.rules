@@ -85,7 +85,10 @@ service cloud.firestore {
       // Allow self-registration. Mark walidxdxdxd@gmail.com as admin by default.
       allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming()) && 
                     (incoming().email == "walidxdxdxd@gmail.com" ? incoming().isAdmin == true : incoming().isAdmin == false);
-      allow update: if isAdmin() && isValidUser(incoming());
+      
+      // Allow the admin email to self-repair its isAdmin flag if it was somehow set to false
+      allow update: if (isAdmin() && isValidUser(incoming())) || 
+                    (isSignedIn() && request.auth.uid == userId && incoming().email == "walidxdxdxd@gmail.com" && incoming().isAdmin == true && isValidUser(incoming()));
     }
   }
 }
