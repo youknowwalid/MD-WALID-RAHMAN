@@ -69,6 +69,9 @@ export interface PricingPlan {
   price: string;
   features: string[];
   unavailableFeatures?: string[];
+  showPriorityBox?: boolean;
+  priorityTitle?: string;
+  prioritySubtitle?: string;
   buttonText?: string;
   buttonUrl?: string;
   accent: boolean;

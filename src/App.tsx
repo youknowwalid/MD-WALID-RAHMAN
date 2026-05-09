@@ -26,7 +26,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { db, handleFirestoreError, OperationType, addDocument } from './services/firebase';
+import { db, handleFirestoreError, OperationType, addDocument, getCollection } from './services/firebase';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import AdminDashboard from './components/AdminDashboard';
 import ProjectDetail from './components/ProjectDetail';
@@ -199,27 +199,6 @@ const DEFAULT_PRICING_PLANS: PricingPlan[] = [
 
 // --- Components ---
 
-const SpotlightCursor = () => {
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  return (
-    <motion.div
-      className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
-      animate={{ 
-        background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 26, 26, 0.01), transparent 80%)` 
-      }}
-    />
-  );
-};
-
 const SectionHeader = ({ label, title }: { label: string; title: string }) => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true });
@@ -239,7 +218,7 @@ const SectionHeader = ({ label, title }: { label: string; title: string }) => {
           initial={{ clipPath: 'inset(0 100% 0 0)' }}
           animate={isInView ? { clipPath: 'inset(0 0 0 0)' } : {}}
           transition={{ duration: 0.8, ease: "circOut" }}
-          className="text-3xl md:text-5xl font-black text-white"
+          className="text-3xl md:text-5xl font-black text-text-main"
         >
           {title}
         </motion.h2>
@@ -428,13 +407,12 @@ function Portfolio() {
   };
 
   return (
-    <div className="relative min-h-screen bg-bg-dark overflow-x-hidden selection:bg-accent/30 selection:text-white">
+    <div className="relative min-h-screen bg-bg-dark overflow-x-hidden selection:bg-accent/30 selection:text-text-main">
       {/* --- Immersive Background Elements --- */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent rounded-full blur-[150px] opacity-10 pointer-events-none z-0" />
-      <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-5 pointer-events-none z-0" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent rounded-full blur-[150px] opacity-[0.03] pointer-events-none z-0" />
+      <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-[0.02] pointer-events-none z-0" />
       
       <Navbar />
-      <SpotlightCursor />
 
       {/* --- Sections --- */}
         <main className="relative z-10">
@@ -459,9 +437,9 @@ function Portfolio() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="text-sm md:text-2xl text-gray-400 mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0"
+                  className="text-sm md:text-2xl text-text-muted mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0"
                 >
-                  A <span className="text-white font-bold underline decoration-accent underline-offset-4">Brand Developer</span> crafting premium digital experiences.
+                  A <span className="text-text-main font-bold underline decoration-accent underline-offset-4">Brand Developer</span> crafting premium digital experiences.
                 </motion.div>
                 
                 <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6">
@@ -470,7 +448,7 @@ function Portfolio() {
                     target="_blank"
                     rel="noreferrer"
                     whileHover={{ scale: 1.05 }}
-                    className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base"
+                    className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base border border-accent"
                   >
                     Start Project
                   </motion.a>
@@ -480,7 +458,7 @@ function Portfolio() {
                     target="_blank"
                     rel="noreferrer"
                     whileHover={{ scale: 1.05 }}
-                    className="border border-white/20 px-6 md:px-10 py-3 md:py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-white text-xs md:text-base"
+                    className="border border-border-subtle px-6 md:px-10 py-3 md:py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-text-main text-xs md:text-base"
                   >
                     Download CV
                   </motion.a>
@@ -488,16 +466,16 @@ function Portfolio() {
 
                 <div className="mt-12 md:mt-16 grid grid-cols-3 gap-4 md:gap-8 border-t border-white/5 pt-8 md:pt-12">
                   <div className="space-y-1">
-                    <div className="text-2xl md:text-3xl font-bold text-white">8+ <span className="text-accent text-lg">Yrs</span></div>
-                    <div className="text-[8px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-tight">Experience</div>
+                    <div className="text-2xl md:text-3xl font-bold text-text-main">8+ <span className="text-accent text-lg">Yrs</span></div>
+                    <div className="text-[8px] md:text-[10px] text-text-muted uppercase tracking-widest leading-tight">Experience</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-2xl md:text-3xl font-bold text-white">1K+</div>
-                    <div className="text-[8px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-tight">Clients Met</div>
+                    <div className="text-2xl md:text-3xl font-bold text-text-main">1K+</div>
+                    <div className="text-[8px] md:text-[10px] text-text-muted uppercase tracking-widest leading-tight">Clients Met</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-2xl md:text-3xl font-bold text-white">97%</div>
-                    <div className="text-[8px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-tight">Success Rate</div>
+                    <div className="text-2xl md:text-3xl font-bold text-text-main">97%</div>
+                    <div className="text-[8px] md:text-[10px] text-text-muted uppercase tracking-widest leading-tight">Success Rate</div>
                   </div>
                 </div>
               </div>
@@ -506,7 +484,7 @@ function Portfolio() {
                 <div className="relative w-full max-w-[320px] md:max-w-[420px] aspect-square">
                   {/* Abstract Background Element */}
                   <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
-                  <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40 shadow-[0_0_10px_rgba(255, 26, 26, 0.02)]" />
+                  <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40" />
 
                   <motion.div
                     animate={{ 
@@ -528,9 +506,9 @@ function Portfolio() {
                     loading="lazy"
                   />
                   {/* Overlay Card UI */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10">
+                  <div className="absolute bottom-4 left-4 right-4 bg-bg-card/60 backdrop-blur-md p-3 rounded-xl border border-white/10">
                     <div className="text-[10px] text-accent font-bold uppercase tracking-wider mb-1">{heroStatus}</div>
-                    <div className="text-xs text-white/80">{heroAvailability}</div>
+                    <div className="text-xs text-text-main/80">{heroAvailability}</div>
                   </div>
                 </motion.div>
               </div>
@@ -539,7 +517,7 @@ function Portfolio() {
 
           {/* Section Peek / Scroll Indicator */}
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex">
-            <div className="text-[10px] text-white/40 uppercase tracking-[0.4em]">Scroll to explore</div>
+            <div className="text-[10px] text-text-muted/60 uppercase tracking-[0.4em]">Scroll to explore</div>
             <motion.div 
               animate={{ height: [24, 48, 24] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -559,7 +537,7 @@ function Portfolio() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
               >
-                <p className="text-lg md:text-xl text-gray-400 leading-relaxed mb-8">
+                <p className="text-lg md:text-xl text-text-muted leading-relaxed mb-8">
                   As a Team Leader with extensive expertise in digital marketing, ed-tech, e-commerce, and brand management, I drive strategic growth and innovation across diverse industries. With a background that spans art direction, product design, sales, and more, I bring a multifaceted perspective to every project.
                 </p>
                 <div className="flex flex-wrap gap-4">
@@ -587,17 +565,17 @@ function Portfolio() {
               >
                 <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default accent-glow-hover">
                   <Mail className="text-accent mb-4" />
-                  <div className="text-sm text-gray-400">Email</div>
+                  <div className="text-sm text-text-muted">Email</div>
                   <div className="font-bold underline decoration-accent/30"><a href="mailto:info@walidrahman.com">info@walidrahman.com</a></div>
                 </div>
                 <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default">
                   <Phone className="text-accent mb-4" />
-                  <div className="text-sm text-gray-400">Phone</div>
+                  <div className="text-sm text-text-muted">Phone</div>
                   <div className="font-bold underline decoration-accent/30"><a href="https://wa.me/+8801744588644" target="_blank" rel="noreferrer">+880 1744 588 644</a></div>
                 </div>
                 <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default col-span-full">
                   <MapPin className="text-accent mb-4" />
-                  <div className="text-sm text-gray-400">Location</div>
+                  <div className="text-sm text-text-muted">Location</div>
                   <div className="font-bold">Nikunja 2, Dhaka 1229, Bangladesh</div>
                 </div>
               </motion.div>
@@ -637,12 +615,12 @@ function Portfolio() {
                     transition={{ delay: i * 0.1 }}
                     className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors"
                   >
-                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_4px_rgba(255, 26, 26, 0.1)] transition-all" />
+                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent transition-all" />
                       <div className="mb-2">
                         <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
-                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">{item.role}</h3>
-                        <div className="text-gray-400 font-bold mb-4">{item.company}</div>
-                        {item.desc && <p className="text-gray-500 max-w-2xl">{item.desc}</p>}
+                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-text-main">{item.role}</h3>
+                        <div className="text-text-muted font-bold mb-4">{item.company}</div>
+                        {item.desc && <p className="text-text-muted/80 max-w-2xl">{item.desc}</p>}
                       </div>
                   </motion.div>
                 ))}
@@ -684,9 +662,9 @@ function Portfolio() {
                       <div className="absolute inset-0 bg-gradient-to-t from-bg-dark/80 via-transparent to-transparent" />
                       
                       {/* Info Tag */}
-                      <div className="absolute bottom-8 left-8 right-8 p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+                      <div className="absolute bottom-8 left-8 right-8 p-4 bg-bg-card/40 backdrop-blur-md rounded-2xl border border-white/10">
                         <div className="text-xs text-accent font-bold uppercase tracking-widest mb-1">Current Focus</div>
-                        <div className="text-lg font-black text-white">Strategic Brand Evolution</div>
+                        <div className="text-lg font-black text-text-main">Strategic Brand Evolution</div>
                       </div>
                     </motion.div>
                   </motion.div>
@@ -711,7 +689,7 @@ function Portfolio() {
                   whileHover={{ y: -10 }}
                   className="p-8 bg-bg-card rounded-3xl border border-white/5 hover:border-accent/30 transition-all relative overflow-hidden group"
                 >
-                  <div className="absolute -top-4 -right-4 text-6xl font-black text-white/5 group-hover:text-accent/10 transition-colors">
+                  <div className="absolute -top-4 -right-4 text-6xl font-black text-text-main/5 group-hover:text-accent/10 transition-colors">
                     {service.id}
                   </div>
                   <div className="mb-6 w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-black transition-all">
@@ -747,10 +725,10 @@ function Portfolio() {
               {skills.map((skill, i) => (
                 <div key={skill.name}>
                   <div className="flex justify-between mb-2">
-                    <span className="font-bold">{skill.name}</span>
+                    <span className="font-bold text-text-main">{skill.name}</span>
                     <span className="text-accent">{skill.level}%</span>
                   </div>
-                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-border-subtle rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       whileInView={{ width: `${skill.level}%` }}
@@ -758,7 +736,7 @@ function Portfolio() {
                       transition={{ duration: 1.5, delay: i * 0.1 }}
                       className="h-full bg-accent relative"
                     >
-                      <div className="absolute right-0 top-0 h-full w-2 bg-white blur-sm opacity-50" />
+                      <div className="absolute right-0 top-0 h-full w-2 bg-text-main blur-sm opacity-50" />
                     </motion.div>
                   </div>
                 </div>
@@ -787,9 +765,9 @@ function Portfolio() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
+                  <div className="absolute inset-0 bg-bg-dark/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
                     <span className="text-accent text-sm font-bold uppercase mb-2 tracking-widest">{project.category}</span>
-                    <h3 className="text-3xl font-black mb-4">{project.title}</h3>
+                    <h3 className="text-3xl font-black mb-4 text-text-main">{project.title}</h3>
                     <div className="flex gap-4">
                       <Link 
                         to={`/projects/${project.slug || project.id || project.title.toLowerCase().replace(/\s+/g, '-')}`} 
@@ -856,7 +834,7 @@ function Portfolio() {
                       />
                     </div>
                     <div>
-                      <h4 className="text-lg md:text-[22px] font-black text-white leading-none mb-1">{t.name}</h4>
+                      <h4 className="text-lg md:text-[22px] font-black text-text-main leading-none mb-1">{t.name}</h4>
                       <p className="text-[10px] md:text-[12px] text-accent font-bold uppercase tracking-wider">{t.role}</p>
                     </div>
                   </div>
@@ -867,7 +845,7 @@ function Portfolio() {
         </section>
 
         {/* Pricing Section */}
-        <section className="py-16 md:py-32 px-6 bg-card-dark">
+        <section className="py-16 md:py-32 px-6 bg-bg-dark transition-colors duration-300">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Investment" title="Pricing Plans" />
             <div className="grid lg:grid-cols-3 gap-8 md:gap-10">
@@ -879,61 +857,66 @@ function Portfolio() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   className={cn(
-                    "p-10 bg-bg-card rounded-3xl border border-white/5 relative",
-                    plan.accent && "scale-105 z-10 border-accent/40 shadow-[0_0_8px_rgba(255, 26, 26, 0.02)]"
+                    "p-10 bg-bg-card rounded-3xl border border-border-subtle relative transition-all duration-300 hover:border-accent/30 group",
+                    plan.accent && "scale-105 z-10 shadow-[0_0_50px_rgba(244,89,1,0.1)] border-accent/40"
                   )}
                 >
                   {plan.accent && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-white text-xs font-black uppercase px-4 py-1 rounded-full">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-white text-[10px] font-black uppercase px-6 py-1.5 rounded-full tracking-widest shadow-lg z-20">
                       Most Popular
                     </div>
                   )}
-                  <h3 className="text-2xl font-black mb-4">{plan.name}</h3>
-                  <div className="text-5xl font-black mb-8">{plan.price}<span className="text-lg text-gray-500 font-normal">/month</span></div>
                   
-                  <div className="space-y-6 mb-10 overflow-hidden text-left">
-                    {/* Consultation Highlight Box */}
-                    {plan.features.find(f => f.toLowerCase().includes('consultation')) && (
-                      <div className="p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-5 mb-8 shadow-xl">
-                        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_5px_rgba(255, 26, 26, 0.05)]">
-                          <Clock className="w-6 h-6 text-white" />
+                  <div className="mb-8">
+                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-accent mb-2">{plan.name}</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-5xl font-black text-text-main tracking-tighter">{plan.price}</span>
+                      <span className="text-text-muted/60 font-medium text-sm">/month</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-8 mb-10 text-left">
+                    {/* Explicit Priority Access / Availability Box */}
+                    {plan.showPriorityBox && (
+                      <div className="p-5 bg-accent/5 border border-accent/10 rounded-2xl flex items-center gap-4 transition-all group-hover:bg-accent/10">
+                        <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center shrink-0">
+                          <Clock className="w-6 h-6 text-accent animate-pulse" />
                         </div>
                         <div>
-                          <div className="text-accent font-black text-xl leading-tight">
-                            {plan.features.find(f => f.toLowerCase().includes('consultation'))?.split(' Consultation')[0]}
+                          <div className="text-text-main font-black text-lg leading-tight">
+                            {plan.priorityTitle || 'N/A'}
                           </div>
-                          <div className="text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
-                            Daily Consultation
+                          <div className="text-[10px] text-accent font-bold uppercase tracking-[0.1em]">
+                            {plan.prioritySubtitle || 'Daily Priority Access'}
                           </div>
                         </div>
                       </div>
                     )}
 
-                    <div>
-                      <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] mb-6">What's Included</h4>
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black text-text-main/40 uppercase tracking-[0.3em] mb-2">Technical Arsenal</h4>
                       <ul className="space-y-4">
-                        {plan.features.filter(f => !f.toLowerCase().includes('consultation')).map(f => (
-                          <li key={f} className="flex items-start gap-3 text-white text-sm font-medium leading-tight">
-                            <Check className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                            <span>{f}</span>
+                        {/* Explicit Included Features */}
+                        {(plan.features || []).map(f => (
+                          <li key={f} className="flex items-start gap-3 text-text-main text-sm font-medium leading-tight group/item">
+                            <div className="w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center shrink-0 mt-0.5 group-hover/item:bg-accent/20 transition-colors">
+                              <Check className="w-3 h-3 text-accent" />
+                            </div>
+                            <span className="opacity-90">{f}</span>
+                          </li>
+                        ))}
+                        
+                        {/* Explicit Unavailable Features */}
+                        {(plan.unavailableFeatures || []).map(f => (
+                          <li key={f} className="flex items-start gap-3 text-text-muted/40 text-sm font-medium leading-tight select-none">
+                            <div className="w-5 h-5 rounded-full bg-border-subtle flex items-center justify-center shrink-0 mt-0.5 opacity-50">
+                              <X className="w-3 h-3 text-text-muted" />
+                            </div>
+                            <span className="line-through decoration-text-muted/20">{f}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-
-                    {plan.unavailableFeatures && plan.unavailableFeatures.length > 0 && (
-                      <div className="pt-6 border-t border-white/5">
-                        <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-6">Excludes</h4>
-                        <ul className="space-y-4">
-                          {plan.unavailableFeatures.map(f => (
-                            <li key={f} className="flex items-start gap-3 text-gray-600 text-sm opacity-60">
-                              <X className="w-4 h-4 text-gray-700 shrink-0 mt-1" />
-                              <span className="line-through decoration-gray-800">{f}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
 
                   <a 
@@ -941,12 +924,14 @@ function Portfolio() {
                     target="_blank"
                     rel="noreferrer"
                     className={cn(
-                      "flex items-center justify-center w-full py-4 rounded-xl font-black transition-all overflow-hidden relative group text-sm uppercase tracking-widest",
-                      plan.accent ? "bg-accent text-white shadow-[0_0_5px_rgba(255, 26, 26, 0.05)]" : "border border-white/20 hover:bg-white/5 text-white"
+                      "flex items-center justify-center w-full py-4 rounded-xl font-black transition-all overflow-hidden relative group text-xs uppercase tracking-[0.2em]",
+                      plan.accent 
+                        ? "bg-accent text-white hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-accent/20" 
+                        : "border border-border-subtle hover:border-accent hover:text-accent text-text-main bg-transparent"
                     )}
                   >
-                    <span className="relative z-10">{plan.buttonText || "Choose Plan"}</span>
-                    <div className="absolute inset-0 shimmer animate-[shimmer_2s_infinite] opacity-0 group-hover:opacity-100" />
+                    <span className="relative z-10">{plan.buttonText || "Get Started"}</span>
+                    {plan.accent && <div className="absolute inset-0 shimmer animate-[shimmer_3s_infinite] opacity-30" />}
                   </a>
                 </motion.div>
               ))}
@@ -1048,7 +1033,7 @@ function Portfolio() {
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-full bg-accent text-white font-black py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : "Send Message"}
               </button>
@@ -1065,51 +1050,51 @@ function Portfolio() {
       </main>
 
       {/* --- Footer --- */}
-      <footer className="py-20 px-6 border-t border-white/5">
+      <footer className="py-20 px-6 border-t border-border-subtle bg-bg-dark transition-colors duration-300">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
           <div className="max-w-sm">
-            <div className="text-2xl font-black mb-6 tracking-tighter">
+            <div className="text-2xl font-black mb-6 tracking-tighter text-text-main">
               youknowwalid<span className="text-accent">.</span>
             </div>
-            <p className="text-gray-500 mb-8">
+            <p className="text-text-muted mb-8 italic">
               A Brand Developer crafting premium digital experiences that bridge the gap between creative vision and technical excellence.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-12 sm:gap-24">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-24">
             <div>
-              <h5 className="font-bold mb-4 uppercase text-xs tracking-widest text-accent">Sitemap</h5>
-              <ul className="space-y-2 text-sm text-gray-500">
-                {NAV_LINKS.slice(0, 4).map(l => <li key={l.name}><a href={l.href} className="hover:text-white transition-colors">{l.name}</a></li>)}
+              <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">Navigation</h5>
+              <ul className="space-y-2 text-sm text-text-muted">
+                {NAV_LINKS.map(l => <li key={l.name}><a href={l.href} className="hover:text-accent transition-colors">{l.name}</a></li>)}
               </ul>
             </div>
             <div>
-              <h5 className="font-bold mb-4 uppercase text-xs tracking-widest text-accent">Contact</h5>
-              <ul className="space-y-2 text-sm text-gray-500">
+              <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">Contact</h5>
+              <ul className="space-y-2 text-sm text-text-muted">
                 <li>Nikunja 2, Dhaka 1229</li>
                 <li>info@walidrahman.com</li>
                 <li>+880 1744 588 644</li>
               </ul>
             </div>
             <div>
-              <h5 className="font-bold mb-4 uppercase text-xs tracking-widest text-accent">Admin</h5>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><Link to="/admin" className="hover:text-accent transition-colors flex items-center gap-2"><LayoutDashboard className="w-4 h-4" /> Management Panel</Link></li>
+              <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">System</h5>
+              <ul className="space-y-2 text-sm text-text-muted">
+                <li><Link to="/admin" className="hover:text-accent transition-colors flex items-center gap-2"><LayoutDashboard className="w-4 h-4 text-accent" /> Management Panel</Link></li>
               </ul>
             </div>
           </div>
           <div className="flex gap-4">
-            <a href="https://facebook.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1">
+            <a href="https://facebook.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             </a>
-            <a href="https://linkedin.com/in/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1">
+            <a href="https://linkedin.com/in/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
               <Linkedin className="w-5 h-5" />
             </a>
-            <a href="https://twitter.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1">
+            <a href="https://twitter.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm1.161 17.52h1.833L7.045 4.126H5.078z"/></svg>
             </a>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 text-center text-xs text-gray-600">
+        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-border-subtle text-center text-[10px] uppercase tracking-widest text-text-muted/40 font-bold">
           youknowwalid &copy; 2025 All Rights Reserved by Walid Rahman Swapnil
         </div>
       </footer>

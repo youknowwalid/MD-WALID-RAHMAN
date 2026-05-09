@@ -69,9 +69,39 @@ const SEED_DATA: Record<string, any[]> = {
     { name: 'Elena Rodriguez', role: 'Marketing Director, Vora', content: 'The website Walid built for us exceeded all expectations. Fast, beautiful, and highly functional.', avatar: 'https://i.pravatar.cc/150?u=elena' },
   ],
   pricingPlans: [
-    { name: 'Basic Plan', price: '$19.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
-    { name: 'Standard Plan', price: '$39.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: true },
-    { name: 'Premium Plan', price: '$99.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
+    { 
+      name: 'Basic Plan', 
+      price: '$350', 
+      features: ['Website Design (up to 3 pages)', 'Basic Brand Identity & Logo', 'Social Media Management (2 platforms)', 'Copywriting (4 posts/month)', '1 Revision Round'],
+      unavailableFeatures: ['Mobile App Design', 'Product Design', 'Paid Ads / Campaigns', 'SEO & Analytics', 'UI/UX Design'],
+      showPriorityBox: true,
+      priorityTitle: '3 Hours / Day',
+      prioritySubtitle: 'Daily Priority Access',
+      buttonText: "Let's Talk",
+      accent: false 
+    },
+    { 
+      name: 'Standard Plan', 
+      price: '$500', 
+      features: ['Website Design (up to 8 pages)', 'Mobile App Design', 'Full Brand Identity & Logo Kit', 'Social Media Management (4 platforms)', 'Copywriting (12 posts/month)', 'Paid Ads / Campaigns (1 campaign)', 'Basic SEO & Monthly Report', '3 Revision Rounds'],
+      unavailableFeatures: ['Product Design', 'UI/UX Design & Prototyping'],
+      showPriorityBox: true,
+      priorityTitle: '6 Hours / Day',
+      prioritySubtitle: 'Daily Priority Access',
+      buttonText: 'Get Started',
+      accent: true 
+    },
+    { 
+      name: 'Premium Plan', 
+      price: '$1200', 
+      features: ['Website Design (Unlimited pages)', 'Mobile App & Product Design', 'Full Brand Identity + Style Guide', 'UI/UX Design & Prototyping', 'Social Media Management (All platforms)', 'Unlimited Paid Ads / Campaigns', 'Unlimited Copywriting', 'Full SEO, Analytics & Growth Strategy', 'Dedicated Account Manager', 'Unlimited Revision Rounds'],
+      unavailableFeatures: [],
+      showPriorityBox: true,
+      priorityTitle: '9 Hours / Day',
+      prioritySubtitle: 'Dedicated Priority Support',
+      buttonText: 'Inquire Now',
+      accent: false 
+    },
   ],
   skills: [
     { name: 'Canva', level: 98 },
@@ -201,6 +231,16 @@ const ImageUpload = ({
 };
 
 export default function AdminDashboard() {
+  const [isLight, setIsLight] = useState(false);
+
+  useEffect(() => {
+    setIsLight(document.body.classList.contains('light-mode'));
+    const observer = new MutationObserver(() => {
+      setIsLight(document.body.classList.contains('light-mode'));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -405,6 +445,7 @@ export default function AdminDashboard() {
         data.features = (data.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
         data.unavailableFeatures = (data.unavailableFeatures as string || '').split(',').map(f => f.trim()).filter(f => f !== '');
         data.accent = data.accent === 'true';
+        data.showPriorityBox = data.showPriorityBox === 'true';
       }
 
       // Convert skill level to number
@@ -487,7 +528,7 @@ export default function AdminDashboard() {
           <button 
             onClick={handleLogin}
             disabled={isLoggingIn}
-            className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-accent text-white font-black py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in with Google"}
           </button>
@@ -503,9 +544,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white flex">
+    <div className="min-h-screen bg-bg-dark text-text-main flex transition-colors duration-300">
       {/* Sidebar */}
-      <aside className="w-64 bg-bg-card border-r border-white/5 p-6 flex flex-col">
+      <aside className="w-64 bg-bg-card border-r border-border-subtle p-6 flex flex-col">
         <div className="text-xl font-black mb-10 tracking-tighter">
           Admin<span className="text-accent">Panel</span>
         </div>
@@ -516,7 +557,7 @@ export default function AdminDashboard() {
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setIsAdding(false); setEditingItem(null); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === tab.id ? 'bg-accent text-white font-bold' : 'text-gray-400 hover:bg-white/5'
+                activeTab === tab.id ? 'bg-accent text-white font-bold' : 'text-text-muted hover:bg-white/5'
               }`}
             >
               <tab.icon className="w-5 h-5" />
@@ -543,8 +584,8 @@ export default function AdminDashboard() {
       <main className="flex-1 p-10 overflow-y-auto">
         <div className="flex justify-between items-center mb-10">
           <div>
-            <h2 className="text-3xl font-black">{TABS.find(t => t.id === activeTab)?.label} Management</h2>
-            {activeTab !== 'settings' && <p className="text-gray-400">Total items: {items.length}</p>}
+            <h2 className="text-3xl font-black text-text-main">{TABS.find(t => t.id === activeTab)?.label} Management</h2>
+            {activeTab !== 'settings' && <p className="text-text-muted">Total items: {items.length}</p>}
           </div>
           <div className="flex gap-4">
             {activeTab !== 'settings' && (
@@ -560,7 +601,7 @@ export default function AdminDashboard() {
             {activeTab !== 'settings' && (
               <button 
                 onClick={() => { setIsAdding(true); setUploadValue(''); }}
-                className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all"
+                className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Add New
@@ -637,7 +678,7 @@ export default function AdminDashboard() {
               <button 
                 type="submit" 
                 disabled={isSaving}
-                className="bg-accent text-white font-black px-10 py-4 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-accent text-white font-black px-10 py-4 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 {isSaving ? 'Saving...' : 'Save Configuration'}
@@ -868,35 +909,65 @@ export default function AdminDashboard() {
 
                   {activeTab === 'pricingPlans' && (
                     <>
-                      <div>
-                        <label className="block text-sm text-gray-400 mb-2">Plan Name</label>
-                        <input name="name" defaultValue={editingItem?.name} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      <div className="col-span-2 grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Plan Name</label>
+                          <input name="name" defaultValue={editingItem?.name} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Price String (e.g. $19.95)</label>
+                          <input name="price" defaultValue={editingItem?.price} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm text-gray-400 mb-2">Price String (e.g. $19.95)</label>
-                        <input name="price" defaultValue={editingItem?.price} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+
+                      <div className="col-span-2 grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Button Text</label>
+                          <input name="buttonText" defaultValue={editingItem?.buttonText} placeholder="e.g. Choose Plan" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Make Accent/Featured?</label>
+                          <select name="accent" defaultValue={String(!!editingItem?.accent)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                            <option value="false" className="bg-bg-dark">Normal</option>
+                            <option value="true" className="bg-bg-dark">Accent (Highlighted)</option>
+                          </select>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm text-gray-400 mb-2">Button Text</label>
-                        <input name="buttonText" defaultValue={editingItem?.buttonText} placeholder="e.g. Choose Plan" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-gray-400 mb-2">Make Accent/Featured?</label>
-                        <select name="accent" defaultValue={String(!!editingItem?.accent)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
-                          <option value="false" className="bg-bg-dark">Normal</option>
-                          <option value="true" className="bg-bg-dark">Accent (Highlighted)</option>
-                        </select>
-                      </div>
+
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Button URL (WhatsApp/Link)</label>
                         <input name="buttonUrl" defaultValue={editingItem?.buttonUrl} placeholder="https://wa.me/..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
+
+                      <div className="col-span-2 p-6 bg-accent/5 rounded-2xl border border-accent/10 space-y-4">
+                        <h4 className="text-xs font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                          <DollarSign className="w-3 h-3" /> Priority Access / Availability Box
+                        </h4>
+                        <div className="grid grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm text-gray-400 mb-2">Show Box?</label>
+                            <select name="showPriorityBox" defaultValue={String(!!editingItem?.showPriorityBox)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                              <option value="false" className="bg-bg-dark">Hidden</option>
+                              <option value="true" className="bg-bg-dark">Visible</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm text-gray-400 mb-2">Box Title (e.g. 6 Hours / Day)</label>
+                            <input name="priorityTitle" defaultValue={editingItem?.priorityTitle} placeholder="6 Hours / Day" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-sm text-gray-400 mb-2">Box Subtitle (e.g. Daily Priority Access)</label>
+                            <input name="prioritySubtitle" defaultValue={editingItem?.prioritySubtitle} placeholder="Daily Priority Access" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Available Features (Comma separated)</label>
+                        <label className="block text-sm text-gray-400 mb-2">Included Services (Comma separated)</label>
                         <textarea name="features" defaultValue={editingItem?.features?.join(', ')} required rows={4} placeholder="Feature 1, Feature 2, Feature 3" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Not Available Services (Comma separated)</label>
+                        <label className="block text-sm text-gray-400 mb-2">Excludes / Unavailable (Comma separated)</label>
                         <textarea name="unavailableFeatures" defaultValue={editingItem?.unavailableFeatures?.join(', ')} rows={4} placeholder="Service 1, Service 2" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
                       </div>
                     </>
@@ -930,7 +1001,7 @@ export default function AdminDashboard() {
                     <button 
                       type="submit" 
                       disabled={isSaving}
-                      className="bg-accent text-white font-black px-10 py-3 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-accent text-white font-black px-10 py-3 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                       {isSaving ? 'Processing...' : (editingItem ? 'Update Item' : 'Save Item')}

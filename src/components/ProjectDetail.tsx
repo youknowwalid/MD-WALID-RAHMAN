@@ -106,7 +106,7 @@ export default function ProjectDetail() {
   if (!project) {
     return (
       <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center gap-6 p-6">
-        <h1 className="text-4xl font-black text-white">Project Not Found</h1>
+        <h1 className="text-4xl font-black text-text-main">Project Not Found</h1>
         <Link to="/" className="text-accent hover:underline flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Back to Home
         </Link>
@@ -115,7 +115,7 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white selection:bg-accent/30 selection:text-white">
+    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
       <Navbar />
       
       <main className="pt-32 pb-20 px-6">
@@ -159,7 +159,7 @@ export default function ProjectDetail() {
           <div className="grid lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h2 className="text-2xl font-bold mb-6 text-accent">Overview</h2>
-              <div className="text-gray-400 text-lg leading-relaxed mb-12 whitespace-pre-wrap">
+              <div className="text-text-muted text-lg leading-relaxed mb-12 whitespace-pre-wrap">
                 {project.content || "Detailed description coming soon..."}
               </div>
 
@@ -190,7 +190,7 @@ export default function ProjectDetail() {
                       <Tag className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-[10px] text-gray-500 uppercase font-black">Category</div>
+                      <div className="text-[10px] text-text-muted uppercase font-black">Category</div>
                       <div className="font-bold">{project.category}</div>
                     </div>
                   </div>
@@ -200,10 +200,10 @@ export default function ProjectDetail() {
                         <User className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="text-[10px] text-gray-500 uppercase font-black">Tech Stack</div>
+                        <div className="text-[10px] text-text-muted uppercase font-black">Tech Stack</div>
                         <div className="flex flex-wrap gap-2 mt-1">
                           {project.tags.map(tag => (
-                            <span key={tag} className="text-[10px] px-2 py-1 bg-white/5 rounded-md text-gray-400">
+                            <span key={tag} className="text-[10px] px-2 py-1 bg-border-subtle rounded-md text-text-muted">
                               {tag}
                             </span>
                           ))}
@@ -226,9 +226,9 @@ export default function ProjectDetail() {
               </div>
 
               {/* Promo Card */}
-              <div className="p-8 bg-gradient-to-tr from-accent/20 to-transparent rounded-3xl border border-accent/20">
+              <div className="p-8 bg-gradient-to-tr from-accent/20 to-transparent rounded-3xl border border-accent/20 transition-all duration-300">
                 <h3 className="text-xl font-black mb-4">Have a similar project?</h3>
-                <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                <p className="text-text-muted text-sm mb-6 leading-relaxed">
                   Let's collaborate to build something extraordinary tailored to your brand's unique mission.
                 </p>
                 <Link to="/#contact" className="text-accent font-bold flex items-center gap-2 hover:underline">

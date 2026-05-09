@@ -87,7 +87,7 @@ export default function BlogDetail() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center gap-6 p-6 text-white">
+      <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center gap-6 p-6 text-text-main">
         <h1 className="text-4xl font-black">Article Not Found</h1>
         <Link to="/" className="text-accent hover:underline flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Back to Journal
@@ -97,20 +97,20 @@ export default function BlogDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white selection:bg-accent/30 selection:text-white">
+    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
       <Navbar />
 
       <main className="pt-32 pb-20 px-6">
         <div className="max-w-4xl mx-auto">
            {/* Back link */}
-           <Link to="/#blog" className="inline-flex items-center gap-2 text-gray-500 hover:text-accent transition-colors mb-12 group">
+           <Link to="/#blog" className="inline-flex items-center gap-2 text-text-muted hover:text-accent transition-colors mb-12 group">
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             Back to Journal
           </Link>
 
           {/* Header */}
           <div className="mb-12">
-            <div className="flex flex-wrap items-center gap-6 text-xs text-gray-500 uppercase font-black mb-6">
+            <div className="flex flex-wrap items-center gap-6 text-xs text-text-muted uppercase font-black mb-6">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-accent" />
                 {post.date}
@@ -127,7 +127,7 @@ export default function BlogDetail() {
             <h1 className="text-4xl md:text-6xl font-black leading-tight tracking-tight mb-8">
               {post.title}
             </h1>
-            <p className="text-xl text-gray-400 italic border-l-4 border-accent pl-6 mb-12">
+            <p className="text-xl text-text-muted italic border-l-4 border-accent pl-6 mb-12">
               {post.excerpt}
             </p>
           </div>
@@ -141,16 +141,16 @@ export default function BlogDetail() {
           <div className="grid lg:grid-cols-4 gap-12">
             <div className="lg:col-span-3">
               <article className="prose prose-invert prose-accent max-w-none">
-                <div className="text-gray-300 text-lg leading-relaxed whitespace-pre-wrap">
+                <div className="text-text-main text-lg leading-relaxed whitespace-pre-wrap">
                   {post.content || "Content coming soon..."}
                 </div>
               </article>
               
               {/* Tags */}
               {post.tags && (
-                <div className="flex flex-wrap gap-2 mt-12 pt-12 border-t border-white/5">
+                <div className="flex flex-wrap gap-2 mt-12 pt-12 border-t border-border-subtle">
                   {post.tags.map(tag => (
-                    <span key={tag} className="px-4 py-1 bg-white/5 rounded-full text-xs text-gray-400 hover:text-accent transition-colors cursor-default">
+                    <span key={tag} className="px-4 py-1 bg-border-subtle rounded-full text-xs text-text-muted hover:text-accent transition-colors cursor-default">
                       #{tag}
                     </span>
                   ))}
