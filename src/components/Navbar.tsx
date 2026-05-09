@@ -80,7 +80,7 @@ export default function Navbar() {
             href="https://calendly.com/youknowwalid/30min" 
             target="_blank" 
             rel="noreferrer"
-            className="hidden lg:block px-6 py-2.5 bg-transparent border border-accent text-accent rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(214, 255, 65, 0.3)] hover:bg-accent hover:text-black transition-all text-center"
+            className="hidden lg:block px-6 py-2.5 bg-transparent border border-accent text-accent rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255, 26, 26, 0.3)] hover:bg-accent hover:text-white transition-all text-center"
           >
             Let's Talk
           </a>
@@ -120,7 +120,7 @@ export default function Navbar() {
               href="https://calendly.com/youknowwalid/30min" 
               target="_blank" 
               rel="noreferrer"
-              className="mt-4 px-8 py-4 bg-accent text-black rounded-xl text-sm font-bold uppercase tracking-widest text-center"
+              className="mt-4 px-8 py-4 bg-accent text-white rounded-xl text-sm font-bold uppercase tracking-widest text-center"
             >
               Let's Talk
             </a>

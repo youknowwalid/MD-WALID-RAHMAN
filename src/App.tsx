@@ -79,17 +79,6 @@ const DEFAULT_SERVICES: Service[] = [
   { id: '06', title: 'Content Creation', description: 'Engaging content that tells your brands story across all platforms.', icon: Megaphone },
 ];
 
-const SKILLS: Skill[] = [
-  { name: 'Canva', level: 98 },
-  { name: 'Meta Ads', level: 96 },
-  { name: 'MS Office', level: 95 },
-  { name: 'GA4 / GTM', level: 94 },
-  { name: 'WordPress', level: 85 },
-  { name: 'Trello', level: 84 },
-  { name: 'Adobe Creative Suite', level: 83 },
-  { name: 'Google Ads', level: 76 },
-];
-
 const DEFAULT_PROJECTS: Project[] = [
   { 
     id: 'nexus-brand',
@@ -225,7 +214,7 @@ const SpotlightCursor = () => {
     <motion.div
       className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
       animate={{ 
-        background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(214, 255, 65, 0.05), transparent 80%)` 
+        background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 26, 26, 0.05), transparent 80%)` 
       }}
     />
   );
@@ -305,6 +294,7 @@ function Portfolio() {
   const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(DEFAULT_BLOG_POSTS);
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(DEFAULT_PRICING_PLANS);
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [resume, setResume] = useState<any[]>([]); // Initialize empty then use defaults if none from DB
   const [testimonials, setTestimonials] = useState<Testimonial[]>(TESTIMONIALS);
 
@@ -345,13 +335,14 @@ function Portfolio() {
     const fetchAllData = async () => {
       try {
         // Use parallel fetching for speed
-        const [projSnap, servSnap, blogSnap, resSnap, testSnap, pricSnap] = await Promise.all([
+        const [projSnap, servSnap, blogSnap, resSnap, testSnap, pricSnap, skillSnap] = await Promise.all([
           getCollection('projects'),
           getCollection('services'),
           getCollection('blogPosts'),
           getCollection('resume'),
           getCollection('testimonials'),
-          getCollection('pricingPlans')
+          getCollection('pricingPlans'),
+          getCollection('skills')
         ]);
 
         if (projSnap) setProjects(projSnap as any);
@@ -361,6 +352,22 @@ function Portfolio() {
         if (resSnap && resSnap.length > 0) {
           setResume(resSnap as any);
           setHasResumeData(true);
+        }
+
+        if (skillSnap && skillSnap.length > 0) {
+          setSkills(skillSnap as any);
+        } else {
+          // Fallback to defaults if none in DB
+          setSkills([
+            { name: 'Canva', level: 98 },
+            { name: 'Meta Ads', level: 96 },
+            { name: 'MS Office', level: 95 },
+            { name: 'GA4 / GTM', level: 94 },
+            { name: 'WordPress', level: 85 },
+            { name: 'Trello', level: 84 },
+            { name: 'Adobe Creative Suite', level: 83 },
+            { name: 'Google Ads', level: 76 },
+          ]);
         }
         
         if (testSnap && testSnap.length > 0) {
@@ -463,7 +470,7 @@ function Portfolio() {
                     target="_blank"
                     rel="noreferrer"
                     whileHover={{ scale: 1.05 }}
-                    className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-black font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base"
+                    className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base"
                   >
                     Start Project
                   </motion.a>
@@ -499,7 +506,7 @@ function Portfolio() {
                 <div className="relative w-full max-w-[320px] md:max-w-[420px] aspect-square">
                   {/* Abstract Background Element */}
                   <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
-                  <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40 shadow-[0_0_50px_rgba(214, 255, 65, 0.1)]" />
+                  <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40 shadow-[0_0_50px_rgba(255, 26, 26, 0.1)]" />
 
                   <motion.div
                     animate={{ 
@@ -630,7 +637,7 @@ function Portfolio() {
                     transition={{ delay: i * 0.1 }}
                     className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors"
                   >
-                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(214, 255, 65, 1)] transition-all" />
+                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(255, 26, 26, 1)] transition-all" />
                       <div className="mb-2">
                         <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
                         <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">{item.role}</h3>
@@ -737,7 +744,7 @@ function Portfolio() {
             </motion.div>
 
             <div className="space-y-8">
-              {SKILLS.map((skill, i) => (
+              {skills.map((skill, i) => (
                 <div key={skill.name}>
                   <div className="flex justify-between mb-2">
                     <span className="font-bold">{skill.name}</span>
@@ -873,11 +880,11 @@ function Portfolio() {
                   transition={{ delay: i * 0.1 }}
                   className={cn(
                     "p-10 bg-bg-card rounded-3xl border border-white/5 relative",
-                    plan.accent && "scale-105 z-10 border-accent/40 shadow-[0_0_40px_rgba(214, 255, 65, 0.2)]"
+                    plan.accent && "scale-105 z-10 border-accent/40 shadow-[0_0_40px_rgba(255, 26, 26, 0.2)]"
                   )}
                 >
                   {plan.accent && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-black text-xs font-black uppercase px-4 py-1 rounded-full">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-white text-xs font-black uppercase px-4 py-1 rounded-full">
                       Most Popular
                     </div>
                   )}
@@ -888,8 +895,8 @@ function Portfolio() {
                     {/* Consultation Highlight Box */}
                     {plan.features.find(f => f.toLowerCase().includes('consultation')) && (
                       <div className="p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-5 mb-8 shadow-xl">
-                        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(214,255,65,0.3)]">
-                          <Clock className="w-6 h-6 text-black" />
+                        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255, 26, 26, 0.3)]">
+                          <Clock className="w-6 h-6 text-white" />
                         </div>
                         <div>
                           <div className="text-accent font-black text-xl leading-tight">
@@ -935,7 +942,7 @@ function Portfolio() {
                     rel="noreferrer"
                     className={cn(
                       "flex items-center justify-center w-full py-4 rounded-xl font-black transition-all overflow-hidden relative group text-sm uppercase tracking-widest",
-                      plan.accent ? "bg-accent text-black shadow-[0_0_20px_rgba(214,255,65,0.3)]" : "border border-white/20 hover:bg-white/5 text-white"
+                      plan.accent ? "bg-accent text-white shadow-[0_0_20px_rgba(255, 26, 26, 0.3)]" : "border border-white/20 hover:bg-white/5 text-white"
                     )}
                   >
                     <span className="relative z-10">{plan.buttonText || "Choose Plan"}</span>
@@ -1041,7 +1048,7 @@ function Portfolio() {
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : "Send Message"}
               </button>

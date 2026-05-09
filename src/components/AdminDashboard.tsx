@@ -19,7 +19,8 @@ import {
   Upload,
   Image as ImageIcon,
   DollarSign,
-  MessageSquare
+  MessageSquare,
+  Cpu
 } from 'lucide-react';
 import { 
   auth, 
@@ -72,6 +73,16 @@ const SEED_DATA: Record<string, any[]> = {
     { name: 'Standard Plan', price: '$39.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: true },
     { name: 'Premium Plan', price: '$99.95', features: ['Website Design', 'Mobile Apps Design', 'Product Design', 'Digital Marketing', 'Custom Support'], accent: false },
   ],
+  skills: [
+    { name: 'Canva', level: 98 },
+    { name: 'Meta Ads', level: 96 },
+    { name: 'MS Office', level: 95 },
+    { name: 'GA4 / GTM', level: 94 },
+    { name: 'WordPress', level: 85 },
+    { name: 'Trello', level: 84 },
+    { name: 'Adobe Creative Suite', level: 83 },
+    { name: 'Google Ads', level: 76 },
+  ],
   contactSubmissions: []
 };
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -82,6 +93,7 @@ const TABS = [
   { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
   { id: 'resume', label: 'Resume', icon: FileText },
+  { id: 'skills', label: 'Skills', icon: Cpu },
   { id: 'testimonials', label: 'Feedback', icon: Users },
   { id: 'pricingPlans', label: 'Pricing', icon: DollarSign },
   { id: 'contactSubmissions', label: 'Inquiries', icon: MessageSquare },
@@ -395,6 +407,11 @@ export default function AdminDashboard() {
         data.accent = data.accent === 'true';
       }
 
+      // Convert skill level to number
+      if (activeTab === 'skills' && data.level) {
+        data.level = parseInt(data.level as string, 10);
+      }
+
       if (activeTab === 'settings') {
         await updateDocument('siteConfig', 'hero', { 
           heroImage, 
@@ -470,7 +487,7 @@ export default function AdminDashboard() {
           <button 
             onClick={handleLogin}
             disabled={isLoggingIn}
-            className="w-full bg-accent text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in with Google"}
           </button>
@@ -499,7 +516,7 @@ export default function AdminDashboard() {
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setIsAdding(false); setEditingItem(null); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === tab.id ? 'bg-accent text-black font-bold' : 'text-gray-400 hover:bg-white/5'
+                activeTab === tab.id ? 'bg-accent text-white font-bold' : 'text-gray-400 hover:bg-white/5'
               }`}
             >
               <tab.icon className="w-5 h-5" />
@@ -543,7 +560,7 @@ export default function AdminDashboard() {
             {activeTab !== 'settings' && (
               <button 
                 onClick={() => { setIsAdding(true); setUploadValue(''); }}
-                className="flex items-center gap-2 bg-accent text-black font-black px-6 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all"
+                className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Add New
@@ -620,7 +637,7 @@ export default function AdminDashboard() {
               <button 
                 type="submit" 
                 disabled={isSaving}
-                className="bg-accent text-black font-black px-10 py-4 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-accent text-white font-black px-10 py-4 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 {isSaving ? 'Saving...' : 'Save Configuration'}
@@ -885,6 +902,23 @@ export default function AdminDashboard() {
                     </>
                   )}
 
+                  {activeTab === 'skills' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Skill Name</label>
+                        <input name="name" defaultValue={editingItem?.name} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="e.g. Photoshop, Meta Ads" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Skill Rating (%)</label>
+                        <input name="level" type="number" min="0" max="100" defaultValue={editingItem?.level || 80} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <div className="mt-4 h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                          <div className="h-full bg-accent" style={{ width: `${editingItem?.level || 80}%` }} />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+
                   <div className="col-span-2 flex justify-end gap-4 mt-4">
                     <button 
                       type="button" 
@@ -896,7 +930,7 @@ export default function AdminDashboard() {
                     <button 
                       type="submit" 
                       disabled={isSaving}
-                      className="bg-accent text-black font-black px-10 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(214, 255, 65, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-accent text-white font-black px-10 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                       {isSaving ? 'Processing...' : (editingItem ? 'Update Item' : 'Save Item')}
@@ -946,6 +980,16 @@ export default function AdminDashboard() {
                       <span>{item.features?.length} Features</span>
                     </>
                   )}
+
+                  {activeTab === 'skills' && (
+                    <div className="flex items-center gap-4 w-full max-w-xs">
+                      <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent" style={{ width: `${item.level}%` }} />
+                      </div>
+                      <span className="text-accent font-black">{item.level}%</span>
+                    </div>
+                  )}
+
                   
                   {activeTab === 'contactSubmissions' && (
                     <>

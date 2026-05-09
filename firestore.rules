@@ -74,6 +74,13 @@ service cloud.firestore {
                data.keys().size() <= 10;
     }
 
+    function isValidSkill(data) {
+      return data.keys().hasAll(['name', 'level']) &&
+             data.get('name', '') is string &&
+             data.get('level', 0) is int &&
+             data.keys().size() <= 15;
+    }
+
     // --- Collection Matches ---
 
     match /projects/{projectId} {
@@ -120,6 +127,11 @@ service cloud.firestore {
       allow read: if isSignedIn() && request.auth.uid == userId;
       // Allow self-registration and updates for the system admin and standard users
       allow create, update: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming());
+    }
+
+    match /skills/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

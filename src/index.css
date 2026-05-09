@@ -3,7 +3,10 @@
 
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --color-accent: #d6ff41;
+  --color-accent: #FF1A1A;
+  --color-accent-start: #FF1A1A;
+  --color-accent-mid: #E6163F;
+  --color-accent-end: #FF2E63;
   --color-bg-dark: #0a0a0a;
   --color-bg-card: #111111;
 }
@@ -32,7 +35,7 @@
 
 @layer utilities {
   .text-glow {
-    text-shadow: 0 0 20px rgba(214, 255, 65, 0.5);
+    text-shadow: 0 0 20px rgba(255, 26, 26, 0.5);
   }
   
   .bg-glass {
@@ -40,11 +43,11 @@
   }
 
   .accent-shadow {
-    box-shadow: 0 10px 30px rgba(214, 255, 65, 0.3);
+    box-shadow: 0 10px 30px rgba(255, 26, 26, 0.3);
   }
 
   .text-gradient {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-white to-accent;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-accent-start via-accent-mid to-accent-end;
   }
 
   .reveal-clip {
@@ -62,7 +65,7 @@
   }
 
   .accent-glow-hover:hover {
-    box-shadow: 0 0 30px rgba(214, 255, 65, 0.15);
+    box-shadow: 0 0 30px rgba(255, 26, 26, 0.2);
   }
 
   .hide-scrollbar::-webkit-scrollbar {

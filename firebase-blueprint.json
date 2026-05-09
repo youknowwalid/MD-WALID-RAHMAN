@@ -135,6 +135,18 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "email", "message"]
+    },
+    "skill": {
+      "title": "Skill",
+      "description": "A technical skill with rating",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "level": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "level"]
     }
   },
   "firestore": {
@@ -173,6 +185,10 @@
     "contactSubmissions": {
       "schema": "contactSubmission",
       "description": "Collection of visitor inquiries"
+    },
+    "skills": {
+      "schema": "skill",
+      "description": "Collection of technical skills"
     }
   }
 }
