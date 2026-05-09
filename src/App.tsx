@@ -214,7 +214,7 @@ const SpotlightCursor = () => {
     <motion.div
       className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
       animate={{ 
-        background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 26, 26, 0.05), transparent 80%)` 
+        background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 26, 26, 0.01), transparent 80%)` 
       }}
     />
   );
@@ -506,7 +506,7 @@ function Portfolio() {
                 <div className="relative w-full max-w-[320px] md:max-w-[420px] aspect-square">
                   {/* Abstract Background Element */}
                   <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
-                  <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40 shadow-[0_0_50px_rgba(255, 26, 26, 0.1)]" />
+                  <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40 shadow-[0_0_10px_rgba(255, 26, 26, 0.02)]" />
 
                   <motion.div
                     animate={{ 
@@ -637,7 +637,7 @@ function Portfolio() {
                     transition={{ delay: i * 0.1 }}
                     className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors"
                   >
-                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_10px_rgba(255, 26, 26, 1)] transition-all" />
+                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent group-hover:shadow-[0_0_4px_rgba(255, 26, 26, 0.1)] transition-all" />
                       <div className="mb-2">
                         <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
                         <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">{item.role}</h3>
@@ -880,7 +880,7 @@ function Portfolio() {
                   transition={{ delay: i * 0.1 }}
                   className={cn(
                     "p-10 bg-bg-card rounded-3xl border border-white/5 relative",
-                    plan.accent && "scale-105 z-10 border-accent/40 shadow-[0_0_40px_rgba(255, 26, 26, 0.2)]"
+                    plan.accent && "scale-105 z-10 border-accent/40 shadow-[0_0_8px_rgba(255, 26, 26, 0.02)]"
                   )}
                 >
                   {plan.accent && (
@@ -895,7 +895,7 @@ function Portfolio() {
                     {/* Consultation Highlight Box */}
                     {plan.features.find(f => f.toLowerCase().includes('consultation')) && (
                       <div className="p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-5 mb-8 shadow-xl">
-                        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(255, 26, 26, 0.3)]">
+                        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_5px_rgba(255, 26, 26, 0.05)]">
                           <Clock className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -942,7 +942,7 @@ function Portfolio() {
                     rel="noreferrer"
                     className={cn(
                       "flex items-center justify-center w-full py-4 rounded-xl font-black transition-all overflow-hidden relative group text-sm uppercase tracking-widest",
-                      plan.accent ? "bg-accent text-white shadow-[0_0_20px_rgba(255, 26, 26, 0.3)]" : "border border-white/20 hover:bg-white/5 text-white"
+                      plan.accent ? "bg-accent text-white shadow-[0_0_5px_rgba(255, 26, 26, 0.05)]" : "border border-white/20 hover:bg-white/5 text-white"
                     )}
                   >
                     <span className="relative z-10">{plan.buttonText || "Choose Plan"}</span>
@@ -1048,7 +1048,7 @@ function Portfolio() {
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : "Send Message"}
               </button>

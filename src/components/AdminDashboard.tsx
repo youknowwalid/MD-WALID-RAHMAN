@@ -487,7 +487,7 @@ export default function AdminDashboard() {
           <button 
             onClick={handleLogin}
             disabled={isLoggingIn}
-            className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-accent text-white font-black py-4 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in with Google"}
           </button>
@@ -560,7 +560,7 @@ export default function AdminDashboard() {
             {activeTab !== 'settings' && (
               <button 
                 onClick={() => { setIsAdding(true); setUploadValue(''); }}
-                className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all"
+                className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Add New
@@ -637,7 +637,7 @@ export default function AdminDashboard() {
               <button 
                 type="submit" 
                 disabled={isSaving}
-                className="bg-accent text-white font-black px-10 py-4 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-accent text-white font-black px-10 py-4 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 {isSaving ? 'Saving...' : 'Save Configuration'}
@@ -930,7 +930,7 @@ export default function AdminDashboard() {
                     <button 
                       type="submit" 
                       disabled={isSaving}
-                      className="bg-accent text-white font-black px-10 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(255, 26, 26, 0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-accent text-white font-black px-10 py-3 rounded-xl hover:shadow-[0_0_5px_rgba(255, 26, 26, 0.05)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                       {isSaving ? 'Processing...' : (editingItem ? 'Update Item' : 'Save Item')}
