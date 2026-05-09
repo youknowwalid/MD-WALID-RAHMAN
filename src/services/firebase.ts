@@ -96,9 +96,9 @@ export const signInWithGoogle = async () => {
       await setDoc(userDocRef, {
         uid: user.uid,
         email: user.email,
-        isAdmin: user.email === 'walidxdxdxd@gmail.com' // Bootstrap admin
+        isAdmin: user.email?.toLowerCase() === 'walidxdxdxd@gmail.com' // Bootstrap admin
       });
-    } else if (user.email === 'walidxdxdxd@gmail.com' && !userDoc.data()?.isAdmin) {
+    } else if (user.email?.toLowerCase() === 'walidxdxdxd@gmail.com' && !userDoc.data()?.isAdmin) {
       // Repair if existing account wasn't marked admin (may require rule update)
       try {
         await updateDoc(userDocRef, { isAdmin: true });

@@ -13,11 +13,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == "walidxdxdxd@gmail.com" ||
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
-      );
+      return isSignedIn() && request.auth.token.get('email', '').lower() == "walidxdxdxd@gmail.com";
     }
 
     function incoming() {
@@ -122,13 +118,8 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isSignedIn() && request.auth.uid == userId;
-      // Allow self-registration. Mark walidxdxdxd@gmail.com as admin by default.
-      allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming()) && 
-                    (incoming().email == "walidxdxdxd@gmail.com" ? incoming().isAdmin == true : incoming().isAdmin == false);
-      
-      // Allow the admin email to self-repair its isAdmin flag if it was somehow set to false
-      allow update: if (isAdmin() && isValidUser(incoming())) || 
-                    (isSignedIn() && request.auth.uid == userId && incoming().email == "walidxdxdxd@gmail.com" && incoming().isAdmin == true && isValidUser(incoming()));
+      // Allow self-registration and updates for the system admin and standard users
+      allow create, update: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming());
     }
   }
 }

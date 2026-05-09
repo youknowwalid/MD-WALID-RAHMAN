@@ -281,16 +281,20 @@ export default function AdminDashboard() {
 
   const checkAdminStatus = async (currentUser: User) => {
     try {
+      // Local check first for immediate feedback
+      const isSystemAdmin = currentUser.email?.toLowerCase() === 'walidxdxdxd@gmail.com';
+      
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       if (userDoc.exists()) {
-        setIsAdmin(userDoc.data()?.isAdmin || false);
+        setIsAdmin(userDoc.data()?.isAdmin || isSystemAdmin);
       } else {
-        // If doc doesn't exist yet, it might be being created
-        setIsAdmin(false);
+        // If doc doesn't exist yet, we trust the email for now
+        setIsAdmin(isSystemAdmin);
       }
     } catch (error) {
       console.error("Error checking admin status:", error);
-      setIsAdmin(false);
+      // Fallback to email check if Firestore read fails
+      setIsAdmin(currentUser.email?.toLowerCase() === 'walidxdxdxd@gmail.com');
     }
   };
 
@@ -411,9 +415,10 @@ export default function AdminDashboard() {
       setIsAdding(false);
       setUploadValue('');
       loadItems();
-    } catch (error) {
-      console.error("Save error:", error);
-      alert("Failed to save. Please check console for details.");
+    } catch (error: any) {
+      console.error("Save error details:", error);
+      const errorMessage = error.message || "Unknown error";
+      alert(`[DB-ERROR] Failed to save change: ${errorMessage}`);
     } finally {
       setIsSaving(false);
     }

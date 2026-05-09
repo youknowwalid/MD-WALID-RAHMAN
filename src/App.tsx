@@ -340,53 +340,45 @@ function Portfolio() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Real-time Firestore Updates
+  // Data Fetching
   useEffect(() => {
-    const unsubProjects = onSnapshot(query(collection(db, 'projects'), orderBy('createdAt', 'desc')), 
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
-        }
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'projects'));
+    const fetchAllData = async () => {
+      try {
+        // Use parallel fetching for speed
+        const [projSnap, servSnap, blogSnap, resSnap, testSnap, pricSnap] = await Promise.all([
+          getCollection('projects'),
+          getCollection('services'),
+          getCollection('blogPosts'),
+          getCollection('resume'),
+          getCollection('testimonials'),
+          getCollection('pricingPlans')
+        ]);
 
-    const unsubServices = onSnapshot(query(collection(db, 'services'), orderBy('createdAt', 'desc')), 
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setServices(snapshot.docs.map(doc => ({ 
-            id: doc.id, 
-            ...doc.data() as any,
-            icon: ICON_MAP[doc.data().iconName] || Palette
-          })));
-        }
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'services'));
-
-    const unsubBlog = onSnapshot(query(collection(db, 'blogPosts'), orderBy('createdAt', 'desc')), 
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setBlogPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
-        }
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'blogPosts'));
-
-    const unsubResume = onSnapshot(query(collection(db, 'resume'), orderBy('createdAt', 'desc')), 
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setResume(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+        if (projSnap) setProjects(projSnap as any);
+        if (servSnap) setServices(servSnap.map(s => ({ ...s, icon: ICON_MAP[(s as any).iconName] || Palette })) as any);
+        if (blogSnap) setBlogPosts(blogSnap as any);
+        
+        if (resSnap && resSnap.length > 0) {
+          setResume(resSnap as any);
           setHasResumeData(true);
-        } else {
-          setHasResumeData(false);
         }
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'resume'));
-
-    const unsubTestimonials = onSnapshot(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc')), 
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+        
+        if (testSnap && testSnap.length > 0) {
+          setTestimonials(testSnap as any);
           setHasTestimonialData(true);
-        } else {
-          setHasTestimonialData(false);
         }
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'testimonials'));
 
+        if (pricSnap) setPricingPlans(pricSnap as any);
+
+      } catch (error) {
+        console.error("Initial fetch error:", error);
+      }
+    };
+
+    fetchAllData();
+
+    // Still keep a few real-time listeners for site config or small bits if needed, 
+    // but moving main content to fetch pattern for faster page readiness
     const unsubHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
@@ -398,22 +390,7 @@ function Portfolio() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
 
-    const unsubPricing = onSnapshot(query(collection(db, 'pricingPlans'), orderBy('createdAt', 'asc')), 
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setPricingPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
-        }
-      }, (error) => handleFirestoreError(error, OperationType.GET, 'pricingPlans'));
-
-    return () => {
-      unsubProjects();
-      unsubServices();
-      unsubBlog();
-      unsubResume();
-      unsubTestimonials();
-      unsubHero();
-      unsubPricing();
-    };
+    return () => unsubHero();
   }, []);
 
 
@@ -541,6 +518,7 @@ function Portfolio() {
                     alt="Walid Rahman"
                     className="w-full h-full object-cover transition-all duration-700"
                     referrerPolicy="no-referrer"
+                    loading="lazy"
                   />
                   {/* Overlay Card UI */}
                   <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10">
@@ -633,7 +611,7 @@ function Portfolio() {
                     viewport={{ once: true }}
                     className="lg:hidden w-full aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-8"
                   >
-                    <img src={resumeImage} alt="Journey" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={resumeImage} alt="Journey" className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                   </motion.div>
                 )}
                 {(hasResumeData ? resume : [
@@ -693,6 +671,7 @@ function Portfolio() {
                         alt="Walid Rahman Journey" 
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
+                        loading="lazy"
                       />
                       {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-bg-dark/80 via-transparent to-transparent" />
@@ -866,6 +845,7 @@ function Portfolio() {
                         alt={t.name} 
                         className="w-full h-full rounded-full object-cover relative z-10 border-2 border-bg-card" 
                         referrerPolicy="no-referrer"
+                        loading="lazy"
                       />
                     </div>
                     <div>
@@ -907,29 +887,27 @@ function Portfolio() {
                   <div className="space-y-6 mb-10 overflow-hidden text-left">
                     {/* Consultation Highlight Box */}
                     {plan.features.find(f => f.toLowerCase().includes('consultation')) && (
-                      <div className="p-5 bg-accent/5 border border-accent/20 rounded-2xl flex items-center gap-4 mb-8">
-                        <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(214,255,65,0.3)]">
-                          <Clock className="w-5 h-5 text-black" />
+                      <div className="p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-5 mb-8 shadow-xl">
+                        <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(214,255,65,0.3)]">
+                          <Clock className="w-6 h-6 text-black" />
                         </div>
                         <div>
-                          <div className="text-accent font-black text-base leading-tight">
+                          <div className="text-accent font-black text-xl leading-tight">
                             {plan.features.find(f => f.toLowerCase().includes('consultation'))?.split(' Consultation')[0]}
                           </div>
-                          <div className="text-[10px] text-accent/60 font-bold uppercase tracking-[0.1em]">
-                            Consultation included
+                          <div className="text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
+                            Daily Consultation
                           </div>
                         </div>
                       </div>
                     )}
 
                     <div>
-                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] mb-4">Available Services</h4>
-                      <ul className="space-y-3">
+                      <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] mb-6">What's Included</h4>
+                      <ul className="space-y-4">
                         {plan.features.filter(f => !f.toLowerCase().includes('consultation')).map(f => (
-                          <li key={f} className="flex items-center gap-3 text-white text-[13px] font-medium">
-                            <div className="w-5 h-5 rounded-full border border-accent/30 flex items-center justify-center bg-transparent shrink-0">
-                              <Check className="w-3.5 h-3.5 text-accent" />
-                            </div>
+                          <li key={f} className="flex items-start gap-3 text-white text-sm font-medium leading-tight">
+                            <Check className="w-5 h-5 text-accent shrink-0 mt-0.5" />
                             <span>{f}</span>
                           </li>
                         ))}
@@ -937,14 +915,12 @@ function Portfolio() {
                     </div>
 
                     {plan.unavailableFeatures && plan.unavailableFeatures.length > 0 && (
-                      <div>
-                        <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-4">Not Available</h4>
-                        <ul className="space-y-3">
+                      <div className="pt-6 border-t border-white/5">
+                        <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-6">Excludes</h4>
+                        <ul className="space-y-4">
                           {plan.unavailableFeatures.map(f => (
-                            <li key={f} className="flex items-center gap-3 text-gray-600 text-[13px] opacity-60">
-                              <div className="w-5 h-5 rounded-full border border-white/5 flex items-center justify-center bg-transparent shrink-0">
-                                <X className="w-3 h-3 text-gray-700" />
-                              </div>
+                            <li key={f} className="flex items-start gap-3 text-gray-600 text-sm opacity-60">
+                              <X className="w-4 h-4 text-gray-700 shrink-0 mt-1" />
                               <span className="line-through decoration-gray-800">{f}</span>
                             </li>
                           ))}
@@ -987,7 +963,7 @@ function Portfolio() {
                 >
                   <Link to={`/blog/${post.slug || post.id || post.title.toLowerCase().replace(/\s+/g, '-')}`}>
                     <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all">
-                      <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" />
+                      <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" loading="lazy" />
                     </div>
                     <div className="text-xs text-accent font-bold uppercase mb-2">{post.date}</div>
                     <h4 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h4>

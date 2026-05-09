@@ -134,7 +134,7 @@ export default function BlogDetail() {
 
           {/* Featured Image */}
           <div className="rounded-[40px] overflow-hidden border border-white/10 mb-16 shadow-2xl relative aspect-[16/9]">
-            <img src={post.image} alt={post.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={post.image} alt={post.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
           </div>
 
           {/* Content */}

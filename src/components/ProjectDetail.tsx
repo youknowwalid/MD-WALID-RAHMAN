@@ -152,7 +152,7 @@ export default function ProjectDetail() {
             transition={{ delay: 0.2 }}
             className="rounded-[40px] overflow-hidden border border-white/10 mb-16 shadow-2xl relative aspect-[16/9]"
           >
-            <img src={project.image} alt={project.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={project.image} alt={project.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
           </motion.div>
 
           {/* Content Grid */}
@@ -173,7 +173,7 @@ export default function ProjectDetail() {
                         whileHover={{ scale: 1.02 }}
                         className="rounded-2xl overflow-hidden border border-white/5 aspect-square"
                       >
-                        <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                       </motion.div>
                     ))}
                   </div>
