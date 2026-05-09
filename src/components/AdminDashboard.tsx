@@ -413,53 +413,139 @@ export default function AdminDashboard() {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  /**
+   * Deeply sanitizes and normalizes data based on the active tab's schema.
+   * This ensures NO undefined values reach Firestore and all types are deterministic.
+   */
+  const normalizePayload = (tab: string, rawData: any) => {
+    // Helper to ensure values are safe for Firestore
+    const str = (v: any) => (v === undefined || v === null) ? "" : String(v);
+    const bool = (v: any) => v === true || v === 'true';
+    const arr = (v: any) => Array.isArray(v) ? v.filter(i => i !== undefined && i !== null).map(str) : [];
+    const num = (v: any, fallback = 0) => {
+      const parsed = parseInt(v, 10);
+      return isNaN(parsed) ? fallback : parsed;
+    };
+
+    const payload: any = {
+      updatedAt: new Date().toISOString()
+    };
+
+    switch (tab) {
+      case 'projects':
+        payload.title = str(rawData.title);
+        payload.category = str(rawData.category);
+        payload.image = str(rawData.image);
+        payload.link = str(rawData.link);
+        payload.slug = str(rawData.slug);
+        payload.socialTitle = str(rawData.socialTitle);
+        payload.socialDescription = str(rawData.socialDescription);
+        payload.socialImage = str(rawData.socialImage);
+        payload.content = str(rawData.content);
+        payload.tags = arr(rawData.tags);
+        break;
+
+      case 'services':
+        payload.title = str(rawData.title);
+        payload.id = str(rawData.id);
+        payload.iconName = str(rawData.iconName);
+        payload.description = str(rawData.description);
+        break;
+
+      case 'blogPosts':
+        payload.title = str(rawData.title);
+        payload.slug = str(rawData.slug);
+        payload.date = str(rawData.date);
+        payload.author = str(rawData.author);
+        payload.image = str(rawData.image);
+        payload.socialTitle = str(rawData.socialTitle);
+        payload.socialDescription = str(rawData.socialDescription);
+        payload.socialImage = str(rawData.socialImage);
+        payload.excerpt = str(rawData.excerpt);
+        payload.content = str(rawData.content);
+        payload.tags = arr(rawData.tags);
+        break;
+
+      case 'resume':
+        payload.role = str(rawData.role);
+        payload.company = str(rawData.company);
+        payload.year = str(rawData.year);
+        payload.desc = str(rawData.desc);
+        break;
+
+      case 'testimonials':
+        payload.name = str(rawData.name);
+        payload.role = str(rawData.role);
+        payload.avatar = str(rawData.avatar);
+        payload.content = str(rawData.content);
+        break;
+
+      case 'pricingPlans':
+        payload.name = str(rawData.name);
+        payload.price = str(rawData.price) || "$0";
+        payload.features = arr(rawData.features);
+        payload.unavailableFeatures = arr(rawData.unavailableFeatures);
+        payload.showPriorityBox = bool(rawData.showPriorityBox);
+        payload.priorityTitle = str(rawData.priorityTitle);
+        payload.prioritySubtitle = str(rawData.prioritySubtitle);
+        payload.buttonText = str(rawData.buttonText) || "Get Started";
+        payload.buttonUrl = str(rawData.buttonUrl);
+        payload.accent = bool(rawData.accent);
+        break;
+
+      case 'skills':
+        payload.name = str(rawData.name);
+        payload.level = num(rawData.level, 80);
+        break;
+
+      default:
+        // For settings or unknown tabs, keep everything but ensure no undefineds
+        Object.keys(rawData).forEach(key => {
+          if (rawData[key] !== undefined) payload[key] = rawData[key];
+        });
+    }
+
+    return payload;
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     try {
       const formData = new FormData(e.target as HTMLFormElement);
-      const data: any = Object.fromEntries(formData.entries());
+      const rawData: any = Object.fromEntries(formData.entries());
 
-      // Inject uploaded image if present or preserve existing
-      if (uploadValue) {
-        if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = uploadValue;
-        if (activeTab === 'testimonials') data.avatar = uploadValue;
-      } else if (editingItem) {
-        if (activeTab === 'projects' || activeTab === 'blogPosts') data.image = editingItem.image;
-        if (activeTab === 'testimonials') data.avatar = editingItem.avatar;
+      // Inject images explicitly to the raw data before normalization
+      if (activeTab === 'projects' || activeTab === 'blogPosts') {
+        rawData.image = uploadValue || editingItem?.image || "";
+        rawData.socialImage = socialUploadValue || editingItem?.socialImage || "";
+      }
+      if (activeTab === 'testimonials') {
+        rawData.avatar = uploadValue || editingItem?.avatar || "";
       }
 
-      if (socialUploadValue) {
-        data.socialImage = socialUploadValue;
-      } else if (editingItem) {
-        data.socialImage = editingItem.socialImage;
+      // Pre-process arrays/bools in raw data for simpler normalization
+      if (rawData.tags) {
+        rawData.tags = (rawData.tags as string).split(',').map(t => t.trim()).filter(t => t !== '');
       }
-
-      // Tags formatting
-      if (data.tags) {
-        data.tags = (data.tags as string).split(',').map(t => t.trim()).filter(t => t !== '');
-      }
-
-      // Feature formatting for pricing plans
       if (activeTab === 'pricingPlans') {
-        data.features = (data.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
-        data.unavailableFeatures = (data.unavailableFeatures as string || '').split(',').map(f => f.trim()).filter(f => f !== '');
-        data.accent = data.accent === 'true';
-        data.showPriorityBox = data.showPriorityBox === 'true';
+        rawData.features = (rawData.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
+        rawData.unavailableFeatures = (rawData.unavailableFeatures as string || '').split(',').map(f => f.trim()).filter(f => f !== '');
       }
 
-      // Convert skill level to number
-      if (activeTab === 'skills' && data.level) {
-        data.level = parseInt(data.level as string, 10);
-      }
+      // STEP 1: Normalize and Sanitize (Eliminate undefineds)
+      const data = normalizePayload(activeTab, rawData);
+
+      // STEP 2: Validate
+      if (activeTab === 'pricingPlans' && !data.name) throw new Error("Plan name is required");
 
       if (activeTab === 'settings') {
         await updateDocument('siteConfig', 'hero', { 
-          heroImage, 
-          heroStatus,
-          heroAvailability,
-          cvUrl,
-          resumeImage,
+          heroImage: heroImage || "", 
+          heroStatus: heroStatus || "",
+          heroAvailability: heroAvailability || "",
+          cvUrl: cvUrl || "",
+          resumeImage: resumeImage || "",
           updatedAt: new Date().toISOString() 
         });
         alert('Settings saved!');
