@@ -33,6 +33,14 @@ import ProjectDetail from './components/ProjectDetail';
 import BlogDetail from './components/BlogDetail';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { 
+  normalizePricingPlan, 
+  normalizeProject, 
+  normalizeBlogPost, 
+  normalizeService, 
+  normalizeTestimonial, 
+  normalizeResumeItem 
+} from './lib/schema-defaults';
 
 import { 
   Project, 
@@ -324,12 +332,17 @@ function Portfolio() {
           getCollection('skills')
         ]);
 
-        if (projSnap) setProjects(projSnap as any);
-        if (servSnap) setServices(servSnap.map(s => ({ ...s, icon: ICON_MAP[(s as any).iconName] || Palette })) as any);
-        if (blogSnap) setBlogPosts(blogSnap as any);
+        if (projSnap) setProjects(projSnap.map(normalizeProject));
+        
+        if (servSnap) setServices(servSnap.map(s => ({ 
+          ...normalizeService(s), 
+          icon: ICON_MAP[(s as any).iconName] || Palette,
+        })));
+        
+        if (blogSnap) setBlogPosts(blogSnap.map(normalizeBlogPost));
         
         if (resSnap && resSnap.length > 0) {
-          setResume(resSnap as any);
+          setResume(resSnap.map(normalizeResumeItem));
           setHasResumeData(true);
         }
 
@@ -350,11 +363,11 @@ function Portfolio() {
         }
         
         if (testSnap && testSnap.length > 0) {
-          setTestimonials(testSnap as any);
+          setTestimonials(testSnap.map(normalizeTestimonial));
           setHasTestimonialData(true);
         }
 
-        if (pricSnap) setPricingPlans(pricSnap as any);
+        if (pricSnap) setPricingPlans(pricSnap.map(normalizePricingPlan));
 
       } catch (error) {
         console.error("Initial fetch error:", error);

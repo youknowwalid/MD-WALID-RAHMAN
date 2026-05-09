@@ -32,6 +32,14 @@ import {
   updateDocument, 
   removeDocument 
 } from '../services/firebase';
+import { 
+  normalizePricingPlan, 
+  normalizeProject, 
+  normalizeBlogPost, 
+  normalizeService, 
+  normalizeTestimonial, 
+  normalizeResumeItem 
+} from '../lib/schema-defaults';
 
 // Default data to seed if empty
 const SEED_DATA: Record<string, any[]> = {
@@ -413,99 +421,41 @@ export default function AdminDashboard() {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  // --- Normalization Helpers ---
+  const str = (v: any) => (v === undefined || v === null) ? "" : String(v);
+  const bool = (v: any) => v === true || v === 'true';
+  const arr = (v: any) => Array.isArray(v) ? v.filter(i => i !== undefined && i !== null).map(str) : [];
+  const num = (v: any, fallback = 0) => {
+    const parsed = parseInt(v, 10);
+    return isNaN(parsed) ? fallback : parsed;
+  };
+
   /**
    * Deeply sanitizes and normalizes data based on the active tab's schema.
    * This ensures NO undefined values reach Firestore and all types are deterministic.
    */
   const normalizePayload = (tab: string, rawData: any) => {
-    // Helper to ensure values are safe for Firestore
-    const str = (v: any) => (v === undefined || v === null) ? "" : String(v);
-    const bool = (v: any) => v === true || v === 'true';
-    const arr = (v: any) => Array.isArray(v) ? v.filter(i => i !== undefined && i !== null).map(str) : [];
-    const num = (v: any, fallback = 0) => {
-      const parsed = parseInt(v, 10);
-      return isNaN(parsed) ? fallback : parsed;
-    };
-
-    const payload: any = {
-      updatedAt: new Date().toISOString()
-    };
-
     switch (tab) {
-      case 'projects':
-        payload.title = str(rawData.title);
-        payload.category = str(rawData.category);
-        payload.image = str(rawData.image);
-        payload.link = str(rawData.link);
-        payload.slug = str(rawData.slug);
-        payload.socialTitle = str(rawData.socialTitle);
-        payload.socialDescription = str(rawData.socialDescription);
-        payload.socialImage = str(rawData.socialImage);
-        payload.content = str(rawData.content);
-        payload.tags = arr(rawData.tags);
-        break;
-
-      case 'services':
-        payload.title = str(rawData.title);
-        payload.id = str(rawData.id);
-        payload.iconName = str(rawData.iconName);
-        payload.description = str(rawData.description);
-        break;
-
-      case 'blogPosts':
-        payload.title = str(rawData.title);
-        payload.slug = str(rawData.slug);
-        payload.date = str(rawData.date);
-        payload.author = str(rawData.author);
-        payload.image = str(rawData.image);
-        payload.socialTitle = str(rawData.socialTitle);
-        payload.socialDescription = str(rawData.socialDescription);
-        payload.socialImage = str(rawData.socialImage);
-        payload.excerpt = str(rawData.excerpt);
-        payload.content = str(rawData.content);
-        payload.tags = arr(rawData.tags);
-        break;
-
-      case 'resume':
-        payload.role = str(rawData.role);
-        payload.company = str(rawData.company);
-        payload.year = str(rawData.year);
-        payload.desc = str(rawData.desc);
-        break;
-
-      case 'testimonials':
-        payload.name = str(rawData.name);
-        payload.role = str(rawData.role);
-        payload.avatar = str(rawData.avatar);
-        payload.content = str(rawData.content);
-        break;
-
-      case 'pricingPlans':
-        payload.name = str(rawData.name);
-        payload.price = str(rawData.price) || "$0";
-        payload.features = arr(rawData.features);
-        payload.unavailableFeatures = arr(rawData.unavailableFeatures);
-        payload.showPriorityBox = bool(rawData.showPriorityBox);
-        payload.priorityTitle = str(rawData.priorityTitle);
-        payload.prioritySubtitle = str(rawData.prioritySubtitle);
-        payload.buttonText = str(rawData.buttonText) || "Get Started";
-        payload.buttonUrl = str(rawData.buttonUrl);
-        payload.accent = bool(rawData.accent);
-        break;
-
+      case 'projects': return normalizeProject(rawData);
+      case 'services': return normalizeService(rawData);
+      case 'blogPosts': return normalizeBlogPost(rawData);
+      case 'resume': return normalizeResumeItem(rawData);
+      case 'testimonials': return normalizeTestimonial(rawData);
+      case 'pricingPlans': return normalizePricingPlan(rawData);
       case 'skills':
-        payload.name = str(rawData.name);
-        payload.level = num(rawData.level, 80);
-        break;
-
+        return {
+          name: str(rawData.name),
+          level: num(rawData.level, 80),
+          updatedAt: new Date().toISOString()
+        };
       default:
         // For settings or unknown tabs, keep everything but ensure no undefineds
+        const payload: any = { updatedAt: new Date().toISOString() };
         Object.keys(rawData).forEach(key => {
           if (rawData[key] !== undefined) payload[key] = rawData[key];
         });
+        return payload;
     }
-
-    return payload;
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -538,16 +488,19 @@ export default function AdminDashboard() {
 
       // STEP 2: Validate
       if (activeTab === 'pricingPlans' && !data.name) throw new Error("Plan name is required");
+      if (activeTab === 'projects' && !data.title) throw new Error("Project title is required");
+      if (activeTab === 'services' && !data.title) throw new Error("Service title is required");
 
       if (activeTab === 'settings') {
-        await updateDocument('siteConfig', 'hero', { 
-          heroImage: heroImage || "", 
-          heroStatus: heroStatus || "",
-          heroAvailability: heroAvailability || "",
-          cvUrl: cvUrl || "",
-          resumeImage: resumeImage || "",
+        const settingsPayload = {
+          heroImage: str(heroImage), 
+          heroStatus: str(heroStatus) || "Active Now",
+          heroAvailability: str(heroAvailability) || "Available for projects",
+          cvUrl: str(cvUrl),
+          resumeImage: str(resumeImage),
           updatedAt: new Date().toISOString() 
-        });
+        };
+        await updateDocument('siteConfig', 'hero', settingsPayload);
         alert('Settings saved!');
       } else if (editingItem) {
         await updateDocument(activeTab, editingItem.id, data);

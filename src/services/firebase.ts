@@ -116,6 +116,29 @@ export const signInWithGoogle = async () => {
 export const logout = () => signOut(auth);
 
 // --- Generic CRUD Helpers ---
+
+/**
+ * Sanitizes data for Firestore by removing undefined values and ensuring consistent types.
+ */
+const sanitizeForFirestore = (data: any): any => {
+  if (data === null || typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(sanitizeForFirestore);
+  
+  const sanitized: any = {};
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    if (value === undefined) return;
+    if (value === null) {
+      sanitized[key] = null;
+    } else if (typeof value === 'object' && !(value instanceof Date)) {
+      sanitized[key] = sanitizeForFirestore(value);
+    } else {
+      sanitized[key] = value;
+    }
+  });
+  return sanitized;
+};
+
 export const getCollection = async (collectionName: string) => {
   try {
     const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
@@ -128,8 +151,9 @@ export const getCollection = async (collectionName: string) => {
 
 export const addDocument = async (collectionName: string, data: any) => {
   try {
+    const sanitizedData = sanitizeForFirestore(data);
     const docRef = doc(collection(db, collectionName));
-    await setDoc(docRef, { ...data, createdAt: serverTimestamp() });
+    await setDoc(docRef, { ...sanitizedData, createdAt: serverTimestamp() });
     return docRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, collectionName);
@@ -138,8 +162,10 @@ export const addDocument = async (collectionName: string, data: any) => {
 
 export const updateDocument = async (collectionName: string, id: string, data: any) => {
   try {
+    const sanitizedData = sanitizeForFirestore(data);
     const docRef = doc(db, collectionName, id);
-    await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+    // Use setDoc with merge: true for better stability if doc might not exist
+    await setDoc(docRef, { ...sanitizedData, updatedAt: serverTimestamp() }, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id}`);
   }
