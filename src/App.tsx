@@ -21,7 +21,6 @@ import {
   Menu,
   X,
   FileText,
-  LayoutDashboard,
   Clock,
   Loader2
 } from 'lucide-react';
@@ -770,26 +769,28 @@ function Portfolio() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.15 }}
-                  className="relative aspect-video rounded-3xl overflow-hidden group cursor-pointer"
+                  className="relative aspect-video rounded-3xl overflow-hidden group"
                 >
-                  <img 
-                    src={project.image} 
-                    alt={project.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-bg-dark/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
-                    <span className="text-accent text-sm font-bold uppercase mb-2 tracking-widest">{project.category}</span>
-                    <h3 className="text-3xl font-black mb-4 text-text-main">{project.title}</h3>
-                    <div className="flex gap-4">
-                      <Link 
-                        to={`/projects/${project.slug || project.id || project.title.toLowerCase().replace(/\s+/g, '-')}`} 
-                        className="p-3 bg-accent rounded-full text-black hover:scale-110 transition-transform"
-                      >
-                        <ExternalLink className="w-5 h-5" />
-                      </Link>
+                  <Link 
+                    to={`/projects/${project.slug || project.id || project.title.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="block w-full h-full relative"
+                  >
+                    <img 
+                      src={project.image} 
+                      alt={project.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-bg-dark/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
+                      <span className="text-accent text-sm font-bold uppercase mb-2 tracking-widest">{project.category}</span>
+                      <h3 className="text-3xl font-black mb-4 text-text-main">{project.title}</h3>
+                      <div className="flex gap-4">
+                        <div className="p-3 bg-accent rounded-full text-black hover:scale-110 transition-transform">
+                          <ExternalLink className="w-5 h-5" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </motion.div>
               ))}
             </div>
@@ -1086,12 +1087,6 @@ function Portfolio() {
                 <li>Nikunja 2, Dhaka 1229</li>
                 <li>info@walidrahman.com</li>
                 <li>+880 1744 588 644</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">System</h5>
-              <ul className="space-y-2 text-sm text-text-muted">
-                <li><Link to="/admin" className="hover:text-accent transition-colors flex items-center gap-2"><LayoutDashboard className="w-4 h-4 text-accent" /> Management Panel</Link></li>
               </ul>
             </div>
           </div>

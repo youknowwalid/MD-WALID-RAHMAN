@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, FileText, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { NavLink } from '../types';
 
@@ -132,9 +132,6 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link to="/admin" className="text-text-muted hover:text-accent p-2 transition-colors">
-            <FileText className="w-4 h-4" />
-          </Link>
         </div>
 
         {/* Mobile Menu Toggle */}

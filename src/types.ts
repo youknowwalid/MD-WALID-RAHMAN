@@ -14,6 +14,8 @@ export interface Project {
   socialTitle?: string;
   socialDescription?: string;
   socialImage?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface BlogPost {
@@ -29,6 +31,8 @@ export interface BlogPost {
   socialTitle?: string;
   socialDescription?: string;
   socialImage?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface Service {
@@ -37,6 +41,8 @@ export interface Service {
   description: string;
   icon?: LucideIcon;
   iconName?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface NavLink {
@@ -61,6 +67,18 @@ export interface Testimonial {
   content: string;
   avatar: string;
   id?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface ResumeItem {
+  id: string;
+  year: string;
+  role: string;
+  company: string;
+  desc: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface PricingPlan {
@@ -75,4 +93,6 @@ export interface PricingPlan {
   buttonText?: string;
   buttonUrl?: string;
   accent: boolean;
+  createdAt?: any;
+  updatedAt?: any;
 }
