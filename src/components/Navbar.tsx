@@ -4,17 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { NavLink } from '../types';
-
-const NAV_LINKS: NavLink[] = [
-  { name: 'Home', href: '/#home' },
-  { name: 'About', href: '/#about' },
-  { name: 'Resume', href: '/#resume' },
-  { name: 'Services', href: '/#services' },
-  { name: 'Projects', href: '/#projects' },
-  { name: 'Contact', href: '/#contact' },
-  { name: 'Blog', href: '/#blog' },
-];
+import { useSiteConfig } from '../context/SiteConfigContext';
 
 const ThemeToggle = () => {
   const [isLight, setIsLight] = useState(false);
@@ -72,6 +62,7 @@ const ThemeToggle = () => {
 };
 
 export default function Navbar() {
+  const { config } = useSiteConfig();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -82,7 +73,9 @@ export default function Navbar() {
       setIsScrolled(window.scrollY > 50);
       
       if (location.pathname === '/') {
-        const sections = NAV_LINKS.map(link => document.getElementById(link.href.replace('/#', '')));
+        const sections = config.headerLinks.map(link => 
+          document.getElementById(link.url.replace('/#', '').replace('#', ''))
+        );
         const scrollPos = window.scrollY + 100;
 
         sections.forEach(section => {
@@ -99,7 +92,7 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [location]);
+  }, [location, config.headerLinks]);
 
   return (
     <nav className={cn(
@@ -107,27 +100,46 @@ export default function Navbar() {
       isScrolled ? "bg-bg-dark/80 backdrop-blur-xl py-3 border-b border-border-subtle" : "bg-transparent"
     )}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="text-xl font-black tracking-tighter hover:text-accent transition-colors text-text-main">
-          youknowwalid<span className="text-accent">.</span>
+        <Link to="/" className="flex items-center gap-2 hover:text-accent transition-all">
+          {config.siteLogo ? (
+            <img 
+              src={config.siteLogo} 
+              alt={config.siteTitle} 
+              className="h-9 w-auto object-contain" 
+              referrerPolicy="no-referrer" 
+            />
+          ) : (
+            <span className="text-xl font-black tracking-tighter text-text-main">
+              {config.siteTitle === 'youknowwalid' ? (
+                <>youknowwalid<span className="text-accent">.</span></>
+              ) : (
+                config.siteTitle
+              )}
+            </span>
+          )}
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className={cn(
-                "text-sm font-medium transition-all hover:text-accent relative py-1",
-                (location.pathname === '/' && activeSection === link.href.replace('/#', '')) ? "text-accent" : "text-gray-400"
-              )}
-            >
-              {link.name}
-              {(location.pathname === '/' && activeSection === link.href.replace('/#', '')) && (
-                <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />
-              )}
-            </a>
-          ))}
+          {config.headerLinks.map((link) => {
+            const sectionId = link.url.replace('/#', '').replace('#', '');
+            const isActive = location.pathname === '/' && activeSection === sectionId;
+            return (
+              <a
+                key={link.label}
+                href={link.url}
+                className={cn(
+                  "text-sm font-medium transition-all hover:text-accent relative py-1",
+                  isActive ? "text-accent" : "text-gray-400"
+                )}
+              >
+                {link.label}
+                {isActive && (
+                  <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />
+                )}
+              </a>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-2">
@@ -149,16 +161,16 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="lg:hidden absolute top-full left-0 w-full bg-bg-dark/95 backdrop-blur-2xl border-b border-border-subtle p-8 flex flex-col gap-6 z-50 shadow-2xl"
           >
-            {NAV_LINKS.map((link) => (
+            {config.headerLinks.map((link) => (
               <a
-                key={link.name}
-                href={link.href}
+                key={link.label}
+                href={link.url}
                 onClick={() => setIsMenuOpen(false)}
                 className={cn(
                   "text-2xl font-black uppercase tracking-tighter transition-all text-text-muted hover:text-accent"
                 )}
               >
-                {link.name}
+                {link.label}
               </a>
             ))}
           </motion.div>

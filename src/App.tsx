@@ -22,7 +22,10 @@ import {
   X,
   FileText,
   Clock,
-  Loader2
+  Loader2,
+  Facebook,
+  Github,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { db, handleFirestoreError, OperationType, addDocument, getCollection } from './services/firebase';
@@ -32,6 +35,7 @@ import ProjectDetail from './components/ProjectDetail';
 import BlogDetail from './components/BlogDetail';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { useSiteConfig } from './context/SiteConfigContext';
 import { 
   normalizePricingPlan, 
   normalizeProject, 
@@ -273,6 +277,7 @@ const Typewriter = ({ text }: { text: string }) => {
 };
 
 function Portfolio() {
+  const { config } = useSiteConfig();
   const [activeSection, setActiveSection] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -298,7 +303,9 @@ function Portfolio() {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      const sections = NAV_LINKS.map(link => document.getElementById(link.href.replace('#', '')));
+      const sections = config.headerLinks.map(link => 
+        document.getElementById(link.url.replace('/#', '').replace('#', ''))
+      );
       const scrollPos = window.scrollY + 100;
 
       sections.forEach(section => {
@@ -314,7 +321,7 @@ function Portfolio() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [config.headerLinks]);
 
   // Data Fetching
   useEffect(() => {
@@ -1067,43 +1074,74 @@ function Portfolio() {
       <footer className="py-20 px-6 border-t border-border-subtle bg-bg-dark transition-colors duration-300">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
           <div className="max-w-sm">
-            <div className="text-2xl font-black mb-6 tracking-tighter text-text-main">
-              youknowwalid<span className="text-accent">.</span>
-            </div>
-            <p className="text-text-muted mb-8 italic">
+            {config.siteLogo ? (
+              <img 
+                src={config.siteLogo} 
+                alt={config.siteTitle} 
+                className="h-9 w-auto object-contain mb-6" 
+                referrerPolicy="no-referrer" 
+              />
+            ) : (
+              <div className="text-2xl font-black mb-6 tracking-tighter text-text-main">
+                {config.siteTitle === 'youknowwalid' ? (
+                  <>youknowwalid<span className="text-accent">.</span></>
+                ) : (
+                  config.siteTitle
+                )}
+              </div>
+            )}
+            <p className="text-text-muted mb-8 italic text-sm">
               A Brand Developer crafting premium digital experiences that bridge the gap between creative vision and technical excellence.
             </p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-24">
-            <div>
-              <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">Navigation</h5>
-              <ul className="space-y-2 text-sm text-text-muted">
-                {NAV_LINKS.map(l => <li key={l.name}><a href={l.href} className="hover:text-accent transition-colors">{l.name}</a></li>)}
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">Contact</h5>
-              <ul className="space-y-2 text-sm text-text-muted">
-                <li>Nikunja 2, Dhaka 1229</li>
-                <li>info@walidrahman.com</li>
-                <li>+880 1744 588 644</li>
-              </ul>
-            </div>
+            {config.footerColumns.map((col, idx) => (
+              <div key={idx}>
+                <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">{col.title}</h5>
+                <ul className="space-y-2 text-sm text-text-muted">
+                  {col.links.map((l, lIdx) => (
+                    <li key={lIdx}>
+                      <a href={l.url} className="hover:text-accent transition-colors">{l.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
           <div className="flex gap-4">
-            <a href="https://facebook.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            </a>
-            <a href="https://linkedin.com/in/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
-              <Linkedin className="w-5 h-5" />
-            </a>
-            <a href="https://twitter.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm1.161 17.52h1.833L7.045 4.126H5.078z"/></svg>
-            </a>
+            {config.socialLinks.filter(s => s.url && s.url.trim() !== '').map((s, idx) => {
+              const getSocialIcon = (platform: string) => {
+                const p = platform.toLowerCase();
+                if (p.includes('facebook')) return <Facebook className="w-5 h-5" />;
+                if (p.includes('linkedin')) return <Linkedin className="w-5 h-5" />;
+                if (p.includes('twitter') || p.includes('x.com')) {
+                  return (
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm1.161 17.52h1.833L7.045 4.126H5.078z"/>
+                    </svg>
+                  );
+                }
+                if (p.includes('github')) return <Github className="w-5 h-5" />;
+                return <Globe className="w-5 h-5" />;
+              };
+
+              return (
+                <a 
+                  key={idx} 
+                  href={s.url} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main"
+                  title={s.platform}
+                >
+                  {getSocialIcon(s.platform)}
+                </a>
+              );
+            })}
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-border-subtle text-center text-[10px] uppercase tracking-widest text-text-muted/40 font-bold">
-          youknowwalid &copy; 2025 All Rights Reserved by Walid Rahman Swapnil
+        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-border-subtle text-center text-[10px] uppercase tracking-widest text-text-muted/40 font-bold w-full">
+          {config.copyrightText}
         </div>
       </footer>
     </div>

@@ -1,33 +1,66 @@
-
 import React from 'react';
-import { Linkedin } from 'lucide-react';
+import { Linkedin, Facebook, Github, Globe } from 'lucide-react';
+import { useSiteConfig } from '../context/SiteConfigContext';
 
 export default function Footer() {
+  const { config } = useSiteConfig();
+
+  const getSocialIcon = (platform: string) => {
+    const p = platform.toLowerCase();
+    if (p.includes('facebook')) return <Facebook className="w-5 h-5" />;
+    if (p.includes('linkedin')) return <Linkedin className="w-5 h-5" />;
+    if (p.includes('twitter') || p.includes('x.com')) {
+      return (
+        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm1.161 17.52h1.833L7.045 4.126H5.078z"/>
+        </svg>
+      );
+    }
+    if (p.includes('github')) return <Github className="w-5 h-5" />;
+    return <Globe className="w-5 h-5" />;
+  };
+
   return (
     <footer className="py-20 px-6 bg-bg-dark relative z-10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
         <div>
-          <div className="text-2xl font-black tracking-tighter mb-4 text-text-main">
-            youknowwalid<span className="text-accent">.</span>
-          </div>
-          <p className="text-text-muted max-w-sm">
+          {config.siteLogo ? (
+            <img 
+              src={config.siteLogo} 
+              alt={config.siteTitle} 
+              className="h-9 w-auto object-contain mb-4" 
+              referrerPolicy="no-referrer" 
+            />
+          ) : (
+            <div className="text-2xl font-black tracking-tighter mb-4 text-text-main">
+              {config.siteTitle === 'youknowwalid' ? (
+                <>youknowwalid<span className="text-accent">.</span></>
+              ) : (
+                config.siteTitle
+              )}
+            </div>
+          )}
+          <p className="text-text-muted max-w-sm italic">
             Crafting premium digital experiences through strategic brand evolution and innovative web solutions.
           </p>
         </div>
         <div className="flex gap-4">
-          <a href="https://facebook.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-          </a>
-          <a href="https://linkedin.com/in/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
-            <Linkedin className="w-5 h-5" />
-          </a>
-          <a href="https://twitter.com/youknowwalid" target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main">
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm1.161 17.52h1.833L7.045 4.126H5.078z"/></svg>
-          </a>
+          {config.socialLinks.filter(s => s.url && s.url.trim() !== '').map((s, idx) => (
+            <a 
+              key={idx} 
+              href={s.url} 
+              target="_blank" 
+              rel="noreferrer" 
+              className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main"
+              title={s.platform}
+            >
+              {getSocialIcon(s.platform)}
+            </a>
+          ))}
         </div>
       </div>
       <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-border-subtle text-center text-xs text-text-muted">
-        youknowwalid &copy; 2025 All Rights Reserved by Walid Rahman Swapnil
+        {config.copyrightText}
       </div>
     </footer>
   );
