@@ -427,16 +427,21 @@ function Portfolio() {
 
   return (
     <div className="relative min-h-screen bg-bg-dark overflow-x-hidden selection:bg-accent/30 selection:text-text-main">
-      {/* --- Immersive Background Elements --- */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent rounded-full blur-[150px] opacity-[0.03] pointer-events-none z-0" />
-      <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent rounded-full blur-[120px] opacity-[0.02] pointer-events-none z-0" />
-      
       <Navbar />
 
       {/* --- Sections --- */}
         <main className="relative z-10">
           {/* Hero Section */}
           <section id="home" className="min-h-screen flex items-center relative overflow-hidden px-6 pt-20 pb-12 md:py-20">
+            {/* Ambient Background Glow - Top-Left (Section 1) */}
+            <div 
+              className="absolute rounded-full pointer-events-none -z-10 w-[300px] h-[300px] md:w-[600px] md:h-[600px] top-[-10%] left-[-10%]" 
+              style={{ 
+                background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
+                opacity: 0.18, 
+                filter: 'blur(150px)' 
+              }} 
+            />
             <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center w-full">
               <div className="z-10 text-center lg:text-left">
                 <motion.p
@@ -603,7 +608,16 @@ function Portfolio() {
         </section>
 
         {/* Resume Section */}
-        <section id="resume" className="py-16 md:py-32 px-6 overflow-hidden">
+        <section id="resume" className="py-16 md:py-32 px-6 overflow-hidden relative">
+          {/* Ambient Background Glow - Center-Right (Section 3) */}
+          <div 
+            className="absolute rounded-full pointer-events-none -z-10 w-[350px] h-[350px] md:w-[700px] md:h-[700px] top-[20%] right-[-15%]" 
+            style={{ 
+              background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
+              opacity: 0.16, 
+              filter: 'blur(150px)' 
+            }} 
+          />
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Resume" title="My Journey" />
             <div className="grid lg:grid-cols-2 gap-12 md:gap-16 items-start">
@@ -723,7 +737,16 @@ function Portfolio() {
         </section>
 
         {/* Skills Section */}
-        <section id="skills" className="py-16 md:py-32 px-6">
+        <section id="skills" className="py-16 md:py-32 px-6 relative overflow-hidden">
+          {/* Ambient Background Glow - Center-Left (Section 5) */}
+          <div 
+            className="absolute rounded-full pointer-events-none -z-10 w-[300px] h-[300px] md:w-[650px] md:h-[650px] top-[15%] left-[-15%]" 
+            style={{ 
+              background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
+              opacity: 0.15, 
+              filter: 'blur(150px)' 
+            }} 
+          />
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -812,8 +835,15 @@ function Portfolio() {
 
         {/* Testimonials */}
         <section className="py-16 md:py-32 bg-bg-card/20 overflow-hidden relative">
-          {/* Decorative Background */}
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] -z-10" />
+          {/* Ambient Background Glow - Center-Right (Section 7) */}
+          <div 
+            className="absolute rounded-full pointer-events-none -z-10 w-[350px] h-[350px] md:w-[700px] md:h-[700px] top-[10%] right-[-15%]" 
+            style={{ 
+              background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
+              opacity: 0.16, 
+              filter: 'blur(150px)' 
+            }} 
+          />
           
           <div className="max-w-7xl mx-auto px-6 mb-16">
             <SectionHeader label="Clients" title="Kind Words" />
@@ -961,7 +991,16 @@ function Portfolio() {
         </section>
 
         {/* Blog Section */}
-        <section id="blog" className="py-16 md:py-32 px-6">
+        <section id="blog" className="py-16 md:py-32 px-6 relative overflow-hidden">
+          {/* Ambient Background Glow - Bottom-Left (Section 9) */}
+          <div 
+            className="absolute rounded-full pointer-events-none -z-10 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bottom-[-10%] left-[-10%]" 
+            style={{ 
+              background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
+              opacity: 0.15, 
+              filter: 'blur(150px)' 
+            }} 
+          />
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Journal" title="Latest Insights" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1071,79 +1110,7 @@ function Portfolio() {
       </main>
 
       {/* --- Footer --- */}
-      <footer className="py-20 px-6 border-t border-border-subtle bg-bg-dark transition-colors duration-300">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
-          <div className="max-w-sm">
-            {config.siteLogo ? (
-              <img 
-                src={config.siteLogo} 
-                alt={config.siteTitle} 
-                className="h-9 w-auto object-contain mb-6" 
-                referrerPolicy="no-referrer" 
-              />
-            ) : (
-              <div className="text-2xl font-black mb-6 tracking-tighter text-text-main">
-                {config.siteTitle === 'youknowwalid' ? (
-                  <>youknowwalid<span className="text-accent">.</span></>
-                ) : (
-                  config.siteTitle
-                )}
-              </div>
-            )}
-            <p className="text-text-muted mb-8 italic text-sm">
-              A Brand Developer crafting premium digital experiences that bridge the gap between creative vision and technical excellence.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-24">
-            {config.footerColumns.map((col, idx) => (
-              <div key={idx}>
-                <h5 className="font-bold mb-4 uppercase text-[10px] tracking-widest text-accent">{col.title}</h5>
-                <ul className="space-y-2 text-sm text-text-muted">
-                  {col.links.map((l, lIdx) => (
-                    <li key={lIdx}>
-                      <a href={l.url} className="hover:text-accent transition-colors">{l.label}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-4">
-            {config.socialLinks.filter(s => s.url && s.url.trim() !== '').map((s, idx) => {
-              const getSocialIcon = (platform: string) => {
-                const p = platform.toLowerCase();
-                if (p.includes('facebook')) return <Facebook className="w-5 h-5" />;
-                if (p.includes('linkedin')) return <Linkedin className="w-5 h-5" />;
-                if (p.includes('twitter') || p.includes('x.com')) {
-                  return (
-                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm1.161 17.52h1.833L7.045 4.126H5.078z"/>
-                    </svg>
-                  );
-                }
-                if (p.includes('github')) return <Github className="w-5 h-5" />;
-                return <Globe className="w-5 h-5" />;
-              };
-
-              return (
-                <a 
-                  key={idx} 
-                  href={s.url} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center hover:bg-accent hover:text-black transition-all hover:-translate-y-1 text-text-main"
-                  title={s.platform}
-                >
-                  {getSocialIcon(s.platform)}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-border-subtle text-center text-[10px] uppercase tracking-widest text-text-muted/40 font-bold w-full">
-          {config.copyrightText}
-        </div>
-      </footer>
+      <Footer portraitUrl={heroImage} />
     </div>
   );
 }
