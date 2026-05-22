@@ -116,43 +116,29 @@ export default function Footer({ portraitUrl }: FooterProps) {
                 </div>
               </div>
 
-              {/* Column 2: Navigation Links */}
-              <div>
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#f45901] mb-5">
-                  Navigation
-                </h4>
-                <ul className="space-y-2.5 text-xs text-text-muted">
-                  {config.headerLinks.map((l, idx) => (
-                    <li key={idx}>
-                      <a href={l.url} className="hover:text-accent transition-colors block py-0.5">
-                        {l.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Column 3: Contact Info Details */}
-              <div>
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#f45901] mb-5">
-                  Contact Info
-                </h4>
-                <ul className="space-y-3 text-xs text-text-muted">
-                  <li className="leading-relaxed">
-                    Nikunja 2, <br />Dhaka 1229
-                  </li>
-                  <li>
-                    <a href="mailto:info@walidrahman.com" className="hover:text-accent transition-colors block">
-                      info@walidrahman.com
-                    </a>
-                  </li>
-                  <li>
-                    <a href="tel:+8801744588644" className="hover:text-accent transition-colors block font-mono">
-                      +880 1744 588 644
-                    </a>
-                  </li>
-                </ul>
-              </div>
+              {/* Dynamic Columns 2 & 3 from config.footerColumns */}
+              {config.footerColumns && config.footerColumns.map((col, idx) => (
+                <div key={idx}>
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#f45901] mb-5">
+                    {col.title}
+                  </h4>
+                  <ul className="space-y-2.5 text-xs text-text-muted">
+                    {col.links && col.links.map((l, lIdx) => (
+                      <li key={lIdx}>
+                        {l.url && (l.url.startsWith('tel:') || l.url.startsWith('mailto:') || l.url === '#') ? (
+                          <a href={l.url} className="hover:text-accent transition-colors block py-0.5 leading-relaxed break-all">
+                            {l.label}
+                          </a>
+                        ) : (
+                          <a href={l.url} className="hover:text-accent transition-colors block py-0.5 leading-relaxed">
+                            {l.label}
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
 
             </div>
 
