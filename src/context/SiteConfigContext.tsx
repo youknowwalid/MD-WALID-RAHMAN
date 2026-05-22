@@ -30,6 +30,7 @@ export interface SiteConfig {
   footerColumns: FooterColumn[];
   socialLinks: SocialLink[];
   copyrightText: string;
+  footerPortrait?: string;
 }
 
 interface SiteConfigContextType {
@@ -78,7 +79,8 @@ const DEFAULT_CONFIG: SiteConfig = {
     { platform: 'linkedin', url: 'https://linkedin.com/in/youknowwalid' },
     { platform: 'twitter', url: 'https://twitter.com/youknowwalid' }
   ],
-  copyrightText: '© 2026 Md. Walid Rahman Swapnil. All rights reserved.'
+  copyrightText: '© 2026 Md. Walid Rahman Swapnil. All rights reserved.',
+  footerPortrait: ''
 };
 
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
@@ -96,6 +98,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           siteTitle: data.siteTitle || DEFAULT_CONFIG.siteTitle,
           siteLogo: data.siteLogo || DEFAULT_CONFIG.siteLogo,
           favicon: data.favicon || DEFAULT_CONFIG.favicon,
+          footerPortrait: data.footerPortrait || DEFAULT_CONFIG.footerPortrait || '',
           headerLinks: Array.isArray(data.headerLinks) ? data.headerLinks : DEFAULT_CONFIG.headerLinks,
           footerColumns: Array.isArray(data.footerColumns) ? data.footerColumns : DEFAULT_CONFIG.footerColumns,
           socialLinks: Array.isArray(data.socialLinks) ? data.socialLinks : DEFAULT_CONFIG.socialLinks,

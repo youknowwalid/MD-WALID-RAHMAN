@@ -37,7 +37,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
   };
 
   // Get portrait path to use
-  const activePortrait = portraitUrl || heroImage;
+  const activePortrait = config.footerPortrait || portraitUrl || heroImage;
 
   return (
     <footer className="w-full bg-bg-dark pt-12 pb-16 px-4 md:px-8 relative z-10 transition-colors duration-300">

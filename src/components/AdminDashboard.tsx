@@ -266,6 +266,7 @@ export default function AdminDashboard() {
   const [siteTitle, setSiteTitle] = useState('youknowwalid');
   const [siteLogo, setSiteLogo] = useState('');
   const [favicon, setFavicon] = useState('');
+  const [footerPortrait, setFooterPortrait] = useState('');
   const [headerLinks, setHeaderLinks] = useState<{label: string, url: string}[]>([]);
   const [footerColumns, setFooterColumns] = useState<{title: string, links: {label: string, url: string}[]}[]>([]);
   const [socialLinks, setSocialLinks] = useState<{platform: string, url: string}[]>([]);
@@ -430,6 +431,7 @@ export default function AdminDashboard() {
           setSiteTitle(data.siteTitle || 'youknowwalid');
           setSiteLogo(data.siteLogo || '');
           setFavicon(data.favicon || '');
+          setFooterPortrait(data.footerPortrait || '');
           setHeaderLinks(data.headerLinks || [
             { label: 'Home', url: '/#home' },
             { label: 'About', url: '/#about' },
@@ -472,6 +474,7 @@ export default function AdminDashboard() {
           setSiteTitle('youknowwalid');
           setSiteLogo('');
           setFavicon('');
+          setFooterPortrait('');
           setHeaderLinks([
             { label: 'Home', url: '/#home' },
             { label: 'About', url: '/#about' },
@@ -608,6 +611,7 @@ export default function AdminDashboard() {
           siteTitle: str(siteTitle),
           siteLogo: str(siteLogo),
           favicon: str(favicon),
+          footerPortrait: str(footerPortrait),
           headerLinks: headerLinks.map(l => ({ label: str(l.label), url: str(l.url) })),
           footerColumns: footerColumns.map(col => ({
             title: str(col.title),
@@ -815,6 +819,13 @@ export default function AdminDashboard() {
                       value={favicon} 
                       onChange={setFavicon} 
                       recommendation="The site's tab icon (ICO/PNG/JPG/Base64). Auto-applied to the browser tab."
+                    />
+
+                    <ImageUpload 
+                      label="Footer Portrait Image" 
+                      value={footerPortrait} 
+                      onChange={setFooterPortrait} 
+                      recommendation="This transparent-background portrait image is anchored to the bottom right of the floating footer card. If left empty, it falls back to the main Hero profile image."
                     />
                   </div>
                 </div>
