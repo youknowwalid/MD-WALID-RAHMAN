@@ -150,6 +150,26 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "level"]
+    },
+    "product": {
+      "title": "Product",
+      "description": "A digital product/resource",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "shortTitle": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "image": { "type": "string" },
+        "gumroadUrl": { "type": "string" },
+        "order": { "type": "integer" },
+        "featured": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "shortTitle", "description", "price", "thumbnail", "image", "gumroadUrl"]
     }
   },
   "firestore": {
@@ -192,6 +212,10 @@
     "skills": {
       "schema": "skill",
       "description": "Collection of technical skills"
+    },
+    "products": {
+      "schema": "product",
+      "description": "Collection of digital products/resources"
     }
   }
 }

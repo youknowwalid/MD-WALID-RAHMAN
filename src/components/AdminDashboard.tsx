@@ -20,7 +20,8 @@ import {
   Image as ImageIcon,
   DollarSign,
   MessageSquare,
-  Cpu
+  Cpu,
+  ShoppingCart
 } from 'lucide-react';
 import { 
   auth, 
@@ -38,7 +39,8 @@ import {
   normalizeBlogPost, 
   normalizeService, 
   normalizeTestimonial, 
-  normalizeResumeItem 
+  normalizeResumeItem,
+  normalizeProduct
 } from '../lib/schema-defaults';
 
 // Default data to seed if empty
@@ -121,6 +123,44 @@ const SEED_DATA: Record<string, any[]> = {
     { name: 'Adobe Creative Suite', level: 83 },
     { name: 'Google Ads', level: 76 },
   ],
+  products: [
+    {
+      title: 'The Ultimate Design System Kit',
+      shortTitle: 'Design System Kit',
+      description: 'A comprehensive toolkit containing everything you need to kickstart, design, and style premium digital brands with high-performance layouts, UI assets, typography presets, and a consistent modular grid structure. Optimized for modern branding projects.',
+      price: '$29.00',
+      thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
+      gumroadUrl: 'https://gumroad.com',
+      order: 1,
+      featured: true,
+      published: true
+    },
+    {
+      title: 'Master Brand Identity Playbook',
+      shortTitle: 'Brand Identity Playbook',
+      description: 'An editorial-quality PDF guide outlining the step-by-step branding strategy, positioning frameworks, style rules, client collaboration systems, and dynamic launch workflows used for building premium digital presences.',
+      price: '$19.00',
+      thumbnail: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=800&auto=format&fit=crop&q=80',
+      image: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=1200&auto=format&fit=crop&q=80',
+      gumroadUrl: 'https://gumroad.com',
+      order: 2,
+      featured: true,
+      published: true
+    },
+    {
+      title: 'Premium Minimal Portfolio Template',
+      shortTitle: 'Minimal Portfolio Template',
+      description: 'A pristine interactive portfolio design template configured with highly organized Figma variables, responsive spacing scales, custom layout grids, and visual style directions. Ideal for developers and designers.',
+      price: '$15.00',
+      thumbnail: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80',
+      image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&auto=format&fit=crop&q=80',
+      gumroadUrl: 'https://gumroad.com',
+      order: 3,
+      featured: true,
+      published: true
+    }
+  ],
   contactSubmissions: []
 };
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -134,6 +174,7 @@ const TABS = [
   { id: 'skills', label: 'Skills', icon: Cpu },
   { id: 'testimonials', label: 'Feedback', icon: Users },
   { id: 'pricingPlans', label: 'Pricing', icon: DollarSign },
+  { id: 'products', label: 'Products', icon: ShoppingCart },
   { id: 'contactSubmissions', label: 'Inquiries', icon: MessageSquare },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
@@ -290,8 +331,12 @@ export default function AdminDashboard() {
         slug: editingItem.slug || ''
       });
       setSocialUploadValue(editingItem.socialImage || '');
+    } else if (editingItem && activeTab === 'products') {
+      setUploadValue(editingItem.thumbnail || '');
+      setSocialUploadValue(editingItem.image || '');
     } else if (isAdding) {
       setCurrentSocialData({ title: '', description: '', image: '', slug: '' });
+      setUploadValue('');
       setSocialUploadValue('');
     }
   }, [editingItem, isAdding, activeTab]);
@@ -547,6 +592,7 @@ export default function AdminDashboard() {
       case 'resume': return normalizeResumeItem(rawData);
       case 'testimonials': return normalizeTestimonial(rawData);
       case 'pricingPlans': return normalizePricingPlan(rawData);
+      case 'products': return normalizeProduct(rawData);
       case 'skills':
         return {
           name: str(rawData.name),
@@ -578,6 +624,13 @@ export default function AdminDashboard() {
       if (activeTab === 'testimonials') {
         rawData.avatar = uploadValue || editingItem?.avatar || "";
       }
+      if (activeTab === 'products') {
+        rawData.thumbnail = uploadValue || editingItem?.thumbnail || "";
+        rawData.image = socialUploadValue || editingItem?.image || "";
+        rawData.featured = rawData.featured === 'true' || rawData.featured === true;
+        rawData.published = rawData.published === 'true' || rawData.published === true;
+        rawData.order = num(rawData.order, 0);
+      }
 
       // Pre-process arrays/bools in raw data for simpler normalization
       if (rawData.tags) {
@@ -595,6 +648,16 @@ export default function AdminDashboard() {
       if (activeTab === 'pricingPlans' && !data.name) throw new Error("Plan name is required");
       if (activeTab === 'projects' && !data.title) throw new Error("Project title is required");
       if (activeTab === 'services' && !data.title) throw new Error("Service title is required");
+      if (activeTab === 'products') {
+        if (!data.title) throw new Error("Product title is required");
+        if (!data.gumroadUrl) throw new Error("Gumroad Product link is required");
+        
+        // Gumroad Link URL validation & sanitization
+        const urlStr = String(data.gumroadUrl).trim().toLowerCase();
+        if (!urlStr.includes('gumroad.com') && !urlStr.includes('gum.co')) {
+          throw new Error("Invalid Gumroad link. Must be a secure link from gumroad.com or gum.co.");
+        }
+      }
 
       if (activeTab === 'settings') {
         const settingsPayload = {
@@ -1411,6 +1474,65 @@ export default function AdminDashboard() {
                     </>
                   )}
 
+                  {activeTab === 'products' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2 font-semibold">Product Title</label>
+                        <input name="title" defaultValue={editingItem?.title} required placeholder="e.g. The Ultimate Branding Handbook" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2 font-semibold">Short Title / Sub-label</label>
+                        <input name="shortTitle" defaultValue={editingItem?.shortTitle} required placeholder="e.g. Branding Handbook" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2 font-semibold">Price (with symbol)</label>
+                        <input name="price" defaultValue={editingItem?.price || '$19.00'} required placeholder="e.g. $19.00" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2 font-semibold">Gumroad Product URL</label>
+                        <input name="gumroadUrl" defaultValue={editingItem?.gumroadUrl} required placeholder="e.g. https://youknowwalid.gumroad.com/l/product" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none font-mono" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2 font-semibold">Order Number (Sorting)</label>
+                        <input name="order" type="number" defaultValue={editingItem?.order || 0} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2 font-semibold">Featured</label>
+                          <select name="featured" defaultValue={String(editingItem?.featured !== false)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                            <option value="true" className="bg-neutral-900 text-white">Yes</option>
+                            <option value="false" className="bg-neutral-900 text-gray-400">No</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2 font-semibold">Published</label>
+                          <select name="published" defaultValue={String(editingItem?.published !== false)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                            <option value="true" className="bg-neutral-900 text-white">Yes</option>
+                            <option value="false" className="bg-neutral-900 text-gray-400">No</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2 font-semibold">Full Description</label>
+                        <textarea name="description" defaultValue={editingItem?.description} required rows={4} placeholder="Detailed product summary..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2 space-y-4">
+                        <ImageUpload 
+                          label="Thumbnail Image" 
+                          value={uploadValue || editingItem?.thumbnail} 
+                          onChange={setUploadValue} 
+                          recommendation="Required: High-quality product card image (600x450px or similar ratio)."
+                        />
+                        <ImageUpload 
+                          label="Large Preview Image (Optional)" 
+                          value={socialUploadValue || editingItem?.image} 
+                          onChange={setSocialUploadValue} 
+                          recommendation="Optional fallback: Expanded modal view image. If omitted, Thumbnail is used."
+                        />
+                      </div>
+                    </>
+                  )}
+
 
                   <div className="col-span-2 flex justify-end gap-4 mt-4">
                     <button 
@@ -1443,8 +1565,8 @@ export default function AdminDashboard() {
               key={item.id}
               className="bg-bg-card p-6 rounded-2xl border border-white/5 flex items-center gap-6 group hover:border-accent/30 transition-all"
             >
-              {item.image && (
-                <img src={item.image} alt={item.title || item.name} className="w-20 h-20 object-cover rounded-xl border border-white/10" referrerPolicy="no-referrer" />
+              {(item.image || item.thumbnail) && (
+                <img src={item.thumbnail || item.image} alt={item.title || item.name} className="w-20 h-20 object-cover rounded-xl border border-white/10" referrerPolicy="no-referrer" />
               )}
               {item.avatar && (
                 <img src={item.avatar} alt={item.name} className="w-20 h-20 object-cover rounded-full border border-white/10" referrerPolicy="no-referrer" />
@@ -1481,6 +1603,21 @@ export default function AdminDashboard() {
                       </div>
                       <span className="text-accent font-black">{item.level}%</span>
                     </div>
+                  )}
+
+                  {activeTab === 'products' && (
+                    <>
+                      <span className="text-accent font-bold font-mono">{item.price}</span>
+                      <span>Order: {item.order || 0}</span>
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${item.published ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
+                        {item.published ? 'Published' : 'Draft'}
+                      </span>
+                      {item.featured && (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#f45901]/10 text-[#f45901] border border-[#f45901]/20">
+                          Featured
+                        </span>
+                      )}
+                    </>
                   )}
 
                   

@@ -81,7 +81,24 @@ service cloud.firestore {
              data.keys().size() <= 15;
     }
 
+    function isValidProduct(data) {
+      return data.keys().hasAll(['title', 'shortTitle', 'description', 'price', 'thumbnail', 'image', 'gumroadUrl']) &&
+             data.get('title', '') is string &&
+             data.get('shortTitle', '') is string &&
+             data.get('description', '') is string &&
+             data.get('price', '') is string &&
+             data.get('thumbnail', '') is string &&
+             data.get('image', '') is string &&
+             data.get('gumroadUrl', '') is string &&
+             data.keys().size() <= 30;
+    }
+
     // --- Collection Matches ---
+
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidProduct(incoming());
+    }
 
     match /projects/{projectId} {
       allow read: if true;

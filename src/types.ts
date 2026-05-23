@@ -96,3 +96,19 @@ export interface PricingPlan {
   createdAt?: any;
   updatedAt?: any;
 }
+
+export interface Product {
+  id?: string;
+  title: string;
+  shortTitle: string;
+  description: string;
+  price: string;
+  thumbnail: string;
+  image: string;
+  gumroadUrl: string;
+  order?: number;
+  featured?: boolean;
+  published?: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+}

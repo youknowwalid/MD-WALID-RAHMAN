@@ -35,6 +35,8 @@ import ProjectDetail from './components/ProjectDetail';
 import BlogDetail from './components/BlogDetail';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ResourcesSection from './components/ResourcesSection';
+import ResourcesPage from './components/ResourcesPage';
 import { useSiteConfig } from './context/SiteConfigContext';
 import { 
   normalizePricingPlan, 
@@ -1027,6 +1029,9 @@ function Portfolio() {
           </div>
         </section>
 
+        {/* Resources Section */}
+        <ResourcesSection />
+
         {/* Contact Section */}
         <section id="contact" className="py-16 md:py-32 px-6">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 md:gap-16">
@@ -1132,6 +1137,8 @@ export default function App() {
         <Route path="/projects/:projectId" element={<ProjectDetail />} />
         <Route path="/blog/:blogId" element={<BlogDetail />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/products" element={<ResourcesPage />} />
       </Routes>
     </BrowserRouter>
   );

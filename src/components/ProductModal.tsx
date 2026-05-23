@@ -1,0 +1,203 @@
+import React, { useEffect } from 'react';
+import { motion } from 'motion/react';
+import { X, ShoppingBag, CheckCircle, Shield } from 'lucide-react';
+import { Product } from '../types';
+
+interface ProductModalProps {
+  product: Product;
+  onClose: () => void;
+}
+
+declare global {
+  interface Window {
+    GumroadOverlay?: any;
+  }
+}
+
+export default function ProductModal({ product, onClose }: ProductModalProps) {
+  // Prevent body scrolling when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Bind dynamic Gumroad buttons
+  useEffect(() => {
+    // If window.GumroadOverlay is loaded, initialize/bind new links
+    if (window.GumroadOverlay) {
+      try {
+        window.GumroadOverlay.init();
+      } catch (err) {
+        console.warn('Failed to initialize GumroadOverlay:', err);
+      }
+    } else {
+      // Fallback: load Gumroad script if missing
+      const script = document.createElement('script');
+      script.src = 'https://gumroad.com/js/gumroad.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.GumroadOverlay) {
+          try {
+            window.GumroadOverlay.init();
+          } catch (e) {
+            console.warn('GumroadOverlay loading initiation failed:', e);
+          }
+        }
+      };
+      document.head.appendChild(script);
+    }
+  }, [product]);
+
+  // Handle ESC key to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Helper to safely serialize/sanitize Gumroad Link
+  const getGumroadHref = (url: string) => {
+    if (!url) return '#';
+    const trimmed = url.trim();
+    // Validate that it contains gumroad or gum.co
+    if (trimmed.includes('gumroad.com') || trimmed.includes('gum.co')) {
+      return trimmed;
+    }
+    return trimmed; // Return raw value as fallback if the admin provided another link
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto">
+      {/* Backdrop with Blur */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
+      />
+
+      {/* Modal Main Content Container */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        id={`product-modal-card-${product.id}`}
+        className="relative w-full max-w-5xl bg-neutral-950 rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(244,89,1,0.15)] z-50 overflow-hidden text-white flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
+      >
+        
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-5 right-5 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-neutral-900 border border-white/10 flex items-center justify-center transition-all hover:scale-110 hover:text-[#f45901]"
+          aria-label="Close Modal"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Left Side: Enlarged Product Image */}
+        <div className="w-full md:w-1/2 bg-neutral-900 overflow-y-auto aspect-square md:aspect-auto min-h-[250px] md:min-h-full max-h-[40vh] md:max-h-none border-b md:border-b-0 md:border-r border-white/5 relative">
+          <img
+            src={product.image || product.thumbnail}
+            alt={product.title}
+            className="w-full h-full object-cover md:object-contain object-center md:p-4 bg-gradient-to-tr from-neutral-950/80 to-transparent"
+            referrerPolicy="no-referrer"
+          />
+          {/* Accent details inside the image view */}
+          <div className="absolute bottom-4 left-4 flex gap-2">
+            <span className="bg-black/80 border border-white/10 text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full text-gray-300 flex items-center gap-1.5 backdrop-blur-sm">
+              <Shield className="w-3.5 h-3.5 text-[#f45901]" />
+              Secure Digital File
+            </span>
+          </div>
+        </div>
+
+        {/* Right Side: Product Details & Purchase Trigger */}
+        <div className="w-full md:w-1/2 p-6 sm:p-8 md:p-10 flex flex-col justify-between overflow-y-auto">
+          
+          <div>
+            {/* Tag / Category Badge */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] font-bold text-[#f45901] uppercase tracking-widest px-2.5 py-1 bg-[#f45901]/10 rounded border border-[#f45901]/20">
+                Digital Resource
+              </span>
+              <span className="text-xs text-neutral-500 font-mono">
+                Instant Access
+              </span>
+            </div>
+
+            {/* Product Title */}
+            <h2 className="text-2xl sm:text-3xl font-sans font-black tracking-tight mb-4 text-white hover:text-[#f45901] transition-colors leading-tight">
+              {product.title}
+            </h2>
+
+            {/* Price Box */}
+            <div className="flex items-baseline gap-2 mb-6 bg-neutral-900/40 p-3 rounded-xl border border-white/5 w-fit">
+              <span className="text-xs text-neutral-500 font-medium">INVESTMENT:</span>
+              <span className="text-2xl font-black text-[#f45901] font-mono">{product.price}</span>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-white/10 w-full mb-6" />
+
+            {/* Description Area */}
+            <div className="mb-8">
+              <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                Overview & Value
+              </h3>
+              <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap font-sans max-w-md">
+                {product.description}
+              </p>
+            </div>
+
+            {/* Benefits list (Premium aesthetic addition) */}
+            <div className="space-y-2 mb-8 bg-neutral-900/20 p-4 rounded-xl border border-white/5">
+              <div className="flex items-start gap-2.5 text-xs text-neutral-400">
+                <CheckCircle className="w-4 h-4 text-[#f45901] shrink-0 mt-0.5" />
+                <span>Format: Secured High-Quality PDF File</span>
+              </div>
+              <div className="flex items-start gap-2.5 text-xs text-neutral-400">
+                <CheckCircle className="w-4 h-4 text-[#f45901] shrink-0 mt-0.5" />
+                <span>Secured 256-bit SSL Checkout via Gumroad</span>
+              </div>
+              <div className="flex items-start gap-2.5 text-xs text-neutral-400">
+                <CheckCircle className="w-4 h-4 text-[#f45901] shrink-0 mt-0.5" />
+                <span>Instant access sent directly to your email inbox</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Call-to-Action & Terms Footer */}
+          <div className="space-y-4">
+            
+            {/* Gumroad Embedded Button */}
+            <a
+              id={`buy-now-btn-${product.id}`}
+              href={getGumroadHref(product.gumroadUrl)}
+              data-gumroad-single-product="true"
+              className="gumroad-button group flex items-center justify-center gap-3 w-full bg-[#f45901] hover:bg-[#f45901]/95 text-black font-extrabold py-4 px-6 rounded-2xl shadow-[0_5px_20px_rgba(244,89,1,0.25)] hover:shadow-[0_8px_25px_rgba(244,89,1,0.4)] transition-all hover:-translate-y-0.5"
+            >
+              <ShoppingBag className="w-5 h-5 transition-transform group-hover:scale-110" />
+              <span>Get Instant Access</span>
+            </a>
+
+            {/* Dynamic Checkout note */}
+            <p className="text-[10px] text-center text-neutral-500 uppercase tracking-widest leading-relaxed">
+              Processed securely via Gumroad • Secured file download
+            </p>
+
+          </div>
+
+        </div>
+
+      </motion.div>
+    </div>
+  );
+}

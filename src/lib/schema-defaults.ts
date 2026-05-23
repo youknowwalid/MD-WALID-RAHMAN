@@ -6,7 +6,7 @@
  * be registered here.
  */
 
-import { PricingPlan, Project, BlogPost, Service, Testimonial, ResumeItem } from '../types';
+import { PricingPlan, Project, BlogPost, Service, Testimonial, ResumeItem, Product } from '../types';
 
 /**
  * Normalizes a Pricing Plan object to ensure no undefined fields and full schema compliance.
@@ -100,6 +100,25 @@ export const normalizeBlogPost = (data: any): BlogPost => ({
   socialTitle: String(data.socialTitle || ''),
   socialDescription: String(data.socialDescription || ''),
   socialImage: String(data.socialImage || ''),
+  createdAt: data.createdAt,
+  updatedAt: data.updatedAt
+});
+
+/**
+ * Normalizes a Product object.
+ */
+export const normalizeProduct = (data: any): Product => ({
+  id: String(data.id || ''),
+  title: String(data.title || 'Untitled Product'),
+  shortTitle: String(data.shortTitle || 'Digital Resource'),
+  description: String(data.description || ''),
+  price: String(data.price || '$0.00'),
+  thumbnail: String(data.thumbnail || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80'),
+  image: String(data.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80'),
+  gumroadUrl: String(data.gumroadUrl || 'https://gumroad.com'),
+  order: Number(data.order !== undefined ? data.order : 0),
+  featured: Boolean(data.featured !== undefined ? data.featured : true),
+  published: Boolean(data.published !== undefined ? data.published : true),
   createdAt: data.createdAt,
   updatedAt: data.updatedAt
 });

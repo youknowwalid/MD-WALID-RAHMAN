@@ -49,6 +49,7 @@ const DEFAULT_CONFIG: SiteConfig = {
     { label: 'Resume', url: '/#resume' },
     { label: 'Services', url: '/#services' },
     { label: 'Projects', url: '/#projects' },
+    { label: 'Resources', url: '/#resources' },
     { label: 'Contact', url: '/#contact' },
     { label: 'Blog', url: '/#blog' },
   ],
@@ -61,6 +62,7 @@ const DEFAULT_CONFIG: SiteConfig = {
         { label: 'Resume', url: '/#resume' },
         { label: 'Services', url: '/#services' },
         { label: 'Projects', url: '/#projects' },
+        { label: 'Resources', url: '/#resources' },
         { label: 'Contact', url: '/#contact' },
         { label: 'Blog', url: '/#blog' },
       ]
@@ -94,13 +96,49 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const unsubscribe = onSnapshot(doc(db, 'siteConfig', 'global'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
+        let loadedHeaderLinks = Array.isArray(data.headerLinks) ? data.headerLinks : DEFAULT_CONFIG.headerLinks;
+        let loadedFooterColumns = Array.isArray(data.footerColumns) ? data.footerColumns : DEFAULT_CONFIG.footerColumns;
+
+        // Ensure Resources is present in header links
+        const hasResourcesHeader = loadedHeaderLinks.some((l: any) => l.url && (l.url.includes('#resources') || l.url.includes('/resources') || l.url.includes('/products')));
+        if (!hasResourcesHeader) {
+          const contactIdx = loadedHeaderLinks.findIndex((l: any) => l.url && l.url.includes('#contact'));
+          const newLink = { label: 'Resources', url: '/#resources' };
+          let updated = [...loadedHeaderLinks];
+          if (contactIdx !== -1) {
+            updated.splice(contactIdx, 0, newLink);
+          } else {
+            updated.push(newLink);
+          }
+          loadedHeaderLinks = updated;
+        }
+
+        // Ensure Resources is present in Navigation Column of footerColumns
+        loadedFooterColumns = loadedFooterColumns.map((col: any) => {
+          if (col.title && col.title.toLowerCase() === 'navigation') {
+            const hasResourcesFooter = col.links && col.links.some((l: any) => l.url && (l.url.includes('#resources') || l.url.includes('/resources') || l.url.includes('/products')));
+            if (!hasResourcesFooter && col.links) {
+              const contactIdx = col.links.findIndex((l: any) => l.url && l.url.includes('#contact'));
+              const newLink = { label: 'Resources', url: '/#resources' };
+              let updatedLinks = [...col.links];
+              if (contactIdx !== -1) {
+                updatedLinks.splice(contactIdx, 0, newLink);
+              } else {
+                updatedLinks.push(newLink);
+              }
+              return { ...col, links: updatedLinks };
+            }
+          }
+          return col;
+        });
+
         setConfig({
           siteTitle: data.siteTitle || DEFAULT_CONFIG.siteTitle,
           siteLogo: data.siteLogo || DEFAULT_CONFIG.siteLogo,
           favicon: data.favicon || DEFAULT_CONFIG.favicon,
           footerPortrait: data.footerPortrait || DEFAULT_CONFIG.footerPortrait || '',
-          headerLinks: Array.isArray(data.headerLinks) ? data.headerLinks : DEFAULT_CONFIG.headerLinks,
-          footerColumns: Array.isArray(data.footerColumns) ? data.footerColumns : DEFAULT_CONFIG.footerColumns,
+          headerLinks: loadedHeaderLinks,
+          footerColumns: loadedFooterColumns,
           socialLinks: Array.isArray(data.socialLinks) ? data.socialLinks : DEFAULT_CONFIG.socialLinks,
           copyrightText: data.copyrightText !== undefined ? data.copyrightText : DEFAULT_CONFIG.copyrightText,
         });
