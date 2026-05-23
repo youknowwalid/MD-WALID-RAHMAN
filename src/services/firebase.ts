@@ -143,7 +143,8 @@ export const getCollection = async (collectionName: string) => {
   try {
     const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Ensure document ID cannot be overwritten by any 'id' field present inside the document data
+    return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, collectionName);
   }
@@ -162,19 +163,27 @@ export const addDocument = async (collectionName: string, data: any) => {
 
 export const updateDocument = async (collectionName: string, id: string, data: any) => {
   try {
+    const trimmedId = String(id || '').trim();
+    if (!trimmedId) {
+      throw new Error(`Invalid or empty document ID for update operation on collection: ${collectionName}`);
+    }
     const sanitizedData = sanitizeForFirestore(data);
-    const docRef = doc(db, collectionName, id);
+    const docRef = doc(db, collectionName, trimmedId);
     // Use setDoc with merge: true for better stability if doc might not exist
     await setDoc(docRef, { ...sanitizedData, updatedAt: serverTimestamp() }, { merge: true });
   } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id}`);
+    handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id || 'NULL'}`);
   }
 };
 
 export const removeDocument = async (collectionName: string, id: string) => {
   try {
-    await deleteDoc(doc(db, collectionName, id));
+    const trimmedId = String(id || '').trim();
+    if (!trimmedId) {
+      throw new Error(`Invalid or empty document ID for delete operation on collection: ${collectionName}`);
+    }
+    await deleteDoc(doc(db, collectionName, trimmedId));
   } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id}`);
+    handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id || 'NULL'}`);
   }
 };

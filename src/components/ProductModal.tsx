@@ -184,8 +184,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               data-gumroad-single-product="true"
               className="gumroad-button group flex items-center justify-center gap-3 w-full bg-[#f45901] hover:bg-[#f45901]/95 text-black font-extrabold py-4 px-6 rounded-2xl shadow-[0_5px_20px_rgba(244,89,1,0.25)] hover:shadow-[0_8px_25px_rgba(244,89,1,0.4)] transition-all hover:-translate-y-0.5"
             >
-              <ShoppingBag className="w-5 h-5 transition-transform group-hover:scale-110" />
-              <span>Get Instant Access</span>
+              Buy Now
             </a>
 
             {/* Dynamic Checkout note */}

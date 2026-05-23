@@ -31,7 +31,7 @@ export default function ResourcesSection() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items: Product[] = [];
       snapshot.forEach((doc) => {
-        items.push({ id: doc.id, ...doc.data() } as Product);
+        items.push({ ...doc.data(), id: doc.id } as Product);
       });
       setProducts(items);
       setLoading(false);

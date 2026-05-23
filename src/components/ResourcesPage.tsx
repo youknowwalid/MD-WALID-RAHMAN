@@ -68,7 +68,7 @@ export default function ResourcesPage() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const dbProducts: Product[] = [];
       snapshot.forEach((doc) => {
-        dbProducts.push({ id: doc.id, ...doc.data() } as Product);
+        dbProducts.push({ ...doc.data(), id: doc.id } as Product);
       });
       
       // If none found in DB, use our premium defaults as starting point
