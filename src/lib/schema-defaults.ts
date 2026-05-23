@@ -6,7 +6,7 @@
  * be registered here.
  */
 
-import { PricingPlan, Project, BlogPost, Service, Testimonial, ResumeItem } from '../types';
+import { PricingPlan, Project, BlogPost, Service, Testimonial, ResumeItem, Resource } from '../types';
 
 /**
  * Normalizes a Pricing Plan object to ensure no undefined fields and full schema compliance.
@@ -100,6 +100,25 @@ export const normalizeBlogPost = (data: any): BlogPost => ({
   socialTitle: String(data.socialTitle || ''),
   socialDescription: String(data.socialDescription || ''),
   socialImage: String(data.socialImage || ''),
+  createdAt: data.createdAt,
+  updatedAt: data.updatedAt
+});
+
+/**
+ * Normalizes a Resource object for digital products.
+ */
+export const normalizeResource = (data: any): Resource => ({
+  id: String(data.id || ''),
+  title: String(data.title || 'Untitled Resource'),
+  shortTitle: String(data.shortTitle || data.title || 'Resource'),
+  description: String(data.description || ''),
+  price: String(data.price || '$0'),
+  thumbnail: String(data.thumbnail || 'https://picsum.photos/400/300'),
+  previewImage: String(data.previewImage || data.thumbnail || 'https://picsum.photos/800/600'),
+  gumroadUrl: String(data.gumroadUrl || ''),
+  order: Number(data.order) || 0,
+  featured: Boolean(data.featured),
+  published: data.published !== false, // Default to true
   createdAt: data.createdAt,
   updatedAt: data.updatedAt
 });

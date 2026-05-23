@@ -33,6 +33,9 @@ import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore'
 import AdminDashboard from './components/AdminDashboard';
 import ProjectDetail from './components/ProjectDetail';
 import BlogDetail from './components/BlogDetail';
+import ResourcesSlider from './components/ResourcesSlider';
+import ResourcesPage from './components/ResourcesPage';
+import ProductModal from './components/ProductModal';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useSiteConfig } from './context/SiteConfigContext';
@@ -42,7 +45,8 @@ import {
   normalizeBlogPost, 
   normalizeService, 
   normalizeTestimonial, 
-  normalizeResumeItem 
+  normalizeResumeItem,
+  normalizeResource
 } from './lib/schema-defaults';
 
 import { 
@@ -53,7 +57,8 @@ import {
   Stat, 
   Skill, 
   Testimonial, 
-  PricingPlan 
+  PricingPlan,
+  Resource
 } from './types';
 
 // --- Icons Mapping ---
@@ -288,6 +293,8 @@ function Portfolio() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [resume, setResume] = useState<any[]>([]); // Initialize empty then use defaults if none from DB
   const [testimonials, setTestimonials] = useState<Testimonial[]>(TESTIMONIALS);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
 
   const [hasResumeData, setHasResumeData] = useState(false);
   const [hasTestimonialData, setHasTestimonialData] = useState(false);
@@ -328,14 +335,15 @@ function Portfolio() {
     const fetchAllData = async () => {
       try {
         // Use parallel fetching for speed
-        const [projSnap, servSnap, blogSnap, resSnap, testSnap, pricSnap, skillSnap] = await Promise.all([
+        const [projSnap, servSnap, blogSnap, resSnap, testSnap, pricSnap, skillSnap, resourceSnap] = await Promise.all([
           getCollection('projects'),
           getCollection('services'),
           getCollection('blogPosts'),
           getCollection('resume'),
           getCollection('testimonials'),
           getCollection('pricingPlans'),
-          getCollection('skills')
+          getCollection('skills'),
+          getCollection('resources')
         ]);
 
         if (projSnap) setProjects(projSnap.map(normalizeProject));
@@ -374,6 +382,8 @@ function Portfolio() {
         }
 
         if (pricSnap) setPricingPlans(pricSnap.map(normalizePricingPlan));
+
+        if (resourceSnap) setResources(resourceSnap.map(normalizeResource));
 
       } catch (error) {
         console.error("Initial fetch error:", error);
@@ -1027,6 +1037,22 @@ function Portfolio() {
           </div>
         </section>
 
+        {/* Resources Section */}
+        {resources.filter(r => r.published !== false).length > 0 && (
+          <section id="resources" className="py-16 md:py-32 px-6 bg-bg-card/30">
+            <div className="max-w-7xl mx-auto">
+              <SectionHeader label="Resources" title="Digital Products" />
+              <p className="text-gray-400 text-base md:text-lg mb-10 max-w-2xl">
+                Premium digital resources, templates, and guides to help you elevate your brand and business.
+              </p>
+              <ResourcesSlider 
+                resources={resources} 
+                onOpenModal={(resource) => setSelectedResource(resource)} 
+              />
+            </div>
+          </section>
+        )}
+
         {/* Contact Section */}
         <section id="contact" className="py-16 md:py-32 px-6">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 md:gap-16">
@@ -1111,6 +1137,12 @@ function Portfolio() {
 
       {/* --- Footer --- */}
       <Footer portraitUrl={heroImage} />
+
+      {/* Product Modal */}
+      <ProductModal 
+        resource={selectedResource} 
+        onClose={() => setSelectedResource(null)} 
+      />
     </div>
   );
 }
@@ -1131,6 +1163,7 @@ export default function App() {
         <Route path="/" element={<Portfolio />} />
         <Route path="/projects/:projectId" element={<ProjectDetail />} />
         <Route path="/blog/:blogId" element={<BlogDetail />} />
+        <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>

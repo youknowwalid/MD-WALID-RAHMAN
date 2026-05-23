@@ -20,7 +20,13 @@ import {
   Image as ImageIcon,
   DollarSign,
   MessageSquare,
-  Cpu
+  Cpu,
+  Package,
+  GripVertical,
+  Eye,
+  EyeOff,
+  Star,
+  Link as LinkIcon
 } from 'lucide-react';
 import { 
   auth, 
@@ -38,7 +44,8 @@ import {
   normalizeBlogPost, 
   normalizeService, 
   normalizeTestimonial, 
-  normalizeResumeItem 
+  normalizeResumeItem,
+  normalizeResource
 } from '../lib/schema-defaults';
 
 // Default data to seed if empty
@@ -121,6 +128,44 @@ const SEED_DATA: Record<string, any[]> = {
     { name: 'Adobe Creative Suite', level: 83 },
     { name: 'Google Ads', level: 76 },
   ],
+  resources: [
+    { 
+      title: 'Social Media Content Calendar Template', 
+      shortTitle: 'Content Calendar', 
+      description: 'A comprehensive 30-day social media content calendar to help you plan and organize your content strategy across all platforms.', 
+      price: '$19', 
+      thumbnail: 'https://picsum.photos/seed/resource1/400/300', 
+      previewImage: 'https://picsum.photos/seed/resource1/800/600',
+      gumroadUrl: 'https://gumroad.com/l/example1',
+      order: 1,
+      featured: true,
+      published: true
+    },
+    { 
+      title: 'Brand Identity Guidelines Template', 
+      shortTitle: 'Brand Guidelines', 
+      description: 'Complete brand identity guidelines template including logo usage, color palette, typography, and brand voice documentation.', 
+      price: '$29', 
+      thumbnail: 'https://picsum.photos/seed/resource2/400/300', 
+      previewImage: 'https://picsum.photos/seed/resource2/800/600',
+      gumroadUrl: 'https://gumroad.com/l/example2',
+      order: 2,
+      featured: true,
+      published: true
+    },
+    { 
+      title: 'Marketing Strategy Workbook', 
+      shortTitle: 'Marketing Workbook', 
+      description: 'A step-by-step workbook to help you develop a comprehensive marketing strategy for your business or brand.', 
+      price: '$39', 
+      thumbnail: 'https://picsum.photos/seed/resource3/400/300', 
+      previewImage: 'https://picsum.photos/seed/resource3/800/600',
+      gumroadUrl: 'https://gumroad.com/l/example3',
+      order: 3,
+      featured: false,
+      published: true
+    },
+  ],
   contactSubmissions: []
 };
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -130,6 +175,7 @@ const TABS = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
+  { id: 'resources', label: 'Resources', icon: Package },
   { id: 'resume', label: 'Resume', icon: FileText },
   { id: 'skills', label: 'Skills', icon: Cpu },
   { id: 'testimonials', label: 'Feedback', icon: Users },
@@ -438,6 +484,7 @@ export default function AdminDashboard() {
             { label: 'Resume', url: '/#resume' },
             { label: 'Services', url: '/#services' },
             { label: 'Projects', url: '/#projects' },
+            { label: 'Resources', url: '/#resources' },
             { label: 'Contact', url: '/#contact' },
             { label: 'Blog', url: '/#blog' },
           ]);
@@ -450,6 +497,7 @@ export default function AdminDashboard() {
                 { label: 'Resume', url: '/#resume' },
                 { label: 'Services', url: '/#services' },
                 { label: 'Projects', url: '/#projects' },
+                { label: 'Resources', url: '/#resources' },
                 { label: 'Contact', url: '/#contact' },
                 { label: 'Blog', url: '/#blog' },
               ]
@@ -481,6 +529,7 @@ export default function AdminDashboard() {
             { label: 'Resume', url: '/#resume' },
             { label: 'Services', url: '/#services' },
             { label: 'Projects', url: '/#projects' },
+            { label: 'Resources', url: '/#resources' },
             { label: 'Contact', url: '/#contact' },
             { label: 'Blog', url: '/#blog' },
           ]);
@@ -493,6 +542,7 @@ export default function AdminDashboard() {
                 { label: 'Resume', url: '/#resume' },
                 { label: 'Services', url: '/#services' },
                 { label: 'Projects', url: '/#projects' },
+                { label: 'Resources', url: '/#resources' },
                 { label: 'Contact', url: '/#contact' },
                 { label: 'Blog', url: '/#blog' },
               ]
@@ -535,6 +585,18 @@ export default function AdminDashboard() {
     return isNaN(parsed) ? fallback : parsed;
   };
 
+  // Gumroad URL validation - security measure to prevent script injection
+  const isValidGumroadUrl = (url: string): boolean => {
+    if (!url || url.trim() === '') return true; // Allow empty
+    try {
+      const parsed = new URL(url);
+      const validHosts = ['gumroad.com', 'www.gumroad.com', 'gum.co'];
+      return validHosts.includes(parsed.hostname.toLowerCase());
+    } catch {
+      return false;
+    }
+  };
+
   /**
    * Deeply sanitizes and normalizes data based on the active tab's schema.
    * This ensures NO undefined values reach Firestore and all types are deterministic.
@@ -547,6 +609,7 @@ export default function AdminDashboard() {
       case 'resume': return normalizeResumeItem(rawData);
       case 'testimonials': return normalizeTestimonial(rawData);
       case 'pricingPlans': return normalizePricingPlan(rawData);
+      case 'resources': return normalizeResource(rawData);
       case 'skills':
         return {
           name: str(rawData.name),
@@ -578,6 +641,10 @@ export default function AdminDashboard() {
       if (activeTab === 'testimonials') {
         rawData.avatar = uploadValue || editingItem?.avatar || "";
       }
+      if (activeTab === 'resources') {
+        rawData.thumbnail = uploadValue || editingItem?.thumbnail || "";
+        rawData.previewImage = socialUploadValue || editingItem?.previewImage || "";
+      }
 
       // Pre-process arrays/bools in raw data for simpler normalization
       if (rawData.tags) {
@@ -595,6 +662,12 @@ export default function AdminDashboard() {
       if (activeTab === 'pricingPlans' && !data.name) throw new Error("Plan name is required");
       if (activeTab === 'projects' && !data.title) throw new Error("Project title is required");
       if (activeTab === 'services' && !data.title) throw new Error("Service title is required");
+      if (activeTab === 'resources') {
+        if (!data.title) throw new Error("Resource title is required");
+        if (data.gumroadUrl && !isValidGumroadUrl(data.gumroadUrl)) {
+          throw new Error("Invalid Gumroad URL. Must be a valid gumroad.com or gum.co URL.");
+        }
+      }
 
       if (activeTab === 'settings') {
         const settingsPayload = {
@@ -1411,6 +1484,86 @@ export default function AdminDashboard() {
                     </>
                   )}
 
+                  {activeTab === 'resources' && (
+                    <>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Product Title *</label>
+                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="e.g. Social Media Content Calendar" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Short Title (for cards)</label>
+                        <input name="shortTitle" defaultValue={editingItem?.shortTitle} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="e.g. Content Calendar" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Full Description</label>
+                        <textarea name="description" defaultValue={editingItem?.description} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" placeholder="Describe your digital product in detail..." />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Price *</label>
+                        <input name="price" defaultValue={editingItem?.price || '$0'} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="e.g. $19" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Display Order</label>
+                        <input name="order" type="number" defaultValue={editingItem?.order || 0} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" placeholder="0" />
+                      </div>
+                      <div className="col-span-2">
+                        <ImageUpload 
+                          label="Thumbnail Image (Card Preview)" 
+                          value={uploadValue || editingItem?.thumbnail || ''} 
+                          onChange={setUploadValue} 
+                          recommendation="Recommended: 400x300px. This appears on product cards."
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <ImageUpload 
+                          label="Large Preview Image (Modal)" 
+                          value={socialUploadValue || editingItem?.previewImage || ''} 
+                          onChange={setSocialUploadValue} 
+                          recommendation="Recommended: 800x600px or larger. This appears in the product popup."
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Gumroad Product URL *</label>
+                        <div className="flex items-center gap-3">
+                          <LinkIcon className="w-5 h-5 text-accent shrink-0" />
+                          <input 
+                            name="gumroadUrl" 
+                            defaultValue={editingItem?.gumroadUrl} 
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" 
+                            placeholder="https://gumroad.com/l/your-product" 
+                          />
+                        </div>
+                        <p className="text-xs text-accent mt-2">Only gumroad.com or gum.co URLs are accepted for security.</p>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            name="featured" 
+                            defaultChecked={editingItem?.featured} 
+                            className="w-5 h-5 accent-accent rounded" 
+                          />
+                          <div className="flex items-center gap-2">
+                            <Star className="w-4 h-4 text-accent" />
+                            <span className="text-sm">Featured Product</span>
+                          </div>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            name="published" 
+                            defaultChecked={editingItem?.published !== false} 
+                            className="w-5 h-5 accent-accent rounded" 
+                          />
+                          <div className="flex items-center gap-2">
+                            <Eye className="w-4 h-4 text-accent" />
+                            <span className="text-sm">Published</span>
+                          </div>
+                        </label>
+                      </div>
+                    </>
+                  )}
+
 
                   <div className="col-span-2 flex justify-end gap-4 mt-4">
                     <button 
@@ -1449,6 +1602,9 @@ export default function AdminDashboard() {
               {item.avatar && (
                 <img src={item.avatar} alt={item.name} className="w-20 h-20 object-cover rounded-full border border-white/10" referrerPolicy="no-referrer" />
               )}
+              {activeTab === 'resources' && item.thumbnail && (
+                <img src={item.thumbnail} alt={item.title} className="w-20 h-20 object-cover rounded-xl border border-white/10" referrerPolicy="no-referrer" />
+              )}
               
               {activeTab === 'contactSubmissions' && (
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent shrink-0">
@@ -1480,6 +1636,27 @@ export default function AdminDashboard() {
                         <div className="h-full bg-accent" style={{ width: `${item.level}%` }} />
                       </div>
                       <span className="text-accent font-black">{item.level}%</span>
+                    </div>
+                  )}
+
+                  {activeTab === 'resources' && (
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-accent font-bold">{item.price}</span>
+                      <span className="text-xs px-2 py-1 rounded bg-white/5">Order: {item.order}</span>
+                      {item.featured && (
+                        <span className="text-xs px-2 py-1 rounded bg-accent/20 text-accent flex items-center gap-1">
+                          <Star className="w-3 h-3" /> Featured
+                        </span>
+                      )}
+                      {item.published ? (
+                        <span className="text-xs px-2 py-1 rounded bg-green-400/20 text-green-400 flex items-center gap-1">
+                          <Eye className="w-3 h-3" /> Published
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded bg-red-400/20 text-red-400 flex items-center gap-1">
+                          <EyeOff className="w-3 h-3" /> Draft
+                        </span>
+                      )}
                     </div>
                   )}
 

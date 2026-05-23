@@ -96,3 +96,19 @@ export interface PricingPlan {
   createdAt?: any;
   updatedAt?: any;
 }
+
+export interface Resource {
+  id?: string;
+  title: string;
+  shortTitle: string;
+  description: string;
+  price: string;
+  thumbnail: string;
+  previewImage: string;
+  gumroadUrl: string;
+  order: number;
+  featured: boolean;
+  published: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+}

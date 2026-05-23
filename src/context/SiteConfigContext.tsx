@@ -49,6 +49,7 @@ const DEFAULT_CONFIG: SiteConfig = {
     { label: 'Resume', url: '/#resume' },
     { label: 'Services', url: '/#services' },
     { label: 'Projects', url: '/#projects' },
+    { label: 'Resources', url: '/#resources' },
     { label: 'Contact', url: '/#contact' },
     { label: 'Blog', url: '/#blog' },
   ],
@@ -61,6 +62,7 @@ const DEFAULT_CONFIG: SiteConfig = {
         { label: 'Resume', url: '/#resume' },
         { label: 'Services', url: '/#services' },
         { label: 'Projects', url: '/#projects' },
+        { label: 'Resources', url: '/#resources' },
         { label: 'Contact', url: '/#contact' },
         { label: 'Blog', url: '/#blog' },
       ]
