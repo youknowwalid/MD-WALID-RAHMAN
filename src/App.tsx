@@ -465,18 +465,18 @@ function Portfolio() {
                   transition={{ delay: 0.5 }}
                   className="text-sm md:text-2xl text-text-muted mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0"
                 >
-                  A <span className="text-text-main font-bold underline decoration-accent underline-offset-4">Brand Developer</span> crafting premium digital experiences.
+                  {config.brandTagline || "A Brand Developer crafting premium digital experiences."}
                 </motion.div>
                 
                 <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6">
                   <motion.a 
-                    href="https://wa.me/+8801744588644"
-                    target="_blank"
+                    href={config.globalCtaUrl || "https://wa.me/+8801744588644"}
+                    target={config.globalCtaUrl && config.globalCtaUrl.startsWith('http') ? "_blank" : undefined}
                     rel="noreferrer"
                     whileHover={{ scale: 1.05 }}
                     className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base border border-accent"
                   >
-                    Start Project
+                    {config.globalCtaText || "Start Project"}
                   </motion.a>
                   <motion.a 
                     href={cvUrl}
@@ -592,17 +592,27 @@ function Portfolio() {
                 <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default accent-glow-hover">
                   <Mail className="text-accent mb-4" />
                   <div className="text-sm text-text-muted">Email</div>
-                  <div className="font-bold underline decoration-accent/30"><a href="mailto:info@walidrahman.com">info@walidrahman.com</a></div>
+                  <div className="font-bold underline decoration-accent/30">
+                    <a href={`mailto:${config.contactEmail || "info@walidrahman.com"}`}>
+                      {config.contactEmail || "info@walidrahman.com"}
+                    </a>
+                  </div>
                 </div>
                 <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default">
                   <Phone className="text-accent mb-4" />
                   <div className="text-sm text-text-muted">Phone</div>
-                  <div className="font-bold underline decoration-accent/30"><a href="https://wa.me/+8801744588644" target="_blank" rel="noreferrer">+880 1744 588 644</a></div>
+                  <div className="font-bold underline decoration-accent/30">
+                    <a href={`tel:${(config.officePhone || "+8801744588644").replace(/[^0-9+]/g, '')}`}>
+                      {config.officePhone || "+880 1744 588 644"}
+                    </a>
+                  </div>
                 </div>
                 <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default col-span-full">
                   <MapPin className="text-accent mb-4" />
                   <div className="text-sm text-text-muted">Location</div>
-                  <div className="font-bold">Nikunja 2, Dhaka 1229, Bangladesh</div>
+                  <div className="font-bold">
+                    {config.officeAddress || "Nikunja 2, Dhaka 1229, Bangladesh"}
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -1046,9 +1056,9 @@ function Portfolio() {
               </p>
               <div className="space-y-6">
                 {[
-                  { icon: Mail, label: 'Email', value: 'info@walidrahman.com', href: 'mailto:info@walidrahman.com' },
-                  { icon: Phone, label: 'Phone', value: '+880 1744 588 644', href: 'https://wa.me/+8801744588644' },
-                  { icon: MapPin, label: 'Office', value: 'Nikunja 2, Dhaka 1229, Bangladesh', href: '#' },
+                  { icon: Mail, label: 'Email', value: config.contactEmail || 'info@walidrahman.com', href: `mailto:${config.contactEmail || 'info@walidrahman.com'}` },
+                  { icon: Phone, label: 'Phone', value: config.officePhone || '+880 1744 588 644', href: `tel:${(config.officePhone || '+8801744588644').replace(/[^0-9+]/g, '')}` },
+                  { icon: MapPin, label: 'Office', value: config.officeAddress || 'Nikunja 2, Dhaka 1229, Bangladesh', href: '#' },
                 ].map((item, i) => (
                   <motion.div
                     key={i}

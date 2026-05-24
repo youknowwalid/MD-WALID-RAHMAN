@@ -47,14 +47,14 @@ export default function Footer({ portraitUrl }: FooterProps) {
         <div 
           className="absolute rounded-full pointer-events-none -z-20 w-[300px] h-[300px] md:w-[600px] md:h-[600px] -bottom-[10%] -left-[10%] opacity-15" 
           style={{ 
-            background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
+            background: `radial-gradient(circle, ${config.primaryColor || '#f45901'} 0%, transparent 70%)`,
             filter: 'blur(120px)' 
           }} 
         />
         <div 
           className="absolute rounded-full pointer-events-none -z-20 w-[250px] h-[250px] md:w-[450px] md:h-[450px] top-[-10%] right-[10%] opacity-[0.08]" 
           style={{ 
-            background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
+            background: `radial-gradient(circle, ${config.primaryColor || '#f45901'} 0%, transparent 70%)`,
             filter: 'blur(100px)' 
           }} 
         />
@@ -88,7 +88,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
                   ) : (
                     <div className="text-xl font-black tracking-tighter text-white mb-3">
                       {config.siteTitle === 'youknowwalid' ? (
-                        <>youknowwalid<span className="text-[#f45901]">.</span></>
+                        <>youknowwalid<span className="text-accent">.</span></>
                       ) : (
                         config.siteTitle
                       )}
@@ -107,7 +107,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
                       href={s.url} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#f45901] hover:text-black hover:border-[#f45901] transition-all hover:-translate-y-1 text-text-main"
+                      className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black hover:border-accent transition-all hover:-translate-y-1 text-text-main"
                       title={s.platform}
                     >
                       {getSocialIcon(s.platform)}
@@ -119,7 +119,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
               {/* Dynamic Columns 2 & 3 from config.footerColumns */}
               {config.footerColumns && config.footerColumns.map((col, idx) => (
                 <div key={idx}>
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#f45901] mb-5">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-accent mb-5">
                     {col.title}
                   </h4>
                   <ul className="space-y-2.5 text-xs text-text-muted">

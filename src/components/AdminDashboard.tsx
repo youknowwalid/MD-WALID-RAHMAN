@@ -21,8 +21,12 @@ import {
   DollarSign,
   MessageSquare,
   Cpu,
-  ShoppingCart
+  ShoppingCart,
+  Palette,
+  Globe
 } from 'lucide-react';
+import { SEOSettings } from './SEOSettings';
+import { BrandingSettings } from './BrandingSettings';
 import { 
   auth, 
   db, 
@@ -168,6 +172,7 @@ import { doc, getDoc } from 'firebase/firestore';
 
 const TABS = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
+  { id: 'seoSettings', label: 'SEO Settings', icon: Globe },
   { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
   { id: 'resume', label: 'Resume', icon: FileText },
@@ -176,6 +181,7 @@ const TABS = [
   { id: 'pricingPlans', label: 'Pricing', icon: DollarSign },
   { id: 'products', label: 'Products', icon: ShoppingCart },
   { id: 'contactSubmissions', label: 'Inquiries', icon: MessageSquare },
+  { id: 'branding', label: 'Branding Settings', icon: Palette },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -324,6 +330,16 @@ export default function AdminDashboard() {
   const [footerColumns, setFooterColumns] = useState<{title: string, links: {label: string, url: string}[]}[]>([]);
   const [socialLinks, setSocialLinks] = useState<{platform: string, url: string}[]>([]);
   const [copyrightText, setCopyrightText] = useState('© 2026 Md. Walid Rahman Swapnil. All rights reserved.');
+
+  // Global Brand setting variables
+  const [officeAddress, setOfficeAddress] = useState('Nikunja 2, Dhaka 1229');
+  const [contactEmail, setContactEmail] = useState('info@walidrahman.com');
+  const [officePhone, setOfficePhone] = useState('+880 1744 588 644');
+  const [primaryColor, setPrimaryColor] = useState('#f45901');
+  const [secondaryColor, setSecondaryColor] = useState('#00c6ff');
+  const [brandTagline, setBrandTagline] = useState('A Brand Developer crafting premium digital experiences.');
+  const [globalCtaText, setGlobalCtaText] = useState("Let's Discuss");
+  const [globalCtaUrl, setGlobalCtaUrl] = useState('/#contact');
 
   const [uploadValue, setUploadValue] = useState('');
   const [socialUploadValue, setSocialUploadValue] = useState('');
@@ -481,7 +497,7 @@ export default function AdminDashboard() {
 
   const loadItems = async () => {
     setLoading(true);
-    if (activeTab === 'settings') {
+    if (activeTab === 'settings' || activeTab === 'branding' || activeTab === 'seoSettings') {
       try {
         const configDoc = await getDoc(doc(db, 'siteConfig', 'hero'));
         if (configDoc.exists()) {
@@ -538,6 +554,16 @@ export default function AdminDashboard() {
             { platform: 'twitter', url: 'https://twitter.com/youknowwalid' }
           ]);
           setCopyrightText(data.copyrightText || '© 2026 Md. Walid Rahman Swapnil. All rights reserved.');
+          
+          // Populate new dynamic Brand Settings
+          setOfficeAddress(data.officeAddress || 'Nikunja 2, Dhaka 1229');
+          setContactEmail(data.contactEmail || 'info@walidrahman.com');
+          setOfficePhone(data.officePhone || '+880 1744 588 644');
+          setPrimaryColor(data.primaryColor || '#f45901');
+          setSecondaryColor(data.secondaryColor || '#00c6ff');
+          setBrandTagline(data.brandTagline || 'A Brand Developer crafting premium digital experiences.');
+          setGlobalCtaText(data.globalCtaText || "Let's Discuss");
+          setGlobalCtaUrl(data.globalCtaUrl || '/#contact');
         } else {
           // If doesn't exist, instantiate default state structures
           setSiteTitle('youknowwalid');
@@ -581,6 +607,15 @@ export default function AdminDashboard() {
             { platform: 'twitter', url: 'https://twitter.com/youknowwalid' }
           ]);
           setCopyrightText('© 2026 Md. Walid Rahman Swapnil. All rights reserved.');
+          
+          setOfficeAddress('Nikunja 2, Dhaka 1229');
+          setContactEmail('info@walidrahman.com');
+          setOfficePhone('+880 1744 588 644');
+          setPrimaryColor('#f45901');
+          setSecondaryColor('#00c6ff');
+          setBrandTagline('A Brand Developer crafting premium digital experiences.');
+          setGlobalCtaText("Let's Discuss");
+          setGlobalCtaUrl('/#contact');
         }
       } catch (err) {
         console.error("Failed to load settings from DB:", err);
@@ -687,7 +722,7 @@ export default function AdminDashboard() {
         }
       }
 
-      if (activeTab === 'settings') {
+      if (activeTab === 'settings' || activeTab === 'branding') {
         const settingsPayload = {
           heroImage: str(heroImage), 
           heroStatus: str(heroStatus) || "Active Now",
@@ -710,6 +745,14 @@ export default function AdminDashboard() {
           })),
           socialLinks: socialLinks.map(s => ({ platform: str(s.platform), url: str(s.url) })),
           copyrightText: str(copyrightText),
+          officeAddress: str(officeAddress),
+          contactEmail: str(contactEmail),
+          officePhone: str(officePhone),
+          primaryColor: str(primaryColor),
+          secondaryColor: str(secondaryColor),
+          brandTagline: str(brandTagline),
+          globalCtaText: str(globalCtaText),
+          globalCtaUrl: str(globalCtaUrl),
           updatedAt: new Date().toISOString()
         };
         await updateDocument('siteConfig', 'global', globalPayload);
@@ -839,33 +882,35 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-10 overflow-y-auto">
-        <div className="flex justify-between items-center mb-10">
-          <div>
-            <h2 className="text-3xl font-black text-text-main">{TABS.find(t => t.id === activeTab)?.label} Management</h2>
-            {activeTab !== 'settings' && <p className="text-text-muted">Total items: {items.length}</p>}
+        {activeTab !== 'seoSettings' && (
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h2 className="text-3xl font-black text-text-main">{TABS.find(t => t.id === activeTab)?.label} Management</h2>
+              {activeTab !== 'settings' && activeTab !== 'branding' && <p className="text-text-muted">Total items: {items.length}</p>}
+            </div>
+            <div className="flex gap-4">
+              {activeTab !== 'settings' && activeTab !== 'branding' && (
+                <button 
+                  onClick={handleSeedData}
+                  className="flex items-center gap-2 border border-white/10 text-gray-400 font-bold px-6 py-3 rounded-xl hover:bg-white/5 transition-all"
+                  title="Import Default Data"
+                >
+                  <Database className="w-5 h-5" />
+                  Seed Default
+                </button>
+              )}
+              {activeTab !== 'settings' && activeTab !== 'branding' && (
+                <button 
+                  onClick={() => { setIsAdding(true); setUploadValue(''); }}
+                  className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl transition-all"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add New
+                </button>
+              )}
+            </div>
           </div>
-          <div className="flex gap-4">
-            {activeTab !== 'settings' && (
-              <button 
-                onClick={handleSeedData}
-                className="flex items-center gap-2 border border-white/10 text-gray-400 font-bold px-6 py-3 rounded-xl hover:bg-white/5 transition-all"
-                title="Import Default Data"
-              >
-                <Database className="w-5 h-5" />
-                Seed Default
-              </button>
-            )}
-            {activeTab !== 'settings' && (
-              <button 
-                onClick={() => { setIsAdding(true); setUploadValue(''); }}
-                className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Add New
-              </button>
-            )}
-          </div>
-        </div>
+        )}
 
         {activeTab === 'settings' && (
           <form onSubmit={handleSave} className="space-y-10">
@@ -1203,6 +1248,14 @@ export default function AdminDashboard() {
               </div>
             </div>
           </form>
+        )}
+
+        {activeTab === 'seoSettings' && (
+          <SEOSettings />
+        )}
+
+        {activeTab === 'branding' && (
+          <BrandingSettings onBack={() => setActiveTab('projects')} />
         )}
 
         {/* Form Overlay */}
@@ -1615,6 +1668,7 @@ export default function AdminDashboard() {
         </AnimatePresence>
 
         {/* Items List */}
+        {activeTab !== 'settings' && activeTab !== 'branding' && activeTab !== 'seoSettings' && (
         <div className="grid gap-4">
           {items.map((item) => (
             <motion.div 
@@ -1714,6 +1768,7 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+        )}
       </main>
     </div>
   );

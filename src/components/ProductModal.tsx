@@ -152,13 +152,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
         id={`product-modal-card-${product.id}`}
-        className="relative w-full max-w-5xl bg-neutral-950 rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(244,89,1,0.15)] z-50 overflow-hidden text-white flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
+        className="relative w-full max-w-5xl bg-neutral-950 rounded-3xl border border-white/10 shadow-[0_0_50px_var(--color-accent)]/15 z-50 overflow-hidden text-white flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
       >
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-neutral-900 border border-white/10 flex items-center justify-center transition-all hover:scale-110 hover:text-[#f45901]"
+          className="absolute top-5 right-5 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-neutral-900 border border-white/10 flex items-center justify-center transition-all hover:scale-110 hover:text-accent"
           aria-label="Close Modal"
         >
           <X className="w-5 h-5" />
@@ -194,7 +194,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-[#f45901] hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-accent hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
                   aria-label="Previous Image"
                 >
                   <span className="text-xl font-bold font-mono">‹</span>
@@ -202,7 +202,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-[#f45901] hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-accent hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
                   aria-label="Next Image"
                 >
                   <span className="text-xl font-bold font-mono">›</span>
@@ -220,7 +220,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             {/* Secure File Badge */}
             <div className="absolute bottom-4 left-4 flex gap-2">
               <span className="bg-black/80 border border-white/10 text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full text-gray-300 flex items-center gap-1.5 backdrop-blur-sm">
-                <Shield className="w-3.5 h-3.5 text-[#f45901]" />
+                <Shield className="w-3.5 h-3.5 text-accent" />
                 Secure Digital File
               </span>
             </div>
@@ -236,7 +236,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   onClick={() => setActiveIndex(idx)}
                   className={`relative w-11 h-11 rounded-lg overflow-hidden border-2 transition-all duration-200 shrink-0 ${
                     idx === activeIndex
-                      ? 'border-[#f45901] scale-105 shadow-[0_0_10px_rgba(244,89,1,0.3)]'
+                      ? 'border-accent scale-105 shadow-[0_0_10px_var(--color-accent)]/30'
                       : 'border-white/10 hover:border-white/30 opacity-60 hover:opacity-100'
                   }`}
                 >
@@ -258,7 +258,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <div>
             {/* Tag / Category Badge */}
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] font-bold text-[#f45901] uppercase tracking-widest px-2.5 py-1 bg-[#f45901]/10 rounded border border-[#f45901]/20">
+              <span className="text-[10px] font-bold text-accent uppercase tracking-widest px-2.5 py-1 bg-accent/10 rounded border border-accent/20">
                 Digital Resource
               </span>
               <span className="text-xs text-neutral-500 font-mono">
@@ -267,14 +267,14 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             </div>
 
             {/* Product Title */}
-            <h2 className="text-2xl sm:text-3xl font-sans font-black tracking-tight mb-4 text-white hover:text-[#f45901] transition-colors leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-sans font-black tracking-tight mb-4 text-white hover:text-accent transition-colors leading-tight">
               {product.title}
             </h2>
 
             {/* Price Box */}
             <div className="flex items-baseline gap-2 mb-6 bg-neutral-900/40 p-3 rounded-xl border border-white/5 w-fit">
               <span className="text-xs text-neutral-500 font-medium">INVESTMENT:</span>
-              <span className="text-2xl font-black text-[#f45901] font-mono">{product.price}</span>
+              <span className="text-2xl font-black text-accent font-mono">{product.price}</span>
             </div>
 
             {/* Divider */}
@@ -293,15 +293,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             {/* Benefits list (Premium aesthetic addition) */}
             <div className="space-y-2 mb-8 bg-neutral-900/20 p-4 rounded-xl border border-white/5">
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
-                <CheckCircle className="w-4 h-4 text-[#f45901] shrink-0 mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                 <span>Format: Secured High-Quality PDF File</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
-                <CheckCircle className="w-4 h-4 text-[#f45901] shrink-0 mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                 <span>Secured 256-bit SSL Checkout via Gumroad</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
-                <CheckCircle className="w-4 h-4 text-[#f45901] shrink-0 mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                 <span>Instant access sent directly to your email inbox</span>
               </div>
             </div>
@@ -315,7 +315,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               id={`buy-now-btn-${product.id}`}
               href={getGumroadHref(product.gumroadUrl)}
               data-gumroad-single-product="true"
-              className="gumroad-button group flex items-center justify-center gap-3 w-full bg-[#f45901] hover:bg-[#f45901]/95 text-black font-extrabold py-4 px-6 rounded-2xl shadow-[0_5px_20px_rgba(244,89,1,0.25)] hover:shadow-[0_8px_25px_rgba(244,89,1,0.4)] transition-all hover:-translate-y-0.5"
+              className="gumroad-button group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
             >
               Buy Now
             </a>

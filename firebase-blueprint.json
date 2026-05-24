@@ -103,6 +103,14 @@
         "heroAvailability": { "type": "string" },
         "cvUrl": { "type": "string" },
         "resumeImage": { "type": "string" },
+        "officeAddress": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "officePhone": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" },
+        "brandTagline": { "type": "string" },
+        "globalCtaText": { "type": "string" },
+        "globalCtaUrl": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },
