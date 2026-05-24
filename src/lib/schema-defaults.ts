@@ -119,6 +119,10 @@ export const normalizeProduct = (data: any): Product => ({
   order: Number(data.order !== undefined ? data.order : 0),
   featured: Boolean(data.featured !== undefined ? data.featured : true),
   published: Boolean(data.published !== undefined ? data.published : true),
+  gallery1: String(data.gallery1 || ''),
+  gallery2: String(data.gallery2 || ''),
+  gallery3: String(data.gallery3 || ''),
+  gallery4: String(data.gallery4 || ''),
   createdAt: data.createdAt,
   updatedAt: data.updatedAt
 });

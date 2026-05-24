@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { X, ShoppingBag, CheckCircle, Shield } from 'lucide-react';
+import { X, CheckCircle, Shield } from 'lucide-react';
 import { Product } from '../types';
 
 interface ProductModalProps {
@@ -72,6 +72,68 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     return trimmed; // Return raw value as fallback if the admin provided another link
   };
 
+  // Compile valid truthy gallery images
+  const images = [
+    product.thumbnail,
+    product.image && product.image !== product.thumbnail ? product.image : '',
+    product.gallery1,
+    product.gallery2,
+    product.gallery3,
+    product.gallery4
+  ].filter((img): img is string => typeof img === 'string' && img.trim() !== '');
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleNext = () => {
+    if (images.length <= 1) return;
+    setActiveIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const handlePrev = () => {
+    if (images.length <= 1) return;
+    setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  // Keyboard controls for image sliders
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const handleSliderKeys = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrev();
+      }
+    };
+    window.addEventListener('keydown', handleSliderKeys);
+    return () => window.removeEventListener('keydown', handleSliderKeys);
+  }, [images.length]);
+
+  // Mobile swipe states & handlers
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      handleNext();
+    } else if (isRightSwipe) {
+      handlePrev();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto">
       {/* Backdrop with Blur */}
@@ -102,21 +164,92 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Left Side: Enlarged Product Image */}
-        <div className="w-full md:w-1/2 bg-neutral-900 overflow-y-auto aspect-square md:aspect-auto min-h-[250px] md:min-h-full max-h-[40vh] md:max-h-none border-b md:border-b-0 md:border-r border-white/5 relative">
-          <img
-            src={product.image || product.thumbnail}
-            alt={product.title}
-            className="w-full h-full object-cover md:object-contain object-center md:p-4 bg-gradient-to-tr from-neutral-950/80 to-transparent"
-            referrerPolicy="no-referrer"
-          />
-          {/* Accent details inside the image view */}
-          <div className="absolute bottom-4 left-4 flex gap-2">
-            <span className="bg-black/80 border border-white/10 text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full text-gray-300 flex items-center gap-1.5 backdrop-blur-sm">
-              <Shield className="w-3.5 h-3.5 text-[#f45901]" />
-              Secure Digital File
-            </span>
+        {/* Left Side: Modern Responsive Image Gallery Slider */}
+        <div className="w-full md:w-1/2 bg-neutral-900 border-b md:border-b-0 md:border-r border-white/5 relative flex flex-col max-h-[45vh] md:max-h-none">
+          {/* Main Display Port */}
+          <div 
+            className="relative flex-1 bg-black flex items-center justify-center overflow-hidden group select-none min-h-[180px] md:min-h-[300px]"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            {/* Main Image */}
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <motion.img
+                key={activeIndex}
+                src={images[activeIndex]}
+                alt={`${product.title} - Preview ${activeIndex + 1}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="max-w-full max-h-full object-contain rounded-lg"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            {/* Left/Right Navigation Arrows (Only if more than 1 image) */}
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-[#f45901] hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
+                  aria-label="Previous Image"
+                >
+                  <span className="text-xl font-bold font-mono">‹</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-[#f45901] hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
+                  aria-label="Next Image"
+                >
+                  <span className="text-xl font-bold font-mono">›</span>
+                </button>
+              </>
+            )}
+
+            {/* Counter Badge */}
+            {images.length > 1 && (
+              <span className="absolute top-4 left-4 bg-black/75 border border-white/10 text-[10px] font-mono px-2 py-0.5 rounded-md text-gray-300">
+                {activeIndex + 1} / {images.length}
+              </span>
+            )}
+
+            {/* Secure File Badge */}
+            <div className="absolute bottom-4 left-4 flex gap-2">
+              <span className="bg-black/80 border border-white/10 text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full text-gray-300 flex items-center gap-1.5 backdrop-blur-sm">
+                <Shield className="w-3.5 h-3.5 text-[#f45901]" />
+                Secure Digital File
+              </span>
+            </div>
           </div>
+
+          {/* Thumbnails strip (Only if more than 1 image) */}
+          {images.length > 1 && (
+            <div className="bg-[#050505] p-3 flex gap-2 justify-center items-center overflow-x-auto border-t border-white/5 h-[75px] shrink-0 no-scrollbar">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveIndex(idx)}
+                  className={`relative w-11 h-11 rounded-lg overflow-hidden border-2 transition-all duration-200 shrink-0 ${
+                    idx === activeIndex
+                      ? 'border-[#f45901] scale-105 shadow-[0_0_10px_rgba(244,89,1,0.3)]'
+                      : 'border-white/10 hover:border-white/30 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`Thumbnail ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Side: Product Details & Purchase Trigger */}

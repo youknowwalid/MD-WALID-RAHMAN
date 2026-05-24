@@ -258,13 +258,25 @@ const ImageUpload = ({
           </label>
         </div>
         <div className="flex-1 space-y-3">
-          <input 
-            type="text" 
-            value={value} 
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="Or paste an image URL..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none"
-          />
+          <div className="flex items-center gap-3">
+            <input 
+              type="text" 
+              value={value} 
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="Or paste an image URL..."
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none"
+            />
+            {value && (
+              <button 
+                type="button" 
+                onClick={() => onChange('')} 
+                className="px-3 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all border border-red-500/15"
+                title="Clear / Delete Image"
+              >
+                Clear
+              </button>
+            )}
+          </div>
           {recommendation && (
             <p className="text-xs text-accent italic">{recommendation}</p>
           )}
@@ -315,6 +327,10 @@ export default function AdminDashboard() {
 
   const [uploadValue, setUploadValue] = useState('');
   const [socialUploadValue, setSocialUploadValue] = useState('');
+  const [gallery1, setGallery1] = useState('');
+  const [gallery2, setGallery2] = useState('');
+  const [gallery3, setGallery3] = useState('');
+  const [gallery4, setGallery4] = useState('');
   const [currentSocialData, setCurrentSocialData] = useState({
     title: '',
     description: '',
@@ -334,10 +350,18 @@ export default function AdminDashboard() {
     } else if (editingItem && activeTab === 'products') {
       setUploadValue(editingItem.thumbnail || '');
       setSocialUploadValue(editingItem.image || '');
+      setGallery1(editingItem.gallery1 || '');
+      setGallery2(editingItem.gallery2 || '');
+      setGallery3(editingItem.gallery3 || '');
+      setGallery4(editingItem.gallery4 || '');
     } else if (isAdding) {
       setCurrentSocialData({ title: '', description: '', image: '', slug: '' });
       setUploadValue('');
       setSocialUploadValue('');
+      setGallery1('');
+      setGallery2('');
+      setGallery3('');
+      setGallery4('');
     }
   }, [editingItem, isAdding, activeTab]);
 
@@ -627,6 +651,10 @@ export default function AdminDashboard() {
       if (activeTab === 'products') {
         rawData.thumbnail = uploadValue || editingItem?.thumbnail || "";
         rawData.image = socialUploadValue || editingItem?.image || "";
+        rawData.gallery1 = gallery1 || editingItem?.gallery1 || "";
+        rawData.gallery2 = gallery2 || editingItem?.gallery2 || "";
+        rawData.gallery3 = gallery3 || editingItem?.gallery3 || "";
+        rawData.gallery4 = gallery4 || editingItem?.gallery4 || "";
         rawData.featured = rawData.featured === 'true' || rawData.featured === true;
         rawData.published = rawData.published === 'true' || rawData.published === true;
         rawData.order = num(rawData.order, 0);
@@ -696,6 +724,11 @@ export default function AdminDashboard() {
       setEditingItem(null);
       setIsAdding(false);
       setUploadValue('');
+      setSocialUploadValue('');
+      setGallery1('');
+      setGallery2('');
+      setGallery3('');
+      setGallery4('');
       loadItems();
     } catch (error: any) {
       console.error("Save error details:", error);
@@ -1528,6 +1561,30 @@ export default function AdminDashboard() {
                           value={socialUploadValue || editingItem?.image} 
                           onChange={setSocialUploadValue} 
                           recommendation="Optional fallback: Expanded modal view image. If omitted, Thumbnail is used."
+                        />
+                        <ImageUpload 
+                          label="Gallery Image 1 (Optional)" 
+                          value={gallery1 || editingItem?.gallery1} 
+                          onChange={setGallery1} 
+                          recommendation="Optional: High-quality image for popup slider."
+                        />
+                        <ImageUpload 
+                          label="Gallery Image 2 (Optional)" 
+                          value={gallery2 || editingItem?.gallery2} 
+                          onChange={setGallery2} 
+                          recommendation="Optional: High-quality image for popup slider."
+                        />
+                        <ImageUpload 
+                          label="Gallery Image 3 (Optional)" 
+                          value={gallery3 || editingItem?.gallery3} 
+                          onChange={setGallery3} 
+                          recommendation="Optional: High-quality image for popup slider."
+                        />
+                        <ImageUpload 
+                          label="Gallery Image 4 (Optional)" 
+                          value={gallery4 || editingItem?.gallery4} 
+                          onChange={setGallery4} 
+                          recommendation="Optional: High-quality image for popup slider."
                         />
                       </div>
                     </>

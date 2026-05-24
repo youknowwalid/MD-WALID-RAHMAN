@@ -111,4 +111,8 @@ export interface Product {
   published?: boolean;
   createdAt?: any;
   updatedAt?: any;
+  gallery1?: string;
+  gallery2?: string;
+  gallery3?: string;
+  gallery4?: string;
 }

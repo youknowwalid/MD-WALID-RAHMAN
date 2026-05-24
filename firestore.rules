@@ -90,6 +90,10 @@ service cloud.firestore {
              data.get('thumbnail', '') is string &&
              data.get('image', '') is string &&
              data.get('gumroadUrl', '') is string &&
+             data.get('gallery1', '') is string &&
+             data.get('gallery2', '') is string &&
+             data.get('gallery3', '') is string &&
+             data.get('gallery4', '') is string &&
              data.keys().size() <= 30;
     }
 
