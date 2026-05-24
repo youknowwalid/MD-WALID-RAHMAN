@@ -162,9 +162,25 @@ const DEFAULT_CONFIG: SiteConfig = {
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
 
 export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [config, setConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
-  const [seoConfig, setSeoConfig] = useState<SeoConfig>(DEFAULT_SEO_CONFIG);
-  const [loading, setLoading] = useState(true);
+  const [config, setConfig] = useState<SiteConfig>(() => {
+    const cached = localStorage.getItem('site_config_global');
+    if (cached) {
+      try {
+        return { ...DEFAULT_CONFIG, ...JSON.parse(cached) };
+      } catch (e) {}
+    }
+    return DEFAULT_CONFIG;
+  });
+  const [seoConfig, setSeoConfig] = useState<SeoConfig>(() => {
+    const cached = localStorage.getItem('site_config_seo');
+    if (cached) {
+      try {
+        return { ...DEFAULT_SEO_CONFIG, ...JSON.parse(cached) };
+      } catch (e) {}
+    }
+    return DEFAULT_SEO_CONFIG;
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Listen to global changes in real-time
@@ -207,7 +223,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           return col;
         });
 
-        setConfig({
+        const nextConfig = {
           siteTitle: data.siteTitle || DEFAULT_CONFIG.siteTitle,
           siteLogo: data.siteLogo || DEFAULT_CONFIG.siteLogo,
           favicon: data.favicon || DEFAULT_CONFIG.favicon,
@@ -224,7 +240,10 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           brandTagline: data.brandTagline || DEFAULT_CONFIG.brandTagline,
           globalCtaText: data.globalCtaText || DEFAULT_CONFIG.globalCtaText,
           globalCtaUrl: data.globalCtaUrl || DEFAULT_CONFIG.globalCtaUrl,
-        });
+        };
+
+        setConfig(nextConfig);
+        localStorage.setItem('site_config_global', JSON.stringify(nextConfig));
       } else {
         // Automatically bootstrap global site config record if empty
         setDoc(doc(db, 'siteConfig', 'global'), DEFAULT_CONFIG).catch(err => {
@@ -239,7 +258,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const unsubscribeSeo = onSnapshot(doc(db, 'siteConfig', 'seo'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        setSeoConfig({
+        const nextSeo = {
           metaTitle: data.metaTitle || DEFAULT_SEO_CONFIG.metaTitle,
           metaDescription: data.metaDescription || DEFAULT_SEO_CONFIG.metaDescription,
           canonicalUrl: data.canonicalUrl || DEFAULT_SEO_CONFIG.canonicalUrl,
@@ -263,7 +282,10 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           facebookPostTitle: data.facebookPostTitle || DEFAULT_SEO_CONFIG.facebookPostTitle,
           facebookSubtitleSnippet: data.facebookSubtitleSnippet || DEFAULT_SEO_CONFIG.facebookSubtitleSnippet,
           facebookSharedImageCover: data.facebookSharedImageCover || DEFAULT_SEO_CONFIG.facebookSharedImageCover,
-        });
+        };
+
+        setSeoConfig(nextSeo);
+        localStorage.setItem('site_config_seo', JSON.stringify(nextSeo));
       } else {
         // Automatically bootstrap seo custom config record if empty
         setDoc(doc(db, 'siteConfig', 'seo'), DEFAULT_SEO_CONFIG).catch(err => {
@@ -417,6 +439,8 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...newConfig,
       updatedAt: new Date().toISOString()
     };
+    setConfig(updated);
+    localStorage.setItem('site_config_global', JSON.stringify(updated));
     await setDoc(doc(db, 'siteConfig', 'global'), updated, { merge: true });
   };
 
@@ -426,6 +450,8 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...newSeo,
       updatedAt: new Date().toISOString()
     };
+    setSeoConfig(updated);
+    localStorage.setItem('site_config_seo', JSON.stringify(updated));
     await setDoc(doc(db, 'siteConfig', 'seo'), updated, { merge: true });
   };
 

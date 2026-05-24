@@ -304,11 +304,56 @@ function Portfolio() {
 
   const [hasResumeData, setHasResumeData] = useState(false);
   const [hasTestimonialData, setHasTestimonialData] = useState(false);
-  const [heroImage, setHeroImage] = useState('/input_file_0.png');
-  const [heroStatus, setHeroStatus] = useState('Active Now');
-  const [heroAvailability, setHeroAvailability] = useState('Available for new projects');
-  const [cvUrl, setCvUrl] = useState('#');
-  const [resumeImage, setResumeImage] = useState('');
+  
+  const [heroImage, setHeroImage] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).heroImage || '/input_file_0.png';
+      }
+    } catch (e) {}
+    return '/input_file_0.png';
+  });
+
+  const [heroStatus, setHeroStatus] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).heroStatus || 'Active Now';
+      }
+    } catch (e) {}
+    return 'Active Now';
+  });
+
+  const [heroAvailability, setHeroAvailability] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).heroAvailability || 'Available for new projects';
+      }
+    } catch (e) {}
+    return 'Available for new projects';
+  });
+
+  const [cvUrl, setCvUrl] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).cvUrl || '#';
+      }
+    } catch (e) {}
+    return '#';
+  });
+
+  const [resumeImage, setResumeImage] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).resumeImage || '';
+      }
+    } catch (e) {}
+    return '';
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -400,11 +445,19 @@ function Portfolio() {
     const unsubHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        setHeroImage(data.heroImage || '/input_file_0.png');
-        setHeroStatus(data.heroStatus || 'Active Now');
-        setHeroAvailability(data.heroAvailability || 'Available for new projects');
-        setCvUrl(data.cvUrl || '#');
-        setResumeImage(data.resumeImage || '');
+        const nextHero = {
+          heroImage: data.heroImage || '/input_file_0.png',
+          heroStatus: data.heroStatus || 'Active Now',
+          heroAvailability: data.heroAvailability || 'Available for new projects',
+          cvUrl: data.cvUrl || '#',
+          resumeImage: data.resumeImage || '',
+        };
+        setHeroImage(nextHero.heroImage);
+        setHeroStatus(nextHero.heroStatus);
+        setHeroAvailability(nextHero.heroAvailability);
+        setCvUrl(nextHero.cvUrl);
+        setResumeImage(nextHero.resumeImage);
+        localStorage.setItem('site_config_hero', JSON.stringify(nextHero));
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, 'siteConfig/hero'));
 

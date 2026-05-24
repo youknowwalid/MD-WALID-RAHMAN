@@ -5,8 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Walid Rahman | Brand Developer</title>
     <script src="https://gumroad.com/js/gumroad.js" async defer></script>
+    <script>
+      (function() {
+        try {
+          var cachedGlobal = localStorage.getItem('site_config_global');
+          if (cachedGlobal) {
+            var global = JSON.parse(cachedGlobal);
+            var primary = global.primaryColor || '#f45901';
+            var secondary = global.secondaryColor || '#00c6ff';
+            document.documentElement.style.setProperty('--color-accent', primary);
+            document.documentElement.style.setProperty('--color-accent-secondary', secondary);
+          } else {
+            document.documentElement.style.setProperty('--color-accent', '#f45901');
+            document.documentElement.style.setProperty('--color-accent-secondary', '#00c6ff');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
+    <!-- Premium Bootstrap Loader with White Background and Centered Logo -->
+    <div id="bootstrap-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; display: flex; align-items: center; justify-content: center; z-index: 99999; transition: opacity 250ms ease-out, visibility 250ms ease-out;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+        <div id="loader-logo-container">
+          <span style="font-family: system-ui, -apple-system, sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -1px; color: #0a0a0a;">youknowwalid<span id="loader-dot" style="color: #f45901;">.</span></span>
+        </div>
+        <div style="width: 48px; height: 2px; background-color: #f3f4f6; position: relative; overflow: hidden; border-radius: 99px;">
+          <div id="loader-bar" style="position: absolute; left: 0; top: 0; height: 100%; width: 50%; background-color: #f45901; border-radius: 99px; animation: loading-slide 1.2s infinite ease-in-out;"></div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes loading-slide {
+        0% { left: -50%; }
+        50% { left: 100%; }
+        100% { left: 100%; }
+      }
+    </style>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
