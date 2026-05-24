@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { useSiteConfig } from '../context/SiteConfigContext';
 
 const ThemeToggle = () => {
   const [isLight, setIsLight] = useState(false);
@@ -61,8 +59,18 @@ const ThemeToggle = () => {
   );
 };
 
+const DEFAULT_HEADER_LINKS = [
+  { label: 'Home', url: '/#home' },
+  { label: 'About', url: '/#about' },
+  { label: 'Resume', url: '/#resume' },
+  { label: 'Services', url: '/#services' },
+  { label: 'Projects', url: '/#projects' },
+  { label: 'Resources', url: '/#resources' },
+  { label: 'Contact', url: '/#contact' },
+  { label: 'Blog', url: '/#blog' },
+];
+
 export default function Navbar() {
-  const { config } = useSiteConfig();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -73,7 +81,7 @@ export default function Navbar() {
       setIsScrolled(window.scrollY > 50);
       
       if (location.pathname === '/') {
-        const sections = config.headerLinks.map(link => 
+        const sections = DEFAULT_HEADER_LINKS.map(link => 
           document.getElementById(link.url.replace('/#', '').replace('#', ''))
         );
         const scrollPos = window.scrollY + 100;
@@ -92,7 +100,7 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [location, config.headerLinks]);
+  }, [location]);
 
   return (
     <nav className={cn(
@@ -101,27 +109,14 @@ export default function Navbar() {
     )}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:text-accent transition-all">
-          {config.siteLogo ? (
-            <img 
-              src={config.siteLogo} 
-              alt={config.siteTitle} 
-              className="h-9 w-auto object-contain" 
-              referrerPolicy="no-referrer" 
-            />
-          ) : (
-            <span className="text-xl font-black tracking-tighter text-text-main">
-              {config.siteTitle === 'youknowwalid' ? (
-                <>youknowwalid<span className="text-accent">.</span></>
-              ) : (
-                config.siteTitle
-              )}
-            </span>
-          )}
+          <span className="text-xl font-black tracking-tighter text-text-main">
+            youknowwalid<span className="text-accent">.</span>
+          </span>
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
-          {config.headerLinks.map((link) => {
+          {DEFAULT_HEADER_LINKS.map((link) => {
             const sectionId = link.url.replace('/#', '').replace('#', '');
             const isActive = location.pathname === '/' && activeSection === sectionId;
             return (
@@ -147,7 +142,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button className="lg:hidden text-text-main" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <button className="lg:hidden text-text-main" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle Menu">
           {isMenuOpen ? <X /> : <Menu />}
         </button>
       </div>
@@ -161,7 +156,7 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="lg:hidden absolute top-full left-0 w-full bg-bg-dark/95 backdrop-blur-2xl border-b border-border-subtle p-8 flex flex-col gap-6 z-50 shadow-2xl"
           >
-            {config.headerLinks.map((link) => (
+            {DEFAULT_HEADER_LINKS.map((link) => (
               <a
                 key={link.label}
                 href={link.url}

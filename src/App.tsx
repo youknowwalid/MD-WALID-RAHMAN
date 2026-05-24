@@ -278,6 +278,17 @@ const Typewriter = ({ text }: { text: string }) => {
   );
 };
 
+const DEFAULT_HEADER_LINKS = [
+  { label: 'Home', url: '/#home' },
+  { label: 'About', url: '/#about' },
+  { label: 'Resume', url: '/#resume' },
+  { label: 'Services', url: '/#services' },
+  { label: 'Projects', url: '/#projects' },
+  { label: 'Resources', url: '/#resources' },
+  { label: 'Contact', url: '/#contact' },
+  { label: 'Blog', url: '/#blog' },
+];
+
 function Portfolio() {
   const { config } = useSiteConfig();
   const [activeSection, setActiveSection] = useState('home');
@@ -305,7 +316,7 @@ function Portfolio() {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      const sections = config.headerLinks.map(link => 
+      const sections = DEFAULT_HEADER_LINKS.map(link => 
         document.getElementById(link.url.replace('/#', '').replace('#', ''))
       );
       const scrollPos = window.scrollY + 100;
@@ -323,7 +334,7 @@ function Portfolio() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [config.headerLinks]);
+  }, []);
 
   // Data Fetching
   useEffect(() => {
@@ -465,18 +476,18 @@ function Portfolio() {
                   transition={{ delay: 0.5 }}
                   className="text-sm md:text-2xl text-text-muted mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0"
                 >
-                  {config.brandTagline || "A Brand Developer crafting premium digital experiences."}
+                  A Brand Developer crafting premium digital experiences.
                 </motion.div>
                 
                 <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6">
                   <motion.a 
-                    href={config.globalCtaUrl || "https://wa.me/+8801744588644"}
-                    target={config.globalCtaUrl && config.globalCtaUrl.startsWith('http') ? "_blank" : undefined}
+                    href="https://wa.me/+8801744588644"
+                    target="_blank"
                     rel="noreferrer"
                     whileHover={{ scale: 1.05 }}
                     className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base border border-accent"
                   >
-                    {config.globalCtaText || "Start Project"}
+                    Start Project
                   </motion.a>
                   <motion.a 
                     href={cvUrl}
@@ -593,8 +604,8 @@ function Portfolio() {
                   <Mail className="text-accent mb-4" />
                   <div className="text-sm text-text-muted">Email</div>
                   <div className="font-bold underline decoration-accent/30">
-                    <a href={`mailto:${config.contactEmail || "info@walidrahman.com"}`}>
-                      {config.contactEmail || "info@walidrahman.com"}
+                    <a href="mailto:info@walidrahman.com">
+                      info@walidrahman.com
                     </a>
                   </div>
                 </div>
@@ -602,8 +613,8 @@ function Portfolio() {
                   <Phone className="text-accent mb-4" />
                   <div className="text-sm text-text-muted">Phone</div>
                   <div className="font-bold underline decoration-accent/30">
-                    <a href={`tel:${(config.officePhone || "+8801744588644").replace(/[^0-9+]/g, '')}`}>
-                      {config.officePhone || "+880 1744 588 644"}
+                    <a href="tel:+8801744588644">
+                      +880 1744 588 644
                     </a>
                   </div>
                 </div>
@@ -611,7 +622,7 @@ function Portfolio() {
                   <MapPin className="text-accent mb-4" />
                   <div className="text-sm text-text-muted">Location</div>
                   <div className="font-bold">
-                    {config.officeAddress || "Nikunja 2, Dhaka 1229, Bangladesh"}
+                    Nikunja 2, Dhaka 1229, Bangladesh
                   </div>
                 </div>
               </motion.div>
@@ -1056,9 +1067,9 @@ function Portfolio() {
               </p>
               <div className="space-y-6">
                 {[
-                  { icon: Mail, label: 'Email', value: config.contactEmail || 'info@walidrahman.com', href: `mailto:${config.contactEmail || 'info@walidrahman.com'}` },
-                  { icon: Phone, label: 'Phone', value: config.officePhone || '+880 1744 588 644', href: `tel:${(config.officePhone || '+8801744588644').replace(/[^0-9+]/g, '')}` },
-                  { icon: MapPin, label: 'Office', value: config.officeAddress || 'Nikunja 2, Dhaka 1229, Bangladesh', href: '#' },
+                  { icon: Mail, label: 'Email', value: 'info@walidrahman.com', href: 'mailto:info@walidrahman.com' },
+                  { icon: Phone, label: 'Phone', value: '+880 1744 588 644', href: 'tel:+8801744588644' },
+                  { icon: MapPin, label: 'Office', value: 'Nikunja 2, Dhaka 1229, Bangladesh', href: '#' },
                 ].map((item, i) => (
                   <motion.div
                     key={i}

@@ -8,6 +8,36 @@ interface FooterProps {
   portraitUrl?: string;
 }
 
+const DEFAULT_SOCIALS = [
+  { platform: 'facebook', url: 'https://facebook.com/youknowwalid' },
+  { platform: 'linkedin', url: 'https://linkedin.com/in/youknowwalid' },
+  { platform: 'twitter', url: 'https://twitter.com/youknowwalid' },
+];
+
+const DEFAULT_FOOTER_COLUMNS = [
+  {
+    title: 'Navigation',
+    links: [
+      { label: 'Home', url: '/#home' },
+      { label: 'About', url: '/#about' },
+      { label: 'Resume', url: '/#resume' },
+      { label: 'Services', url: '/#services' },
+      { label: 'Projects', url: '/#projects' },
+      { label: 'Resources', url: '/#resources' },
+      { label: 'Contact', url: '/#contact' },
+      { label: 'Blog', url: '/#blog' },
+    ]
+  },
+  {
+    title: 'Contact Info',
+    links: [
+      { label: 'Nikunja 2, Dhaka 1229', url: '#' },
+      { label: 'info@walidrahman.com', url: 'mailto:info@walidrahman.com' },
+      { label: '+880 1744 588 644', url: 'tel:+8801744588644' }
+    ]
+  }
+];
+
 export default function Footer({ portraitUrl }: FooterProps) {
   const { config } = useSiteConfig();
   const [heroImage, setHeroImage] = useState('/input_file_0.png');
@@ -36,8 +66,8 @@ export default function Footer({ portraitUrl }: FooterProps) {
     return <Globe className="w-4 h-4" />;
   };
 
-  // Get portrait path to use
-  const activePortrait = config.footerPortrait || portraitUrl || heroImage;
+  // Get portrait path to use (strictly fall back to hero or provided prop)
+  const activePortrait = portraitUrl || heroImage;
 
   return (
     <footer className="w-full bg-bg-dark pt-12 pb-16 px-4 md:px-8 relative z-10 transition-colors duration-300">
@@ -78,22 +108,9 @@ export default function Footer({ portraitUrl }: FooterProps) {
               {/* Column 1: Logo & Social Media platform circles */}
               <div className="flex flex-col justify-between gap-6 sm:gap-4">
                 <div>
-                  {config.siteLogo ? (
-                    <img 
-                      src={config.siteLogo} 
-                      alt={config.siteTitle} 
-                      className="h-8 w-auto object-contain mb-3" 
-                      referrerPolicy="no-referrer" 
-                    />
-                  ) : (
-                    <div className="text-xl font-black tracking-tighter text-white mb-3">
-                      {config.siteTitle === 'youknowwalid' ? (
-                        <>youknowwalid<span className="text-accent">.</span></>
-                      ) : (
-                        config.siteTitle
-                      )}
-                    </div>
-                  )}
+                  <div className="text-xl font-black tracking-tighter text-white mb-3">
+                    youknowwalid<span className="text-accent">.</span>
+                  </div>
                   <p className="text-xs text-text-muted italic max-w-[200px]">
                     Brand Developer & Designer crafting high-performance digital experiences.
                   </p>
@@ -101,7 +118,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
                 
                 {/* Social Icon Circles */}
                 <div className="flex flex-wrap gap-2.5">
-                  {config.socialLinks.filter(s => s.url && s.url.trim() !== '').map((s, idx) => (
+                  {DEFAULT_SOCIALS.map((s, idx) => (
                     <a 
                       key={idx} 
                       href={s.url} 
@@ -116,8 +133,8 @@ export default function Footer({ portraitUrl }: FooterProps) {
                 </div>
               </div>
 
-              {/* Dynamic Columns 2 & 3 from config.footerColumns */}
-              {config.footerColumns && config.footerColumns.map((col, idx) => (
+              {/* Dynamic Columns 2 & 3 from DEFAULT_FOOTER_COLUMNS */}
+              {DEFAULT_FOOTER_COLUMNS.map((col, idx) => (
                 <div key={idx}>
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-accent mb-5">
                     {col.title}
@@ -162,7 +179,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
         {/* Tiny subtle copyright divider and footer text */}
         <div className="relative z-10 max-w-7xl mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-[10px] uppercase tracking-widest text-text-muted/40 font-bold">
-            {config.copyrightText}
+            © 2026 Md. Walid Rahman Swapnil. All rights reserved.
           </div>
           <div className="text-[9px] uppercase tracking-widest text-text-muted/20 font-bold">
             Designed to Inspire • Crafted to Perform

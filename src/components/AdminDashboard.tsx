@@ -722,7 +722,7 @@ export default function AdminDashboard() {
         }
       }
 
-      if (activeTab === 'settings' || activeTab === 'branding') {
+      if (activeTab === 'settings') {
         const settingsPayload = {
           heroImage: str(heroImage), 
           heroStatus: str(heroStatus) || "Active Now",
@@ -732,32 +732,8 @@ export default function AdminDashboard() {
           updatedAt: new Date().toISOString() 
         };
         await updateDocument('siteConfig', 'hero', settingsPayload);
-
-        const globalPayload = {
-          siteTitle: str(siteTitle),
-          siteLogo: str(siteLogo),
-          favicon: str(favicon),
-          footerPortrait: str(footerPortrait),
-          headerLinks: headerLinks.map(l => ({ label: str(l.label), url: str(l.url) })),
-          footerColumns: footerColumns.map(col => ({
-            title: str(col.title),
-            links: col.links.map(l => ({ label: str(l.label), url: str(l.url) }))
-          })),
-          socialLinks: socialLinks.map(s => ({ platform: str(s.platform), url: str(s.url) })),
-          copyrightText: str(copyrightText),
-          officeAddress: str(officeAddress),
-          contactEmail: str(contactEmail),
-          officePhone: str(officePhone),
-          primaryColor: str(primaryColor),
-          secondaryColor: str(secondaryColor),
-          brandTagline: str(brandTagline),
-          globalCtaText: str(globalCtaText),
-          globalCtaUrl: str(globalCtaUrl),
-          updatedAt: new Date().toISOString()
-        };
-        await updateDocument('siteConfig', 'global', globalPayload);
         
-        alert('All settings and brand configuration successfully saved!');
+        alert('All hero settings successfully saved!');
       } else if (editingItem) {
         await updateDocument(activeTab, editingItem.id, data);
       } else {
@@ -917,7 +893,7 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center bg-bg-card p-6 rounded-2xl border border-white/5 w-full">
               <div>
                 <h3 className="text-lg font-black">Publish Settings</h3>
-                <p className="text-xs text-text-muted">Save and publish all header, footer, branding and hero configuration changes atomically to Firestore.</p>
+                <p className="text-xs text-text-muted">Save and publish hero and resume configurations atomically to Firestore.</p>
               </div>
               <button 
                 type="submit" 
@@ -929,320 +905,70 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-7xl">
-              {/* Left Workspace Column */}
-              <div className="space-y-10">
-                {/* Brand Identity Card */}
-                <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
-                  <h3 className="text-2xl font-black flex items-center gap-3">
-                    <Settings className="text-accent w-6 h-6" /> Brand Identity
-                  </h3>
-                  <div className="space-y-6">
+            <div className="max-w-4xl">
+              {/* Hero Section Settings Card */}
+              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
+                <h3 className="text-2xl font-black flex items-center gap-3">
+                  <ImageIcon className="text-accent w-6 h-6" /> Hero Settings
+                </h3>
+                <div className="space-y-6">
+                  <ImageUpload 
+                    label="Hero Profile Photo" 
+                    value={heroImage} 
+                    onChange={setHeroImage} 
+                    recommendation="This is the main image in the floating frame. Recommended: 800x800px or larger."
+                  />
+
+                  <ImageUpload 
+                    label="Resume Side Image" 
+                    value={resumeImage} 
+                    onChange={setResumeImage} 
+                    recommendation="This image will appear next to your resume journey. Recommended: 800x1200px (Portrait)."
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Site Title</label>
+                      <label className="block text-sm text-gray-400 mb-2">Status Badge</label>
                       <input 
-                        value={siteTitle} 
-                        onChange={(e) => setSiteTitle(e.target.value)}
-                        placeholder="e.g. youknowwalid"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
+                        value={heroStatus} 
+                        onChange={(e) => setHeroStatus(e.target.value)}
+                        placeholder="Active Now"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white focus:ring-1 focus:ring-accent" 
                       />
                     </div>
-
-                    <ImageUpload 
-                      label="Main Site Logo" 
-                      value={siteLogo} 
-                      onChange={setSiteLogo} 
-                      recommendation="This logo will be shown in the Header and Footer. Recommended height: 40px."
-                    />
-
-                    <ImageUpload 
-                      label="Favicon" 
-                      value={favicon} 
-                      onChange={setFavicon} 
-                      recommendation="The site's tab icon (ICO/PNG/JPG/Base64). Auto-applied to the browser tab."
-                    />
-
-                    <ImageUpload 
-                      label="Footer Portrait Image" 
-                      value={footerPortrait} 
-                      onChange={setFooterPortrait} 
-                      recommendation="This transparent-background portrait image is anchored to the bottom right of the floating footer card. If left empty, it falls back to the main Hero profile image."
-                    />
-                  </div>
-                </div>
-
-                {/* Hero Section Settings Card */}
-                <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
-                  <h3 className="text-2xl font-black flex items-center gap-3">
-                    <ImageIcon className="text-accent w-6 h-6" /> Hero Settings
-                  </h3>
-                  <div className="space-y-6">
-                    <ImageUpload 
-                      label="Hero Profile Photo" 
-                      value={heroImage} 
-                      onChange={setHeroImage} 
-                      recommendation="This is the main image in the floating frame. Recommended: 800x800px or larger."
-                    />
-
-                    <ImageUpload 
-                      label="Resume Side Image" 
-                      value={resumeImage} 
-                      onChange={setResumeImage} 
-                      recommendation="This image will appear next to your resume journey. Recommended: 800x1200px (Portrait)."
-                    />
-                    
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm text-gray-400 mb-2">Status Badge</label>
-                        <input 
-                          value={heroStatus} 
-                          onChange={(e) => setHeroStatus(e.target.value)}
-                          placeholder="Active Now"
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-gray-400 mb-2">Availability Text</label>
-                        <input 
-                          value={heroAvailability} 
-                          onChange={(e) => setHeroAvailability(e.target.value)}
-                          placeholder="Available for projects"
-                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm text-gray-400">Download CV (PDF)</label>
-                      <div className="flex gap-4 items-center">
-                        <div className="flex-1">
-                          <input 
-                            type="text" 
-                            value={cvUrl} 
-                            onChange={(e) => setCvUrl(e.target.value)}
-                            placeholder="Paste PDF URL or upload below..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
-                          />
-                        </div>
-                        <label className="bg-white/5 border border-white/10 p-3 rounded-xl cursor-pointer hover:bg-white/10 transition-all flex items-center gap-2 text-sm shrink-0">
-                          <Upload className="w-4 h-4" />
-                          <span>Upload PDF</span>
-                          <input type="file" accept="application/pdf" onChange={handleCVUpload} className="hidden" />
-                        </label>
-                      </div>
-                      {isUploadingCV && <p className="text-xs text-accent animate-pulse">Processing PDF...</p>}
-                      {cvUrl && cvUrl.startsWith('data:') && (
-                        <p className="text-xs text-green-400">PDF successfully loaded from local file.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Social Media Card */}
-                <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
-                  <h3 className="text-2xl font-black flex items-center gap-3">
-                    <Users className="text-accent w-6 h-6" /> Social Media Links
-                  </h3>
-                  <div className="space-y-6">
-                    {['LinkedIn', 'Twitter', 'GitHub', 'Facebook'].map((plat) => {
-                      const getPlatformVal = (platformName: string) => {
-                        return socialLinks.find(s => s.platform.toLowerCase() === platformName.toLowerCase())?.url || '';
-                      };
-                      const setPlatformVal = (platformName: string, value: string) => {
-                        setSocialLinks(prev => {
-                          const existingLink = prev.find(s => s.platform.toLowerCase() === platformName.toLowerCase());
-                          if (existingLink) {
-                            return prev.map(s => s.platform.toLowerCase() === platformName.toLowerCase() ? { ...s, url: value } : s);
-                          } else {
-                            return [...prev, { platform: platformName.toLowerCase(), url: value }];
-                          }
-                        });
-                      };
-
-                      return (
-                        <div key={plat}>
-                          <label className="block text-sm text-gray-400 mb-2">{plat} URL</label>
-                          <input 
-                            value={getPlatformVal(plat)} 
-                            onChange={(e) => setPlatformVal(plat, e.target.value)}
-                            placeholder={`https://${plat.toLowerCase()}.com/username`}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Workspace Column */}
-              <div className="space-y-10">
-                {/* Header Navigation Card */}
-                <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
-                  <h3 className="text-2xl font-black flex items-center gap-3">
-                    <LayoutDashboard className="text-accent w-6 h-6" /> Header Navigation Links
-                  </h3>
-                  <div className="space-y-6">
-                    <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
-                      {headerLinks.map((link, idx) => (
-                        <div key={idx} className="flex gap-4 items-center bg-white/5 p-4 rounded-xl border border-white/5">
-                          <div className="flex-1 space-y-3">
-                            <input 
-                              value={link.label}
-                              onChange={(e) => {
-                                const updated = [...headerLinks];
-                                updated[idx].label = e.target.value;
-                                setHeaderLinks(updated);
-                              }}
-                              placeholder="Link Label (e.g. About)"
-                              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs focus:border-accent outline-none"
-                            />
-                            <input 
-                              value={link.url}
-                              onChange={(e) => {
-                                const updated = [...headerLinks];
-                                updated[idx].url = e.target.value;
-                                setHeaderLinks(updated);
-                              }}
-                              placeholder="Link URL (e.g. /#about)"
-                              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs focus:border-accent outline-none font-mono"
-                            />
-                          </div>
-                          <button 
-                            type="button"
-                            onClick={() => {
-                              setHeaderLinks(headerLinks.filter((_, i) => i !== idx));
-                            }}
-                            className="p-2 bg-red-400/10 hover:bg-red-400/25 text-red-400 rounded-lg transition-all"
-                            title="Remove Link"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHeaderLinks([...headerLinks, { label: 'New Link', url: '/#custom' }]);
-                      }}
-                      className="w-full py-3 border border-dashed border-white/20 hover:border-accent text-xs font-bold rounded-xl text-gray-400 hover:text-accent transition-all flex items-center justify-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" /> Add New Link
-                    </button>
-                  </div>
-                </div>
-
-                {/* Footer Link & Column Customization */}
-                <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
-                  <h3 className="text-2xl font-black flex items-center gap-3">
-                    <Briefcase className="text-accent w-6 h-6" /> Footer link Columns & Copyright
-                  </h3>
-                  <div className="space-y-6">
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Copyright Text</label>
+                      <label className="block text-sm text-gray-400 mb-2">Availability Text</label>
                       <input 
-                        value={copyrightText} 
-                        onChange={(e) => setCopyrightText(e.target.value)}
-                        placeholder="e.g. © 2026 Md. Walid Rahman Swapnil. All rights reserved."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none" 
+                        value={heroAvailability} 
+                        onChange={(e) => setHeroAvailability(e.target.value)}
+                        placeholder="Available for projects"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white focus:ring-1 focus:ring-accent" 
                       />
                     </div>
+                  </div>
 
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Footer Columns</h4>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFooterColumns([...footerColumns, { title: 'New Column', links: [] }]);
-                          }}
-                          className="px-3 py-1.5 bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all rounded-lg text-xs font-bold flex items-center gap-1.5"
-                        >
-                          <Plus className="w-3 pb-0.5" /> Add Column
-                        </button>
+                  <div className="space-y-2">
+                    <label className="block text-sm text-gray-400">Download CV (PDF)</label>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex-1">
+                        <input 
+                          type="text" 
+                          value={cvUrl} 
+                          onChange={(e) => setCvUrl(e.target.value)}
+                          placeholder="Paste PDF URL or upload below..."
+                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white" 
+                        />
                       </div>
-
-                      <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2">
-                        {footerColumns.map((col, cIdx) => (
-                          <div key={cIdx} className="bg-white/5 p-5 rounded-2xl border border-white/5 space-y-4">
-                            <div className="flex items-center justify-between gap-4">
-                              <input 
-                                value={col.title}
-                                onChange={(e) => {
-                                  const updated = [...footerColumns];
-                                  updated[cIdx].title = e.target.value;
-                                  setFooterColumns(updated);
-                                }}
-                                placeholder="Column Title (e.g. Services)"
-                                className="flex-1 bg-transparent border-b border-white/10 font-bold focus:border-accent outline-none text-xs pb-1"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setFooterColumns(footerColumns.filter((_, i) => i !== cIdx));
-                                }}
-                                className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/20 transition"
-                                title="Delete Column"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-
-                            {/* Column Link Items */}
-                            <div className="space-y-3 pl-3 border-l border-white/10">
-                              {col.links.map((link, lIdx) => (
-                                <div key={lIdx} className="flex gap-2 items-center">
-                                  <input 
-                                    value={link.label}
-                                    onChange={(e) => {
-                                      const updated = [...footerColumns];
-                                      updated[cIdx].links[lIdx].label = e.target.value;
-                                      setFooterColumns(updated);
-                                    }}
-                                    placeholder="Label"
-                                    className="w-1/3 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs focus:border-accent outline-none"
-                                  />
-                                  <input 
-                                    value={link.url}
-                                    onChange={(e) => {
-                                      const updated = [...footerColumns];
-                                      updated[cIdx].links[lIdx].url = e.target.value;
-                                      setFooterColumns(updated);
-                                    }}
-                                    placeholder="URL"
-                                    className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs focus:border-accent outline-none font-mono"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const updated = [...footerColumns];
-                                      updated[cIdx].links = col.links.filter((_, i) => i !== lIdx);
-                                      setFooterColumns(updated);
-                                    }}
-                                    className="text-red-400 hover:text-red-300 p-1.5"
-                                    title="Remove Link"
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const updated = [...footerColumns];
-                                  updated[cIdx].links.push({ label: 'New Link', url: '#' });
-                                  setFooterColumns(updated);
-                                }}
-                                className="text-[10px] text-accent hover:underline flex items-center gap-1 font-semibold pt-1"
-                              >
-                                <Plus className="w-3 h-3" /> Add Link
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      <label className="bg-white/5 border border-white/10 p-3 rounded-xl cursor-pointer hover:bg-white/10 transition-all flex items-center gap-2 text-sm shrink-0 text-white">
+                        <Upload className="w-4 h-4 text-accent" />
+                        <span>Upload PDF</span>
+                        <input type="file" accept="application/pdf" onChange={handleCVUpload} className="hidden" />
+                      </label>
                     </div>
+                    {isUploadingCV && <p className="text-xs text-accent animate-pulse">Processing PDF...</p>}
+                    {cvUrl && cvUrl.startsWith('data:') && (
+                      <p className="text-xs text-green-400">PDF successfully loaded from local file.</p>
+                    )}
                   </div>
                 </div>
               </div>
