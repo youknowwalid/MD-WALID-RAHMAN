@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { useSiteConfig } from '../context/SiteConfigContext';
 
 const ThemeToggle = () => {
   const [isLight, setIsLight] = useState(false);
@@ -71,17 +72,20 @@ const DEFAULT_HEADER_LINKS = [
 ];
 
 export default function Navbar() {
+  const { config } = useSiteConfig();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('home');
+
+  const headerLinks = config.headerLinks && config.headerLinks.length > 0 ? config.headerLinks : DEFAULT_HEADER_LINKS;
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
       
       if (location.pathname === '/') {
-        const sections = DEFAULT_HEADER_LINKS.map(link => 
+        const sections = headerLinks.map(link => 
           document.getElementById(link.url.replace('/#', '').replace('#', ''))
         );
         const scrollPos = window.scrollY + 100;
@@ -100,7 +104,7 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [location]);
+  }, [location, headerLinks]);
 
   return (
     <nav className={cn(
@@ -109,14 +113,18 @@ export default function Navbar() {
     )}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:text-accent transition-all">
-          <span className="text-xl font-black tracking-tighter text-text-main">
-            youknowwalid<span className="text-accent">.</span>
-          </span>
+          {config.siteLogo ? (
+            <img src={config.siteLogo} alt={config.siteTitle || 'youknowwalid'} className="h-8 w-auto object-contain rounded" referrerPolicy="no-referrer" />
+          ) : (
+            <span className="text-xl font-black tracking-tighter text-text-main">
+              {config.siteTitle || 'youknowwalid'}<span className="text-accent">.</span>
+            </span>
+          )}
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
-          {DEFAULT_HEADER_LINKS.map((link) => {
+          {headerLinks.map((link) => {
             const sectionId = link.url.replace('/#', '').replace('#', '');
             const isActive = location.pathname === '/' && activeSection === sectionId;
             return (
@@ -156,7 +164,7 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="lg:hidden absolute top-full left-0 w-full bg-bg-dark/95 backdrop-blur-2xl border-b border-border-subtle p-8 flex flex-col gap-6 z-50 shadow-2xl"
           >
-            {DEFAULT_HEADER_LINKS.map((link) => (
+            {headerLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.url}

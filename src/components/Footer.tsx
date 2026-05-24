@@ -67,7 +67,10 @@ export default function Footer({ portraitUrl }: FooterProps) {
   };
 
   // Get portrait path to use (strictly fall back to hero or provided prop)
-  const activePortrait = portraitUrl || heroImage;
+  const activePortrait = config.footerPortrait || portraitUrl || heroImage;
+
+  const socialLinks = config.socialLinks && config.socialLinks.length > 0 ? config.socialLinks : DEFAULT_SOCIALS;
+  const footerCols = config.footerColumns && config.footerColumns.length > 0 ? config.footerColumns : DEFAULT_FOOTER_COLUMNS;
 
   return (
     <footer className="w-full bg-bg-dark pt-12 pb-16 px-4 md:px-8 relative z-10 transition-colors duration-300">
@@ -109,32 +112,34 @@ export default function Footer({ portraitUrl }: FooterProps) {
               <div className="flex flex-col justify-between gap-6 sm:gap-4">
                 <div>
                   <div className="text-xl font-black tracking-tighter text-white mb-3">
-                    youknowwalid<span className="text-accent">.</span>
+                    {config.siteTitle || 'youknowwalid'}<span className="text-accent">.</span>
                   </div>
                   <p className="text-xs text-text-muted italic max-w-[200px]">
-                    Brand Developer & Designer crafting high-performance digital experiences.
+                    {config.brandTagline || 'Brand Developer & Designer crafting high-performance digital experiences.'}
                   </p>
                 </div>
                 
                 {/* Social Icon Circles */}
                 <div className="flex flex-wrap gap-2.5">
-                  {DEFAULT_SOCIALS.map((s, idx) => (
-                    <a 
-                      key={idx} 
-                      href={s.url} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black hover:border-accent transition-all hover:-translate-y-1 text-text-main"
-                      title={s.platform}
-                    >
-                      {getSocialIcon(s.platform)}
-                    </a>
+                  {socialLinks.map((s, idx) => (
+                    s.url ? (
+                      <a 
+                        key={idx} 
+                        href={s.url} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black hover:border-accent transition-all hover:-translate-y-1 text-text-main"
+                        title={s.platform}
+                      >
+                        {getSocialIcon(s.platform)}
+                      </a>
+                    ) : null
                   ))}
                 </div>
               </div>
 
-              {/* Dynamic Columns 2 & 3 from DEFAULT_FOOTER_COLUMNS */}
-              {DEFAULT_FOOTER_COLUMNS.map((col, idx) => (
+              {/* Dynamic Columns 2 & 3 from config.footerColumns */}
+              {footerCols.map((col, idx) => (
                 <div key={idx}>
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-accent mb-5">
                     {col.title}
@@ -179,7 +184,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
         {/* Tiny subtle copyright divider and footer text */}
         <div className="relative z-10 max-w-7xl mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-[10px] uppercase tracking-widest text-text-muted/40 font-bold">
-            © 2026 Md. Walid Rahman Swapnil. All rights reserved.
+            {config.copyrightText || '© 2026 Md. Walid Rahman Swapnil. All rights reserved.'}
           </div>
           <div className="text-[9px] uppercase tracking-widest text-text-muted/20 font-bold">
             Designed to Inspire • Crafted to Perform

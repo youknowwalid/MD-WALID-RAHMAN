@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Plus, 
   Trash2, 
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
+import { useSiteConfig } from '../context/SiteConfigContext';
 import { 
   auth, 
   db, 
@@ -298,6 +300,7 @@ const ImageUpload = ({
 };
 
 export default function AdminDashboard() {
+  const { updateConfig } = useSiteConfig();
   const [isLight, setIsLight] = useState(false);
 
   useEffect(() => {
@@ -308,10 +311,15 @@ export default function AdminDashboard() {
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('projects');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'projects';
+  
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
   const [items, setItems] = useState<any[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -353,6 +361,80 @@ export default function AdminDashboard() {
     image: '',
     slug: ''
   });
+
+  const validateUrl = (url: string) => {
+    if (!url) return true;
+    const trimmed = url.trim();
+    if (trimmed.startsWith('/') || trimmed.startsWith('#')) return true;
+    try {
+      new URL(trimmed);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const getLinkUrl = (label: string, defaultUrl: string) => {
+    const list = Array.isArray(headerLinks) ? headerLinks : [];
+    const found = list.find(l => l.label.toLowerCase() === label.toLowerCase());
+    return found ? found.url : defaultUrl;
+  };
+
+  const handleLinkUrlChange = (label: string, newUrl: string) => {
+    const currentHeaders = Array.isArray(headerLinks) ? headerLinks : [];
+    const updatedHeaderLinks = [...currentHeaders];
+    const headerIdx = updatedHeaderLinks.findIndex(l => l.label.toLowerCase() === label.toLowerCase());
+    if (headerIdx !== -1) {
+      updatedHeaderLinks[headerIdx] = { ...updatedHeaderLinks[headerIdx], url: newUrl };
+    } else {
+      updatedHeaderLinks.push({ label, url: newUrl });
+    }
+    setHeaderLinks(updatedHeaderLinks);
+
+    const currentCols = Array.isArray(footerColumns) ? footerColumns : [];
+    const updatedFooterColumns = currentCols.map(col => {
+      if (col.title && col.title.toLowerCase() === 'navigation') {
+        const colLinks = Array.isArray(col.links) ? col.links : [];
+        const updatedLinks = [...colLinks];
+        const footerIdx = updatedLinks.findIndex(l => l.label.toLowerCase() === label.toLowerCase());
+        if (footerIdx !== -1) {
+          updatedLinks[footerIdx] = { ...updatedLinks[footerIdx], url: newUrl };
+        } else {
+          updatedLinks.push({ label, url: newUrl });
+        }
+        return { ...col, links: updatedLinks };
+      }
+      return col;
+    });
+
+    const hasNavCol = updatedFooterColumns.some(col => col.title && col.title.toLowerCase() === 'navigation');
+    if (!hasNavCol) {
+      updatedFooterColumns.unshift({
+        title: 'Navigation',
+        links: [{ label, url: newUrl }]
+      });
+    }
+
+    setFooterColumns(updatedFooterColumns);
+  };
+
+  const getSocialUrl = (platform: string, defaultUrl: string) => {
+    const currentSocials = Array.isArray(socialLinks) ? socialLinks : [];
+    const s = currentSocials.find(x => x.platform.toLowerCase() === platform.toLowerCase());
+    return s ? s.url : defaultUrl;
+  };
+
+  const handleSocialUrlChange = (platform: string, newUrl: string) => {
+    const currentSocials = Array.isArray(socialLinks) ? socialLinks : [];
+    const updatedSocials = [...currentSocials];
+    const idx = updatedSocials.findIndex(x => x.platform.toLowerCase() === platform.toLowerCase());
+    if (idx !== -1) {
+      updatedSocials[idx] = { ...updatedSocials[idx], url: newUrl };
+    } else {
+      updatedSocials.push({ platform, url: newUrl });
+    }
+    setSocialLinks(updatedSocials);
+  };
 
   useEffect(() => {
     if (editingItem && (activeTab === 'projects' || activeTab === 'blogPosts')) {
@@ -723,6 +805,24 @@ export default function AdminDashboard() {
       }
 
       if (activeTab === 'settings') {
+        // Validation check for footer list links
+        const navLabels = ['Home', 'About', 'Resume', 'Services', 'Projects', 'Resources', 'Contact', 'Blog'];
+        for (const label of navLabels) {
+          const u = getLinkUrl(label, '');
+          if (u && !validateUrl(u)) {
+            throw new Error(`Invalid URL for Navigation Link: ${label}. Must be a valid internal route (starting with / or #) or a fully qualified web URL.`);
+          }
+        }
+
+        // Validation check for social links
+        const platforms = ['Facebook', 'LinkedIn', 'GitHub'];
+        for (const platform of platforms) {
+          const url = getSocialUrl(platform, '');
+          if (url && !validateUrl(url)) {
+            throw new Error(`Invalid URL for Social Link: ${platform}. Must be a valid URL (starting with / or #) or a fully qualified web URL.`);
+          }
+        }
+
         const settingsPayload = {
           heroImage: str(heroImage), 
           heroStatus: str(heroStatus) || "Active Now",
@@ -732,8 +832,23 @@ export default function AdminDashboard() {
           updatedAt: new Date().toISOString() 
         };
         await updateDocument('siteConfig', 'hero', settingsPayload);
+
+        const globalSettingsPayload = {
+          siteTitle: str(siteTitle),
+          siteLogo: str(siteLogo),
+          favicon: str(favicon),
+          footerPortrait: str(footerPortrait),
+          brandTagline: str(brandTagline),
+          headerLinks,
+          footerColumns,
+          socialLinks,
+          copyrightText: str(copyrightText),
+          updatedAt: new Date().toISOString()
+        };
+        await updateDocument('siteConfig', 'global', globalSettingsPayload);
+        await updateConfig(globalSettingsPayload);
         
-        alert('All hero settings successfully saved!');
+        alert('All configurations & settings successfully saved!');
       } else if (editingItem) {
         await updateDocument(activeTab, editingItem.id, data);
       } else {
@@ -969,6 +1084,117 @@ export default function AdminDashboard() {
                     {cvUrl && cvUrl.startsWith('data:') && (
                       <p className="text-xs text-green-400">PDF successfully loaded from local file.</p>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Header Settings Card */}
+              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
+                <h3 className="text-2xl font-black flex items-center gap-3">
+                  <Globe className="text-accent w-6 h-6" /> Header & Branding Settings
+                </h3>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Site Title (Branding)</label>
+                    <input 
+                      value={siteTitle} 
+                      onChange={(e) => setSiteTitle(e.target.value)}
+                      placeholder="youknowwalid"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white focus:ring-1 focus:ring-accent" 
+                    />
+                  </div>
+
+                  <ImageUpload 
+                    label="Site Logo" 
+                    value={siteLogo} 
+                    onChange={setSiteLogo} 
+                    recommendation="Recommended: 150x40px PNG (transparent background). Leaves site title text hidden on navigation header when set."
+                  />
+
+                  <ImageUpload 
+                    label="Site Favicon" 
+                    value={favicon} 
+                    onChange={(val) => {
+                      setFavicon(val);
+                      if (val) {
+                        const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement || document.createElement('link');
+                        link.type = 'image/x-icon';
+                        link.rel = 'icon';
+                        link.href = val;
+                        document.getElementsByTagName('head')[0].appendChild(link);
+                      }
+                    }} 
+                    recommendation="Recommended: 32x32px PNG/ICO. The browser tab icon updates instantly after load."
+                  />
+                </div>
+              </div>
+
+              {/* Footer Settings Card */}
+              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
+                <h3 className="text-2xl font-black flex items-center gap-3">
+                  <LayoutDashboard className="text-accent w-6 h-6" /> Footer Settings
+                </h3>
+                <div className="space-y-6">
+                  <ImageUpload 
+                    label="Footer Portrait / Profile Image" 
+                    value={footerPortrait} 
+                    onChange={setFooterPortrait} 
+                    recommendation="Recommended: 800x1200px. Fallback is the main Hero Profile Photo."
+                  />
+
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Footer Description / Brand Tagline</label>
+                    <textarea 
+                      value={brandTagline} 
+                      onChange={(e) => setBrandTagline(e.target.value)}
+                      placeholder="Brand Developer & Designer crafting high-performance digital experiences."
+                      rows={2}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white focus:ring-1 focus:ring-accent resize-none" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-4 font-bold border-b border-white/5 pb-2">Footer Navigation Link Boxes</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['Home', 'About', 'Resume', 'Services', 'Projects', 'Resources', 'Contact', 'Blog'].map((label) => (
+                        <div key={label} className="space-y-1">
+                          <label className="text-xs text-gray-500 font-bold uppercase tracking-wider">{label} URL</label>
+                          <input 
+                            value={getLinkUrl(label, '')} 
+                            onChange={(e) => handleLinkUrlChange(label, e.target.value)}
+                            placeholder={`e.g. /#${label.toLowerCase()}`}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white focus:ring-1 focus:ring-accent" 
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-4 font-bold border-b border-white/5 pb-2">Social Media Link Boxes</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {['Facebook', 'LinkedIn', 'GitHub'].map((platform) => (
+                        <div key={platform} className="space-y-1">
+                          <label className="text-xs text-gray-500 font-bold uppercase tracking-wider">{platform} URL</label>
+                          <input 
+                            value={getSocialUrl(platform, '')} 
+                            onChange={(e) => handleSocialUrlChange(platform, e.target.value)}
+                            placeholder={`https://${platform.toLowerCase()}.com/...`}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white focus:ring-1 focus:ring-accent" 
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2 font-bold">Copyright Text Box</label>
+                    <input 
+                      value={copyrightText} 
+                      onChange={(e) => setCopyrightText(e.target.value)}
+                      placeholder="© 2026 Md. Walid Rahman Swapnil. All rights reserved."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white focus:ring-1 focus:ring-accent" 
+                    />
                   </div>
                 </div>
               </div>
