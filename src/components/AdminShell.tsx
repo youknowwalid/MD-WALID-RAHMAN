@@ -82,7 +82,7 @@ interface AdminSidebarProps {
   tabs: Tab[];
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab, tabs }) => {
+const AdminSidebar: React.FC<AdminSidebarProps> = React.memo(({ activeTab, setActiveTab, tabs }) => {
   return (
     <aside className="w-64 bg-bg-card border-r border-border-subtle p-6 flex flex-col h-screen sticky top-0 z-50">
       {/* Logo - Never re-renders */}
@@ -126,14 +126,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab, ta
       </div>
     </aside>
   );
-};
+});
+
+AdminSidebar.displayName = 'AdminSidebar';
 
 interface ContentOutletProps {
   activeTab: string;
   children: React.ReactNode;
 }
 
-const ContentOutlet: React.FC<ContentOutletProps> = ({ activeTab, children }) => {
+const ContentOutlet: React.FC<ContentOutletProps> = React.memo(({ activeTab, children }) => {
   return (
     <div className="flex-1 overflow-y-auto p-10">
       <AnimatePresence mode="wait">
@@ -153,4 +155,9 @@ const ContentOutlet: React.FC<ContentOutletProps> = ({ activeTab, children }) =>
       </AnimatePresence>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison: only rerender if activeTab or children actually change
+  return prevProps.activeTab === nextProps.activeTab && prevProps.children === nextProps.children;
+});
+
+ContentOutlet.displayName = 'ContentOutlet';
