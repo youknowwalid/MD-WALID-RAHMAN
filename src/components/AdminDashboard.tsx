@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import { 
@@ -24,14 +24,10 @@ import {
   Cpu,
   ShoppingCart,
   Palette,
-  Globe,
-  Feather
+  Globe
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
-import { ArticleIngestionPanel } from './ArticleIngestionPanel';
-import { DraftGenerationPanel } from './DraftGenerationPanel';
-import { DraftManagementPanel } from './DraftManagementPanel';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { 
   auth, 
@@ -181,7 +177,6 @@ const TABS = [
   { id: 'seoSettings', label: 'SEO Settings', icon: Globe },
   { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
-  { id: 'articles', label: 'Article Ingestion', icon: Feather },
   { id: 'resume', label: 'Resume', icon: FileText },
   { id: 'skills', label: 'Skills', icon: Cpu },
   { id: 'testimonials', label: 'Feedback', icon: Users },
@@ -367,10 +362,6 @@ export default function AdminDashboard() {
     slug: ''
   });
 
-  // Article Ingestion states
-  const [currentArticle, setCurrentArticle] = useState<any>(null);
-  const [userArticles, setUserArticles] = useState<any[]>([]);
-
   const validateUrl = (url: string) => {
     if (!url) return true;
     const trimmed = url.trim();
@@ -526,7 +517,7 @@ export default function AdminDashboard() {
     reader.readAsDataURL(file);
   };
 
-  const checkAdminStatus = async (currentUser: User) => {
+  const checkAdminStatus = useCallback(async (currentUser: User) => {
     try {
       // Local check first for immediate feedback
       const isSystemAdmin = currentUser.email?.toLowerCase() === 'walidxdxdxd@gmail.com';
@@ -543,7 +534,7 @@ export default function AdminDashboard() {
       // Fallback to email check if Firestore read fails
       setIsAdmin(currentUser.email?.toLowerCase() === 'walidxdxdxd@gmail.com');
     }
-  };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -561,7 +552,7 @@ export default function AdminDashboard() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLogin = useCallback(async () => {
     setAuthError(null);
     setIsLoggingIn(true);
     try {
@@ -578,15 +569,15 @@ export default function AdminDashboard() {
     } finally {
       setIsLoggingIn(false);
     }
-  };
+  }, [checkAdminStatus]);
 
   useEffect(() => {
     if (isAdmin) {
       loadItems();
     }
-  }, [activeTab, isAdmin]);
+  }, [activeTab, isAdmin, loadItems]);
 
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     setLoading(true);
     if (activeTab === 'settings' || activeTab === 'branding' || activeTab === 'seoSettings') {
       try {
@@ -717,7 +708,7 @@ export default function AdminDashboard() {
       setItems(data || []);
     }
     setLoading(false);
-  };
+  }, [activeTab]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -1213,19 +1204,6 @@ export default function AdminDashboard() {
 
         {activeTab === 'seoSettings' && (
           <SEOSettings />
-        )}
-
-        {activeTab === 'articles' && isAdmin && (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Article Ingestion & AI Generation</h2>
-              <p className="text-gray-400">Scrape articles from URLs, generate AI-powered drafts in different styles, and manage your content pipeline.</p>
-            </div>
-            
-            <ArticleIngestionPanel onArticleSaved={(articleId, article) => {
-              console.log('[v0] Article saved:', articleId);
-            }} />
-          </div>
         )}
 
         {activeTab === 'branding' && (
