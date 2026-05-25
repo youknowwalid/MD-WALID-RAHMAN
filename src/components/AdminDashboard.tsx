@@ -24,10 +24,14 @@ import {
   Cpu,
   ShoppingCart,
   Palette,
-  Globe
+  Globe,
+  Feather
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
+import { ArticleIngestionPanel } from './ArticleIngestionPanel';
+import { DraftGenerationPanel } from './DraftGenerationPanel';
+import { DraftManagementPanel } from './DraftManagementPanel';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { 
   auth, 
@@ -177,6 +181,7 @@ const TABS = [
   { id: 'seoSettings', label: 'SEO Settings', icon: Globe },
   { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
+  { id: 'articles', label: 'Article Ingestion', icon: Feather },
   { id: 'resume', label: 'Resume', icon: FileText },
   { id: 'skills', label: 'Skills', icon: Cpu },
   { id: 'testimonials', label: 'Feedback', icon: Users },
@@ -361,6 +366,10 @@ export default function AdminDashboard() {
     image: '',
     slug: ''
   });
+
+  // Article Ingestion states
+  const [currentArticle, setCurrentArticle] = useState<any>(null);
+  const [userArticles, setUserArticles] = useState<any[]>([]);
 
   const validateUrl = (url: string) => {
     if (!url) return true;
@@ -1204,6 +1213,19 @@ export default function AdminDashboard() {
 
         {activeTab === 'seoSettings' && (
           <SEOSettings />
+        )}
+
+        {activeTab === 'articles' && isAdmin && (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Article Ingestion & AI Generation</h2>
+              <p className="text-gray-400">Scrape articles from URLs, generate AI-powered drafts in different styles, and manage your content pipeline.</p>
+            </div>
+            
+            <ArticleIngestionPanel onArticleSaved={(articleId, article) => {
+              console.log('[v0] Article saved:', articleId);
+            }} />
+          </div>
         )}
 
         {activeTab === 'branding' && (
