@@ -360,7 +360,6 @@ export default function AdminDashboard() {
     }
   }, [checkAdminStatus]);
 
-  // ✅ FIX: Wrap loadItems in useCallback with explicit dependency array [activeTab]
   const loadItems = useCallback(async () => {
     setLoading(true);
     if (activeTab === 'settings' || activeTab === 'branding' || activeTab === 'seoSettings') {
@@ -409,12 +408,12 @@ export default function AdminDashboard() {
       setItems([]);
     } else {
       const data = await getCollection(activeTab);
+      console.log(`[DEBUG] Loaded ${activeTab}:`, data);
       setItems(data || []);
     }
     setLoading(false);
   }, [activeTab]);
 
-  // ✅ FIX: This effect now correctly triggers only when [activeTab, isAdmin] change
   useEffect(() => {
     if (isAdmin) {
       loadItems();
@@ -505,6 +504,8 @@ export default function AdminDashboard() {
     try {
       const formData = new FormData(e.target as HTMLFormElement);
       const rawData: any = Object.fromEntries(formData.entries());
+
+      console.log(`[DEBUG] handleSave for ${activeTab}:`, rawData, 'editingItem:', editingItem);
 
       if (activeTab === 'projects' || activeTab === 'blogPosts') {
         rawData.image = uploadValue || editingItem?.image || "";
@@ -599,9 +600,13 @@ export default function AdminDashboard() {
         
         alert('All configurations & settings successfully saved!');
       } else if (editingItem) {
+        console.log(`[DEBUG] Updating ${activeTab} item:`, editingItem.id, data);
         await updateDocument(activeTab, editingItem.id, data);
+        alert(`${activeTab} item updated!`);
       } else {
+        console.log(`[DEBUG] Adding new ${activeTab} item:`, data);
         await addDocument(activeTab, data);
+        alert(`New ${activeTab} item created!`);
       }
       
       setEditingItem(null);
@@ -624,8 +629,15 @@ export default function AdminDashboard() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      await removeDocument(activeTab, id);
-      await loadItems();
+      try {
+        console.log(`[DEBUG] Deleting ${activeTab} item:`, id);
+        await removeDocument(activeTab, id);
+        alert('Item deleted!');
+        await loadItems();
+      } catch (error: any) {
+        console.error("Delete error:", error);
+        alert(`Delete failed: ${error.message}`);
+      }
     }
   };
 
@@ -729,7 +741,7 @@ export default function AdminDashboard() {
               {activeTab !== 'settings' && activeTab !== 'branding' && <p className="text-text-muted">Total items: {items.length}</p>}
             </div>
             <div className="flex gap-4">
-              {activeTab !== 'settings' && activeTab !== 'branding' && (
+              {activeTab !== 'settings' && activeTab !== 'branding' && activeTab !== 'contactSubmissions' && (
                 <button 
                   onClick={handleSeedData}
                   className="flex items-center gap-2 border border-white/10 text-gray-400 font-bold px-6 py-3 rounded-xl hover:bg-white/5 transition-all"
@@ -739,7 +751,7 @@ export default function AdminDashboard() {
                   Seed Default
                 </button>
               )}
-              {activeTab !== 'settings' && activeTab !== 'branding' && (
+              {activeTab !== 'settings' && activeTab !== 'branding' && activeTab !== 'contactSubmissions' && activeTab !== 'seoSettings' && (
                 <button 
                   onClick={() => { setIsAdding(true); setUploadValue(''); }}
                   className="flex items-center gap-2 bg-accent text-white font-black px-6 py-3 rounded-xl transition-all"
@@ -864,58 +876,215 @@ export default function AdminDashboard() {
                   <X />
                 </button>
                 <h3 className="text-2xl font-black mb-8">
-                  {editingItem ? 'Edit' : 'Add New'} {activeTab.slice(0, -1)}
+                  {editingItem ? `Edit ${activeTab.slice(0, -1)}` : `Add New ${activeTab.slice(0, -1)}`}
                 </h3>
                 
                 <form onSubmit={handleSave} className="grid grid-cols-2 gap-6">
+                  {/* PROJECTS */}
                   {activeTab === 'projects' && (
                     <>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Project Title</label>
-                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <label className="block text-sm text-gray-400 mb-2">Project Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div>
                         <label className="block text-sm text-gray-400 mb-2">Category</label>
-                        <input name="category" defaultValue={editingItem?.category} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <input name="category" defaultValue={editingItem?.category || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div>
                         <label className="block text-sm text-gray-400 mb-2">Permalink / Slug</label>
-                        <input name="slug" defaultValue={editingItem?.slug} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <input name="slug" defaultValue={editingItem?.slug || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                     </>
                   )}
 
+                  {/* SERVICES ✅ FIXED: NOW HAS COMPLETE FORM */}
                   {activeTab === 'services' && (
                     <>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Service Title</label>
-                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <label className="block text-sm text-gray-400 mb-2">Service Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-400 mb-2">ID (e.g., 01)</label>
-                        <input name="id" defaultValue={editingItem?.id} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <label className="block text-sm text-gray-400 mb-2">ID (e.g., 01) *</label>
+                        <input name="id" defaultValue={editingItem?.id || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div>
                         <label className="block text-sm text-gray-400 mb-2">Icon Name (lucide)</label>
-                        <input name="iconName" defaultValue={editingItem?.iconName} placeholder="Palette, Braces, etc." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <input name="iconName" defaultValue={editingItem?.iconName || 'Palette'} placeholder="Palette, Braces, etc." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Description *</label>
+                        <textarea name="description" defaultValue={editingItem?.description || ''} required rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
                       </div>
                     </>
                   )}
 
+                  {/* BLOG POSTS */}
                   {activeTab === 'blogPosts' && (
                     <>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Post Title</label>
-                        <input name="title" defaultValue={editingItem?.title} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <label className="block text-sm text-gray-400 mb-2">Post Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Date</label>
+                        <input name="date" defaultValue={editingItem?.date || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Author</label>
+                        <input name="author" defaultValue={editingItem?.author || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Slug</label>
+                        <input name="slug" defaultValue={editingItem?.slug || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Excerpt</label>
-                        <textarea name="excerpt" defaultValue={editingItem?.excerpt} required rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                        <label className="block text-sm text-gray-400 mb-2">Excerpt *</label>
+                        <textarea name="excerpt" defaultValue={editingItem?.excerpt || ''} required rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Full Content</label>
+                        <textarea name="content" defaultValue={editingItem?.content || ''} rows={6} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Tags (comma separated)</label>
+                        <input name="tags" defaultValue={editingItem?.tags?.join(', ') || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
                       </div>
                     </>
                   )}
 
-                  <div className="col-span-2 flex justify-end gap-4 mt-4">
+                  {/* RESUME ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {activeTab === 'resume' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Role / Title *</label>
+                        <input name="role" defaultValue={editingItem?.role || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Company / Institution *</label>
+                        <input name="company" defaultValue={editingItem?.company || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Year / Duration *</label>
+                        <input name="year" defaultValue={editingItem?.year || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Description</label>
+                        <textarea name="desc" defaultValue={editingItem?.desc || ''} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* SKILLS ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {activeTab === 'skills' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Skill Name *</label>
+                        <input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Proficiency Level (0-100) *</label>
+                        <input name="level" type="number" min="0" max="100" defaultValue={editingItem?.level || 80} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        <div className="mt-4 h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                          <div className="h-full bg-accent" style={{ width: `${editingItem?.level || 80}%` }} />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* TESTIMONIALS ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {activeTab === 'testimonials' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Client Name *</label>
+                        <input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Role / Position *</label>
+                        <input name="role" defaultValue={editingItem?.role || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Feedback Content *</label>
+                        <textarea name="content" defaultValue={editingItem?.content || ''} required rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <ImageUpload 
+                          label="Client Avatar" 
+                          value={uploadValue || editingItem?.avatar || ''} 
+                          onChange={setUploadValue} 
+                          recommendation="Recommended: 150x150px circle avatar."
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* PRICING PLANS ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {activeTab === 'pricingPlans' && (
+                    <>
+                      <div className="col-span-2 grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Plan Name *</label>
+                          <input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Price (e.g. $350)</label>
+                          <input name="price" defaultValue={editingItem?.price || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        </div>
+                      </div>
+
+                      <div className="col-span-2 grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Button Text</label>
+                          <input name="buttonText" defaultValue={editingItem?.buttonText || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Featured / Accent?</label>
+                          <select name="accent" defaultValue={String(editingItem?.accent === true)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                            <option value="false">Normal</option>
+                            <option value="true">Accent (Highlighted)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Included Features (comma separated)</label>
+                        <textarea name="features" defaultValue={editingItem?.features?.join(', ') || ''} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Excluded Features (comma separated)</label>
+                        <textarea name="unavailableFeatures" defaultValue={editingItem?.unavailableFeatures?.join(', ') || ''} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* PRODUCTS */}
+                  {activeTab === 'products' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Product Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Short Title</label>
+                        <input name="shortTitle" defaultValue={editingItem?.shortTitle || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Price</label>
+                        <input name="price" defaultValue={editingItem?.price || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Gumroad URL *</label>
+                        <input name="gumroadUrl" defaultValue={editingItem?.gumroadUrl || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Description</label>
+                        <textarea name="description" defaultValue={editingItem?.description || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="col-span-2 flex justify-end gap-4 mt-4 pt-6 border-t border-white/5">
                     <button 
                       type="button" 
                       onClick={() => { setIsAdding(false); setEditingItem(null); }}
@@ -970,12 +1139,29 @@ export default function AdminDashboard() {
                   {item.date && <span>{item.date}</span>}
                   {item.year && <span>{item.year}</span>}
                   {item.company && <span>{item.company}</span>}
+                  {activeTab === 'pricingPlans' && (
+                    <>
+                      <span className="text-accent font-bold">{item.price}</span>
+                      <span>{item.features?.length || 0} Features</span>
+                    </>
+                  )}
+                  {activeTab === 'skills' && (
+                    <div className="flex items-center gap-4 w-full max-w-xs">
+                      <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent" style={{ width: `${item.level}%` }} />
+                      </div>
+                      <span className="text-accent font-black">{item.level}%</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
                 {activeTab !== 'contactSubmissions' && (
                   <button 
-                    onClick={() => setEditingItem(item)}
+                    onClick={() => {
+                      console.log(`[DEBUG] Editing item:`, item);
+                      setEditingItem(item);
+                    }}
                     className="p-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"
                   >
                     <Edit2 className="w-5 h-5" />
