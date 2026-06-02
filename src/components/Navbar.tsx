@@ -113,14 +113,16 @@ export default function Navbar() {
     )}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:text-accent transition-all">
-          {config.siteLogo ? (
-            <img src={config.siteLogo} alt={config.siteTitle || 'youknowwalid'} className="h-8 w-auto object-contain rounded" referrerPolicy="no-referrer" />
-          ) : (
-            <span className="text-xl font-black tracking-tighter text-text-main">
-              {config.siteTitle || 'youknowwalid'}<span className="text-accent">.</span>
-            </span>
-          )}
-        </Link>
+       // Find where your logo or site name is currently rendered and replace with:
+<Link to="/" className="flex items-center">
+  {config.siteLogo ? (
+    <img src={config.siteLogo} alt="Logo" className="h-10 w-auto" />
+  ) : (
+    <span className="font-black text-xl tracking-tighter text-white">
+      {config.siteTitle || ''}
+    </span>
+  )}
+</Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
