@@ -39,6 +39,9 @@ export interface SiteConfig {
   brandTagline?: string;
   globalCtaText?: string;
   globalCtaUrl?: string;
+  termsOfService?: string;
+  privacyPolicy?: string;
+  refundPolicy?: string;
 }
 
 export interface SeoConfig {
@@ -155,6 +158,9 @@ const DEFAULT_CONFIG: SiteConfig = {
   brandTagline: 'A Brand Developer crafting premium digital experiences.',
   globalCtaText: 'Let\'s Discuss',
   globalCtaUrl: '/#contact',
+  termsOfService: 'Terms of Service will appear here...',
+  privacyPolicy: 'Privacy Policy will appear here...',
+  refundPolicy: 'Refund Policy will appear here...',
 };
 
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
@@ -181,7 +187,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Listen to global changes in real-time
     const unsubscribeGlobal = onSnapshot(doc(db, 'siteConfig', 'global'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
@@ -205,21 +210,22 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           brandTagline: data.brandTagline || DEFAULT_CONFIG.brandTagline,
           globalCtaText: data.globalCtaText || DEFAULT_CONFIG.globalCtaText,
           globalCtaUrl: data.globalCtaUrl || DEFAULT_CONFIG.globalCtaUrl,
+          termsOfService: data.termsOfService || DEFAULT_CONFIG.termsOfService,
+          privacyPolicy: data.privacyPolicy || DEFAULT_CONFIG.privacyPolicy,
+          refundPolicy: data.refundPolicy || DEFAULT_CONFIG.refundPolicy,
         };
 
         setConfig(nextConfig);
         localStorage.setItem('site_config_global', JSON.stringify(nextConfig));
       } else {
-        // Automatically bootstrap global site config record if empty
         setDoc(doc(db, 'siteConfig', 'global'), DEFAULT_CONFIG).catch(err => {
-          console.warn("Bootstrap initial global config failed (may require admin login):", err);
+          console.warn("Bootstrap initial global config failed:", err);
         });
       }
     }, (error) => {
       console.error("Failed to load site config:", error);
     });
 
-    // Listen to SEO config changes in real-time
     const unsubscribeSeo = onSnapshot(doc(db, 'siteConfig', 'seo'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
@@ -252,9 +258,8 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setSeoConfig(nextSeo);
         localStorage.setItem('site_config_seo', JSON.stringify(nextSeo));
       } else {
-        // Automatically bootstrap seo custom config record if empty
         setDoc(doc(db, 'siteConfig', 'seo'), DEFAULT_SEO_CONFIG).catch(err => {
-          console.warn("Bootstrap initial SEO site config failed (may require admin login):", err);
+          console.warn("Bootstrap initial SEO site config failed:", err);
         });
       }
       setLoading(false);
@@ -269,7 +274,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, []);
 
-  // Sync color variables globally
   useEffect(() => {
     const primary = config.primaryColor || '#f45901';
     const secondary = config.secondaryColor || '#00c6ff';
@@ -277,7 +281,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     document.documentElement.style.setProperty('--color-accent-secondary', secondary);
   }, [config.primaryColor, config.secondaryColor]);
 
-  // Sync favicon with dynamic config value
   useEffect(() => {
     if (config.favicon) {
       let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
@@ -290,16 +293,13 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [config.favicon]);
 
-  // Sync SEO meta elements dynamically in real-time
   useEffect(() => {
     if (!seoConfig) return;
 
-    // 1. App Title
     if (seoConfig.metaTitle) {
       document.title = seoConfig.metaTitle;
     }
 
-    // 2. Head Meta description
     let descMeta = document.querySelector("meta[name='description']");
     if (!descMeta) {
       descMeta = document.createElement('meta');
@@ -308,7 +308,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     descMeta.setAttribute('content', seoConfig.metaDescription || '');
 
-    // 3. Focus Keywords
     let keywordsMeta = document.querySelector("meta[name='keywords']");
     if (!keywordsMeta) {
       keywordsMeta = document.createElement('meta');
@@ -317,7 +316,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     keywordsMeta.setAttribute('content', seoConfig.focusKeywords || '');
 
-    // 4. Canonical Link
     if (seoConfig.canonicalUrl) {
       let canonicalLink = document.querySelector("link[rel='canonical']");
       if (!canonicalLink) {
@@ -328,7 +326,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       canonicalLink.setAttribute('href', seoConfig.canonicalUrl);
     }
 
-    // 5. Robots
     let robotsMeta = document.querySelector("meta[name='robots']");
     if (!robotsMeta) {
       robotsMeta = document.createElement('meta');
@@ -337,7 +334,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     robotsMeta.setAttribute('content', seoConfig.robotsIndex ? 'index, follow' : 'noindex, nofollow');
 
-    // 6. OpenGraph (og:) tags
     const ogTags = {
       'og:title': seoConfig.ogTitle,
       'og:description': seoConfig.ogDescription,
@@ -356,7 +352,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       tag.setAttribute('content', val || '');
     });
 
-    // 7. Twitter tags
     const twitterTags = {
       'twitter:card': seoConfig.twitterCardType,
       'twitter:title': seoConfig.twitterTitle,
@@ -374,7 +369,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       tag.setAttribute('content', val || '');
     });
 
-    // 8. Dynamic Schema (JSON-LD)
     let schemaScript = document.getElementById('seo-jsonld-schema');
     if (!schemaScript) {
       schemaScript = document.createElement('script');
