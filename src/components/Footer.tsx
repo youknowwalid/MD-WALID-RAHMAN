@@ -1,159 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { Linkedin, Facebook, Github, Globe } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Mail, MapPin, Phone, Github, Twitter, Linkedin, Facebook, ArrowUpRight, X } from 'lucide-react';
 import { useSiteConfig } from '../context/SiteConfigContext';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
 
-interface FooterProps {
-  portraitUrl?: string;
-}
+const getSocialIcon = (platform: string) => {
+  const p = platform.toLowerCase();
+  if (p.includes('github')) return <Github className="w-4 h-4" />;
+  if (p.includes('twitter') || p.includes('x.com')) return <Twitter className="w-4 h-4" />;
+  if (p.includes('linkedin')) return <Linkedin className="w-4 h-4" />;
+  if (p.includes('facebook')) return <Facebook className="w-4 h-4" />;
+  return <ArrowUpRight className="w-4 h-4" />;
+};
 
-const DEFAULT_SOCIALS = [
-  { platform: 'facebook', url: 'https://facebook.com/youknowwalid' },
-  { platform: 'linkedin', url: 'https://linkedin.com/in/youknowwalid' },
-  { platform: 'twitter', url: 'https://twitter.com/youknowwalid' },
-];
-
-const DEFAULT_FOOTER_COLUMNS = [
-  {
-    title: 'Navigation',
-    links: [
-      { label: 'Home', url: '/#home' },
-      { label: 'About', url: '/#about' },
-      { label: 'Resume', url: '/#resume' },
-      { label: 'Services', url: '/#services' },
-      { label: 'Projects', url: '/#projects' },
-      { label: 'Resources', url: '/#resources' },
-      { label: 'Contact', url: '/#contact' },
-      { label: 'Blog', url: '/#blog' },
-    ]
-  },
-  {
-    title: 'Contact Info',
-    links: [
-      { label: 'Nikunja 2, Dhaka 1229', url: '#' },
-      { label: 'info@walidrahman.com', url: 'mailto:info@walidrahman.com' },
-      { label: '+880 1744 588 644', url: 'tel:+8801744588644' }
-    ]
-  }
-];
-
-export default function Footer({ portraitUrl }: FooterProps) {
+export default function Footer() {
   const { config } = useSiteConfig();
-  const [heroImage, setHeroImage] = useState('/input_file_0.png');
+  
+  // State for the legal popups
+  const [activePolicy, setActivePolicy] = useState<'terms' | 'privacy' | 'refund' | null>(null);
 
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
-      if (snapshot.exists()) {
-        setHeroImage(snapshot.data().heroImage || '/input_file_0.png');
-      }
-    });
-    return () => unsub();
-  }, []);
-
-  const getSocialIcon = (platform: string) => {
-    const p = platform.toLowerCase();
-    if (p.includes('facebook')) return <Facebook className="w-4 h-4" />;
-    if (p.includes('linkedin')) return <Linkedin className="w-4 h-4" />;
-    if (p.includes('twitter') || p.includes('x.com')) {
-      return (
-        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm1.161 17.52h1.833L7.045 4.126H5.078z"/>
-        </svg>
-      );
-    }
-    if (p.includes('github')) return <Github className="w-4 h-4" />;
-    return <Globe className="w-4 h-4" />;
+  // Content for the modals pulled directly from SiteConfig
+  const policyContent = {
+    terms: { title: 'Terms of Service', text: config.termsOfService || 'No Terms of Service have been provided yet.' },
+    privacy: { title: 'Privacy Policy', text: config.privacyPolicy || 'No Privacy Policy has been provided yet.' },
+    refund: { title: 'Refund Policy', text: config.refundPolicy || 'No Refund Policy has been provided yet.' },
   };
 
-  // Get portrait path to use (strictly fall back to hero or provided prop)
-  const activePortrait = config.footerPortrait || portraitUrl || heroImage;
-
-  const socialLinks = config.socialLinks && config.socialLinks.length > 0 ? config.socialLinks : DEFAULT_SOCIALS;
-  const footerCols = config.footerColumns && config.footerColumns.length > 0 ? config.footerColumns : DEFAULT_FOOTER_COLUMNS;
-
   return (
-    <footer className="w-full bg-bg-dark pt-12 pb-16 px-4 md:px-8 relative z-10 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto relative rounded-3xl md:rounded-[2.5rem] bg-[#0c0c0c] border border-white/5 p-8 sm:p-12 md:p-16 overflow-hidden">
-        
-        {/* Ambient Reddish-Orange Inner Background Glow */}
-        <div 
-          className="absolute rounded-full pointer-events-none -z-20 w-[300px] h-[300px] md:w-[600px] md:h-[600px] -bottom-[10%] -left-[10%] opacity-15" 
-          style={{ 
-            background: `radial-gradient(circle, ${config.primaryColor || '#f45901'} 0%, transparent 70%)`,
-            filter: 'blur(120px)' 
-          }} 
-        />
-        <div 
-          className="absolute rounded-full pointer-events-none -z-20 w-[250px] h-[250px] md:w-[450px] md:h-[450px] top-[-10%] right-[10%] opacity-[0.08]" 
-          style={{ 
-            background: `radial-gradient(circle, ${config.primaryColor || '#f45901'} 0%, transparent 70%)`,
-            filter: 'blur(100px)' 
-          }} 
-        />
-
-        {/* Core Layout Grid */}
-        <div className="relative z-10 flex flex-col lg:flex-row justify-between items-stretch gap-12 lg:gap-20">
+    <>
+      <footer className="bg-bg-dark border-t border-border-subtle relative z-10 pt-16 pb-8">
+        <div className="max-w-7xl mx-auto px-6">
           
-          {/* Left Column Complex: Headline & 3-Column Info Grid */}
-          <div className="w-full lg:max-w-[65%] flex flex-col justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
             
-            {/* Top Left: Massive CTA Headline */}
-            <div>
-              <h2 className="text-3xl sm:text-5xl md:text-6xl font-sans font-black tracking-tight text-white mb-12 md:mb-16 leading-[1.08]">
-                Ready to Elevate <br />Your Brand?
-              </h2>
-            </div>
-
-            {/* Bottom Left: 3-column Grid for existing info */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 md:gap-8 border-t border-white/10 pt-10 md:pt-12">
+            {/* Left Column: Brand & Tagline */}
+            <div className="md:col-span-5">
+              <a href="#home" className="text-2xl font-black tracking-tighter text-text-main inline-block mb-4 hover:opacity-80 transition-opacity">
+                {config.siteLogo ? (
+                  <img src={config.siteLogo} alt={config.siteTitle} className="h-8 w-auto" />
+                ) : (
+                  <>
+                    {config.siteTitle.replace('walid', '')}<span className="text-accent">walid</span>
+                  </>
+                )}
+              </a>
+              <p className="text-text-muted text-sm max-w-sm mb-6 leading-relaxed">
+                {config.brandTagline || 'Crafting premium digital experiences and software.'}
+              </p>
               
-              {/* Column 1: Logo & Social Media platform circles */}
-              <div className="flex flex-col justify-between gap-6 sm:gap-4">
-                <div>
-                  <div className="text-xl font-black tracking-tighter text-white mb-3">
-                    {config.siteTitle || 'youknowwalid'}<span className="text-accent">.</span>
-                  </div>
-                  <p className="text-xs text-text-muted italic max-w-[200px]">
-                    {config.brandTagline || 'Brand Developer & Designer crafting high-performance digital experiences.'}
-                  </p>
-                </div>
-                
-                {/* Social Icon Circles */}
-                <div className="flex flex-wrap gap-2.5">
-                  {socialLinks.map((s, idx) => (
-                    s.url ? (
-                      <a 
-                        key={idx} 
-                        href={s.url} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-accent hover:text-black hover:border-accent transition-all hover:-translate-y-1 text-text-main"
-                        title={s.platform}
-                      >
-                        {getSocialIcon(s.platform)}
-                      </a>
-                    ) : null
+              {/* Social Links inline */}
+              {config.socialLinks && config.socialLinks.length > 0 && (
+                <div className="flex gap-3">
+                  {config.socialLinks.map((social, index) => (
+                    <a 
+                      key={index}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full border border-border-subtle flex items-center justify-center text-text-muted hover:text-accent hover:border-accent transition-all hover:-translate-y-1 bg-bg-card"
+                    >
+                      {getSocialIcon(social.platform)}
+                    </a>
                   ))}
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* Dynamic Columns 2 & 3 from config.footerColumns */}
-              {footerCols.map((col, idx) => (
+            {/* Right Column: Dynamic Footer Columns (Navigation & Contact) */}
+            <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {config.footerColumns?.map((col, idx) => (
                 <div key={idx}>
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-accent mb-5">
-                    {col.title}
-                  </h4>
-                  <ul className="space-y-2.5 text-xs text-text-muted">
-                    {col.links && col.links.map((l, lIdx) => (
-                      <li key={lIdx}>
-                        {l.url && (l.url.startsWith('tel:') || l.url.startsWith('mailto:') || l.url === '#') ? (
-                          <a href={l.url} className="hover:text-accent transition-colors block py-0.5 leading-relaxed break-all">
-                            {l.label}
+                  <h4 className="text-text-main font-bold mb-6">{col.title}</h4>
+                  
+                  {/* If it's the Navigation column, arrange items in a 2-column grid */}
+                  <ul className={col.title.toLowerCase().includes('nav') ? "grid grid-cols-2 gap-y-3 gap-x-4" : "space-y-4"}>
+                    {col.links.map((link, linkIdx) => (
+                      <li key={linkIdx}>
+                        {link.url.startsWith('mailto:') ? (
+                          <a href={link.url} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group">
+                            <Mail className="w-4 h-4 text-accent/50 group-hover:text-accent" />
+                            {link.label}
                           </a>
+                        ) : link.url.startsWith('tel:') ? (
+                          <a href={link.url} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group">
+                            <Phone className="w-4 h-4 text-accent/50 group-hover:text-accent" />
+                            {link.label}
+                          </a>
+                        ) : link.url === '#' && !col.title.toLowerCase().includes('nav') ? (
+                          <span className="text-text-muted flex items-center gap-3 text-sm">
+                            <MapPin className="w-4 h-4 text-accent/50" />
+                            {link.label}
+                          </span>
                         ) : (
-                          <a href={l.url} className="hover:text-accent transition-colors block py-0.5 leading-relaxed">
-                            {l.label}
+                          <a href={link.url} className="text-text-muted hover:text-accent transition-colors text-sm">
+                            {link.label}
                           </a>
                         )}
                       </li>
@@ -161,37 +100,78 @@ export default function Footer({ portraitUrl }: FooterProps) {
                   </ul>
                 </div>
               ))}
-
             </div>
 
           </div>
 
-          {/* Right Column Spacer for Portrait Visual Aspect */}
-          <div className="hidden lg:block lg:w-[30%] shrink-0" />
-
-        </div>
-
-        {/* Absolute Bottom Right Portrait */}
-        <div className="hidden lg:block absolute bottom-0 right-[4%] w-[32%] h-[112%] pointer-events-none z-10 overflow-hidden">
-          <img 
-            src={activePortrait} 
-            alt="Walid Rahman Portrait" 
-            className="absolute bottom-0 right-0 h-[100%] w-auto object-contain object-bottom select-none pointer-events-none filter drop-shadow-[0_15px_30px_rgba(244,89,1,0.12)] transition-transform duration-700 hover:scale-[1.02]"
-            referrerPolicy="no-referrer"
-          />
-        </div>
-
-        {/* Tiny subtle copyright divider and footer text */}
-        <div className="relative z-10 max-w-7xl mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-[10px] uppercase tracking-widest text-text-muted/40 font-bold">
-            {config.copyrightText || '© 2026 Md. Walid Rahman Swapnil. All rights reserved.'}
-          </div>
-          <div className="text-[9px] uppercase tracking-widest text-text-muted/20 font-bold">
-            Designed to Inspire • Crafted to Perform
+          {/* Bottom Bar: Copyright & Legal Policies */}
+          <div className="pt-8 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-text-muted text-sm">
+              {config.copyrightText}
+            </p>
+            
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
+              <button onClick={() => setActivePolicy('terms')} className="text-text-muted hover:text-accent transition-colors">
+                Terms of Service
+              </button>
+              <span className="text-white/10">•</span>
+              <button onClick={() => setActivePolicy('privacy')} className="text-text-muted hover:text-accent transition-colors">
+                Privacy Policy
+              </button>
+              <span className="text-white/10">•</span>
+              <button onClick={() => setActivePolicy('refund')} className="text-text-muted hover:text-accent transition-colors">
+                Refund Policy
+              </button>
+            </div>
           </div>
         </div>
+      </footer>
 
-      </div>
-    </footer>
+      {/* Legal Popup Modal */}
+      <AnimatePresence>
+        {activePolicy && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          >
+            {/* Dark Blur Overlay */}
+            <div 
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+              onClick={() => setActivePolicy(null)}
+            />
+            
+            {/* Modal Card */}
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="relative w-full max-w-3xl bg-bg-card rounded-3xl border border-white/10 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 md:p-8 border-b border-white/5">
+                <h3 className="text-2xl font-black text-white">
+                  {policyContent[activePolicy].title}
+                </h3>
+                <button
+                  onClick={() => setActivePolicy(null)}
+                  className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Content Area */}
+              <div className="p-6 md:p-8 overflow-y-auto">
+                <p className="text-gray-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap font-sans">
+                  {policyContent[activePolicy].text}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
