@@ -1,4 +1,3 @@
-
 import { LucideIcon } from 'lucide-react';
 
 export interface Project {
@@ -37,6 +36,7 @@ export interface BlogPost {
 
 export interface Service {
   id: string;
+  displayId?: string;
   title: string;
   description: string;
   icon?: LucideIcon;
