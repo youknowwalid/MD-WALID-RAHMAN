@@ -429,4 +429,18 @@ function Portfolio() {
           ]);
         }
         
-        if (testSnap && testSnap.
+        if (testSnap && testSnap.length > 0) {
+          setTestimonials(testSnap.map(normalizeTestimonial));
+          setHasTestimonialData(true);
+        }
+
+        if (pricSnap) setPricingPlans(pricSnap.map(normalizePricingPlan));
+
+      } catch (error) {
+        console.error("Initial fetch error:", error);
+      }
+    };
+
+    fetchAllData();
+
+    // Still keep a few real-
