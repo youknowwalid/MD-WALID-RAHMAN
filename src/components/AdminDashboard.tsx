@@ -35,37 +35,21 @@ const SEED_DATA: Record<string, any[]> = {
     { year: '2024 - Present', role: 'Executive Director', company: 'De Jure Academy', desc: 'Directing strategic vision and growth.' },
   ],
   testimonials: [
-    { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transformed our brand completely. His attention to detail and creative vision are unmatched.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
+    { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transformed our brand completely.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
   ],
   pricingPlans: [
     { 
-      name: 'Basic Plan', 
-      price: '$350', 
-      features: ['Website Design (up to 3 pages)', 'Basic Brand Identity & Logo'],
-      unavailableFeatures: ['Mobile App Design'],
-      buttonText: "Let's Talk",
-      accent: false 
+      name: 'Basic Plan', price: '$350', features: ['Website Design (up to 3 pages)'], unavailableFeatures: ['Mobile App Design'], buttonText: "Let's Talk", accent: false 
     },
   ],
   skills: [
     { name: 'Canva', level: 98 },
-    { name: 'Meta Ads', level: 96 },
   ],
   products: [
     {
-      title: 'The Ultimate Design System Kit',
-      shortTitle: 'Design System Kit',
-      description: 'A comprehensive toolkit for premium digital brands.',
-      price: '$29.00',
-      thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
-      gumroadUrl: 'https://gumroad.com',
-      order: 1,
-      featured: true,
-      published: true
+      title: 'The Ultimate Design System Kit', shortTitle: 'Design System Kit', description: 'A comprehensive toolkit.', price: '$29.00', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80', gumroadUrl: 'https://gumroad.com', order: 1, featured: true, published: true
     },
   ],
-  contactSubmissions: []
 };
 
 const TABS = [
@@ -83,17 +67,12 @@ const TABS = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-const ImageUpload = ({ 
-  label, value, onChange, recommendation 
-}: { 
-  label: string; value: string; onChange: (val: string) => void; recommendation?: string;
-}) => {
+const ImageUpload = ({ label, value, onChange, recommendation }: { label: string; value: string; onChange: (val: string) => void; recommendation?: string; }) => {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setIsUploading(true);
     try {
       const reader = new FileReader();
@@ -166,6 +145,8 @@ export default function AdminDashboard() {
   const [items, setItems] = useState<any[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Settings States
   const [heroImage, setHeroImage] = useState('');
   const [heroStatus, setHeroStatus] = useState('');
   const [heroAvailability, setHeroAvailability] = useState('');
@@ -194,6 +175,7 @@ export default function AdminDashboard() {
   const [privacyPolicy, setPrivacyPolicy] = useState('');
   const [refundPolicy, setRefundPolicy] = useState('');
 
+  // Form Upload States
   const [uploadValue, setUploadValue] = useState('');
   const [socialUploadValue, setSocialUploadValue] = useState('');
   const [gallery1, setGallery1] = useState('');
@@ -210,6 +192,7 @@ export default function AdminDashboard() {
     reader.onload = (event) => { setCvUrl(event.target?.result as string); };
     reader.readAsDataURL(file);
   };
+
   const checkAdminStatus = useCallback(async (currentUser: User) => {
     try {
       const isSystemAdmin = currentUser.email?.toLowerCase() === 'walidxdxdxd@gmail.com';
@@ -226,7 +209,6 @@ export default function AdminDashboard() {
       setLoading(false);
     });
   }, [checkAdminStatus]);
-
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -287,23 +269,33 @@ export default function AdminDashboard() {
     }
   };
 
-  const getLinkUrl = (label: string, defaultUrl: string) => headerLinks.find(l => l.label.toLowerCase() === label.toLowerCase())?.url || defaultUrl;
-  const getSocialUrl = (platform: string, defaultUrl: string) => socialLinks.find(s => s.platform.toLowerCase() === platform.toLowerCase())?.url || defaultUrl;
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setIsSaving(true);
     try {
       const formData = new FormData(e.target as HTMLFormElement);
       const rawData: any = Object.fromEntries(formData.entries());
 
-      if (activeTab === 'projects' || activeTab === 'blogPosts') { rawData.image = uploadValue || editingItem?.image || ""; rawData.socialImage = socialUploadValue || editingItem?.socialImage || ""; }
-      if (activeTab === 'testimonials') rawData.avatar = uploadValue || editingItem?.avatar || "";
-      if (activeTab === 'products') {
-        rawData.thumbnail = uploadValue || editingItem?.thumbnail || ""; rawData.image = socialUploadValue || editingItem?.image || "";
-        rawData.gallery1 = gallery1 || editingItem?.gallery1 || ""; rawData.gallery2 = gallery2 || editingItem?.gallery2 || "";
-        rawData.gallery3 = gallery3 || editingItem?.gallery3 || ""; rawData.gallery4 = gallery4 || editingItem?.gallery4 || "";
-        rawData.featured = rawData.featured === 'true' || rawData.featured === true; rawData.published = rawData.published === 'true' || rawData.published === true; rawData.order = num(rawData.order, 0);
+      // Merge dynamic uploads into rawData before normalizing
+      if (activeTab === 'projects' || activeTab === 'blogPosts') { 
+        rawData.image = uploadValue || editingItem?.image || ""; 
+        rawData.socialImage = socialUploadValue || editingItem?.socialImage || ""; 
       }
+      if (activeTab === 'testimonials') {
+        rawData.avatar = uploadValue || editingItem?.avatar || "";
+      }
+      if (activeTab === 'products') {
+        rawData.thumbnail = uploadValue || editingItem?.thumbnail || ""; 
+        rawData.image = socialUploadValue || editingItem?.image || "";
+        rawData.gallery1 = gallery1 || editingItem?.gallery1 || ""; 
+        rawData.gallery2 = gallery2 || editingItem?.gallery2 || "";
+        rawData.gallery3 = gallery3 || editingItem?.gallery3 || ""; 
+        rawData.gallery4 = gallery4 || editingItem?.gallery4 || "";
+        rawData.featured = rawData.featured === 'true' || rawData.featured === true; 
+        rawData.published = rawData.published === 'true' || rawData.published === true; 
+        rawData.order = num(rawData.order, 0);
+      }
+      
+      // Parse arrays
       if (rawData.tags) rawData.tags = (rawData.tags as string).split(',').map(t => t.trim()).filter(t => t !== '');
       if (activeTab === 'pricingPlans') {
         rawData.features = (rawData.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
@@ -313,9 +305,20 @@ export default function AdminDashboard() {
       const data = normalizePayload(activeTab, rawData);
 
       if (activeTab === 'settings') {
-        await updateDocument('siteConfig', 'hero', { heroImage: str(heroImage), heroStatus: str(heroStatus) || "Active Now", heroAvailability: str(heroAvailability) || "Available", cvUrl: str(cvUrl), resumeImage: str(resumeImage), updatedAt: new Date().toISOString() });
+        await updateDocument('siteConfig', 'hero', { 
+          heroImage: str(heroImage), heroStatus: str(heroStatus) || "Active Now", 
+          heroAvailability: str(heroAvailability) || "Available", cvUrl: str(cvUrl), 
+          resumeImage: str(resumeImage), updatedAt: new Date().toISOString() 
+        });
         const globalSettingsPayload = {
-          siteTitle: str(siteTitle), siteLogo: str(siteLogo), favicon: str(favicon), footerPortrait: str(footerPortrait), brandTagline: str(brandTagline), headerLinks, footerColumns, socialLinks, copyrightText: str(copyrightText), officeAddress: str(officeAddress), contactEmail: str(contactEmail), officePhone: str(officePhone), primaryColor: str(primaryColor), secondaryColor: str(secondaryColor), globalCtaText: str(globalCtaText), globalCtaUrl: str(globalCtaUrl), termsOfService: str(termsOfService), privacyPolicy: str(privacyPolicy), refundPolicy: str(refundPolicy), updatedAt: new Date().toISOString()
+          siteTitle: str(siteTitle), siteLogo: str(siteLogo), favicon: str(favicon), 
+          footerPortrait: str(footerPortrait), brandTagline: str(brandTagline), 
+          headerLinks, footerColumns, socialLinks, copyrightText: str(copyrightText), 
+          officeAddress: str(officeAddress), contactEmail: str(contactEmail), officePhone: str(officePhone), 
+          primaryColor: str(primaryColor), secondaryColor: str(secondaryColor), 
+          globalCtaText: str(globalCtaText), globalCtaUrl: str(globalCtaUrl), 
+          termsOfService: str(termsOfService), privacyPolicy: str(privacyPolicy), refundPolicy: str(refundPolicy), 
+          updatedAt: new Date().toISOString()
         };
         await updateDocument('siteConfig', 'global', globalSettingsPayload);
         await updateConfig(globalSettingsPayload);
@@ -327,10 +330,16 @@ export default function AdminDashboard() {
         await addDocument(activeTab, data);
         alert(`New ${activeTab} item created!`);
       }
-      setEditingItem(null); setIsAdding(false); setUploadValue(''); setSocialUploadValue(''); setGallery1(''); setGallery2(''); setGallery3(''); setGallery4('');
+      
+      setEditingItem(null); setIsAdding(false); 
+      setUploadValue(''); setSocialUploadValue(''); 
+      setGallery1(''); setGallery2(''); setGallery3(''); setGallery4('');
       await loadItems();
-    } catch (error: any) { alert(`[DB-ERROR] Failed to save change: ${error.message || "Unknown error"}`); } 
-    finally { setIsSaving(false); }
+    } catch (error: any) { 
+      alert(`[DB-ERROR] Failed to save change: ${error.message || "Unknown error"}`); 
+    } finally { 
+      setIsSaving(false); 
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -366,11 +375,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-bg-dark text-text-main flex">
-      <aside className="w-64 bg-bg-card border-r border-border-subtle p-6 flex flex-col">
+      <aside className="w-64 bg-bg-card border-r border-border-subtle p-6 flex flex-col shrink-0">
         <div className="text-xl font-black mb-10 tracking-tighter">Admin<span className="text-accent">Panel</span></div>
         <nav className="flex-1 space-y-2">
           {TABS.map((tab) => (
-            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsAdding(false); setEditingItem(null); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${activeTab === tab.id ? 'bg-accent text-white font-bold' : 'text-text-muted hover:bg-white/5'}`}>
+            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsAdding(false); setEditingItem(null); setUploadValue(''); setSocialUploadValue(''); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${activeTab === tab.id ? 'bg-accent text-white font-bold' : 'text-text-muted hover:bg-white/5'}`}>
               <tab.icon className="w-5 h-5" />{tab.label}
             </button>
           ))}
@@ -395,6 +404,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
         {activeTab === 'settings' && (
           <form onSubmit={handleSave} className="space-y-10">
             <div className="flex justify-between items-center bg-bg-card p-6 rounded-2xl border border-white/5 w-full">
@@ -411,6 +421,19 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-6">
                     <div><label className="block text-sm text-gray-400 mb-2">Status Badge</label><input value={heroStatus} onChange={(e) => setHeroStatus(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" /></div>
                     <div><label className="block text-sm text-gray-400 mb-2">Availability Text</label><input value={heroAvailability} onChange={(e) => setHeroAvailability(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" /></div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm text-gray-400">Download CV (PDF)</label>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex-1">
+                        <input type="text" value={cvUrl} onChange={(e) => setCvUrl(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" />
+                      </div>
+                      <label className="bg-white/5 border border-white/10 p-3 rounded-xl cursor-pointer hover:bg-white/10 transition-all flex items-center gap-2 text-sm shrink-0 text-white">
+                        <Upload className="w-4 h-4 text-accent" />
+                        <span>Upload PDF</span>
+                        <input type="file" accept="application/pdf" onChange={handleCVUpload} className="hidden" />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -433,53 +456,248 @@ export default function AdminDashboard() {
             </div>
           </form>
         )}
-
         {activeTab === 'seoSettings' && <SEOSettings />}
         {activeTab === 'branding' && <BrandingSettings onBack={() => setActiveTab('projects')} />}
 
         <AnimatePresence>
           {(isAdding || editingItem) && activeTab !== 'settings' && activeTab !== 'branding' && activeTab !== 'seoSettings' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-              <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-bg-card w-full max-w-2xl rounded-3xl border border-white/10 p-8 relative overflow-y-auto max-h-[90vh]">
-                <button onClick={() => { setIsAdding(false); setEditingItem(null); setUploadValue(''); }} className="absolute top-6 right-6 text-gray-500 hover:text-white"><X /></button>
+              <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-bg-card w-full max-w-3xl rounded-3xl border border-white/10 p-8 relative overflow-y-auto max-h-[90vh]">
+                <button onClick={() => { setIsAdding(false); setEditingItem(null); setUploadValue(''); setSocialUploadValue(''); }} className="absolute top-6 right-6 text-gray-500 hover:text-white"><X className="w-6 h-6" /></button>
                 <h3 className="text-2xl font-black mb-8">{editingItem ? `Edit ${activeTab.slice(0, -1)}` : `Add New ${activeTab.slice(0, -1)}`}</h3>
                 
                 <form onSubmit={handleSave} className="grid grid-cols-2 gap-6">
+                  
                   {activeTab === 'projects' && (
-                    <><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Project Title *</label><input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Category</label><input name="category" defaultValue={editingItem?.category || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Permalink / Slug</label><input name="slug" defaultValue={editingItem?.slug || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div></>
-                  )}
-                  {activeTab === 'services' && (
                     <>
-                      <div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Service Title *</label><input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div>
-                      <div><label className="block text-sm text-gray-400 mb-2">Display ID (e.g., 01) *</label><input name="displayId" defaultValue={editingItem?.displayId || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div>
-                      <div><label className="block text-sm text-gray-400 mb-2">Icon Name</label><input name="iconName" defaultValue={editingItem?.iconName || 'Palette'} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div>
-                      <div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Description *</label><textarea name="description" defaultValue={editingItem?.description || ''} required rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" /></div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Project Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Category</label>
+                        <input name="category" defaultValue={editingItem?.category || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Permalink / Slug</label>
+                        <input name="slug" defaultValue={editingItem?.slug || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Content / Description</label>
+                        <textarea name="content" defaultValue={editingItem?.content || ''} rows={5} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Tags (Comma Separated)</label>
+                        <input name="tags" defaultValue={editingItem?.tags?.join(', ') || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2 space-y-6 pt-4 border-t border-white/5">
+                        <ImageUpload label="Main Project Image" value={uploadValue || editingItem?.image || ''} onChange={setUploadValue} />
+                        <ImageUpload label="Social Share Image (Optional)" value={socialUploadValue || editingItem?.socialImage || ''} onChange={setSocialUploadValue} />
+                      </div>
                     </>
                   )}
-                  {activeTab === 'blogPosts' && (
-                    <><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Post Title *</label><input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Date</label><input name="date" defaultValue={editingItem?.date || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Author</label><input name="author" defaultValue={editingItem?.author || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Excerpt *</label><textarea name="excerpt" defaultValue={editingItem?.excerpt || ''} required rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" /></div></>
-                  )}
-                  {activeTab === 'resume' && (
-                    <><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Role / Title *</label><input name="role" defaultValue={editingItem?.role || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Company *</label><input name="company" defaultValue={editingItem?.company || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Year *</label><input name="year" defaultValue={editingItem?.year || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div></>
-                  )}
-                  {activeTab === 'skills' && (
-                    <><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Skill Name *</label><input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Level (0-100) *</label><input name="level" type="number" min="0" max="100" defaultValue={editingItem?.level || 80} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div></>
-                  )}
-                  {activeTab === 'testimonials' && (
-                    <><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Name *</label><input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Role *</label><input name="role" defaultValue={editingItem?.role || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Feedback *</label><textarea name="content" defaultValue={editingItem?.content || ''} required rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" /></div></>
-                  )}
-                  {activeTab === 'pricingPlans' && (
-                    <><div className="col-span-2 grid grid-cols-2 gap-6"><div><label className="block text-sm text-gray-400 mb-2">Plan Name *</label><input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Price</label><input name="price" defaultValue={editingItem?.price || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div></div><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Features</label><textarea name="features" defaultValue={editingItem?.features?.join(', ') || ''} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" /></div></>
-                  )}
-                  {activeTab === 'products' && (
-                    <><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Title *</label><input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div><label className="block text-sm text-gray-400 mb-2">Price</label><input name="price" defaultValue={editingItem?.price || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div><div className="col-span-2"><label className="block text-sm text-gray-400 mb-2">Gumroad URL *</label><input name="gumroadUrl" defaultValue={editingItem?.gumroadUrl || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" /></div></>
+
+                  {activeTab === 'services' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Service Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Display ID (e.g., 01) *</label>
+                        <input name="displayId" defaultValue={editingItem?.displayId || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Icon Name</label>
+                        <input name="iconName" defaultValue={editingItem?.iconName || 'Palette'} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Description *</label>
+                        <textarea name="description" defaultValue={editingItem?.description || ''} required rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                    </>
                   )}
 
-                  <div className="col-span-2 flex justify-end gap-4 mt-4 pt-6 border-t border-white/5">
-                    <button type="button" onClick={() => { setIsAdding(false); setEditingItem(null); }} className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all">Cancel</button>
-                    <button type="submit" disabled={isSaving} className="bg-accent text-white font-black px-10 py-3 rounded-xl transition-all flex items-center gap-2">
+                  {activeTab === 'blogPosts' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Post Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Date</label>
+                        <input name="date" defaultValue={editingItem?.date || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Author</label>
+                        <input name="author" defaultValue={editingItem?.author || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Permalink / Slug</label>
+                        <input name="slug" defaultValue={editingItem?.slug || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Excerpt *</label>
+                        <textarea name="excerpt" defaultValue={editingItem?.excerpt || ''} required rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Full Content</label>
+                        <textarea name="content" defaultValue={editingItem?.content || ''} rows={10} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white font-mono text-sm" placeholder="You can use HTML here..." />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Tags (Comma Separated)</label>
+                        <input name="tags" defaultValue={editingItem?.tags?.join(', ') || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2 space-y-6 pt-4 border-t border-white/5">
+                        <ImageUpload label="Main Blog Image" value={uploadValue || editingItem?.image || ''} onChange={setUploadValue} />
+                        <ImageUpload label="Social Share Image (Optional)" value={socialUploadValue || editingItem?.socialImage || ''} onChange={setSocialUploadValue} />
+                      </div>
+                    </>
+                  )}
+
+                  {activeTab === 'resume' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Role / Title *</label>
+                        <input name="role" defaultValue={editingItem?.role || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Company *</label>
+                        <input name="company" defaultValue={editingItem?.company || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Year *</label>
+                        <input name="year" defaultValue={editingItem?.year || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Description</label>
+                        <textarea name="desc" defaultValue={editingItem?.desc || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                    </>
+                  )}
+
+                  {activeTab === 'skills' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Skill Name *</label>
+                        <input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Level (0-100) *</label>
+                        <input name="level" type="number" min="0" max="100" defaultValue={editingItem?.level || 80} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                    </>
+                  )}
+
+                  {activeTab === 'testimonials' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Name *</label>
+                        <input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Role / Company *</label>
+                        <input name="role" defaultValue={editingItem?.role || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Feedback *</label>
+                        <textarea name="content" defaultValue={editingItem?.content || ''} required rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                      <div className="col-span-2 pt-4 border-t border-white/5">
+                        <ImageUpload label="Client Avatar Image" value={uploadValue || editingItem?.avatar || ''} onChange={setUploadValue} />
+                      </div>
+                    </>
+                  )}
+
+                  {activeTab === 'pricingPlans' && (
+                    <>
+                      <div className="col-span-2 grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Plan Name *</label>
+                          <input name="name" defaultValue={editingItem?.name || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Price</label>
+                          <input name="price" defaultValue={editingItem?.price || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        </div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Features (Comma Separated)</label>
+                        <textarea name="features" defaultValue={editingItem?.features?.join(', ') || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Unavailable Features (Comma Separated)</label>
+                        <textarea name="unavailableFeatures" defaultValue={editingItem?.unavailableFeatures?.join(', ') || ''} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                      <div className="col-span-2 grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Button Text</label>
+                          <input name="buttonText" defaultValue={editingItem?.buttonText || "Let's Talk"} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Button URL</label>
+                          <input name="buttonUrl" defaultValue={editingItem?.buttonUrl || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        </div>
+                      </div>
+                      <div className="col-span-2 flex items-center gap-3 pt-4">
+                        <input type="checkbox" name="accent" id="accent" defaultChecked={editingItem?.accent} value="true" className="w-5 h-5 accent-accent" />
+                        <label htmlFor="accent" className="text-sm text-gray-400">Highlight this as the "Popular" plan</label>
+                      </div>
+                    </>
+                  )}
+
+                  {activeTab === 'products' && (
+                    <>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Title *</label>
+                        <input name="title" defaultValue={editingItem?.title || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-6 col-span-2">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Short Title</label>
+                          <input name="shortTitle" defaultValue={editingItem?.shortTitle || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Price</label>
+                          <input name="price" defaultValue={editingItem?.price || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        </div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Gumroad URL *</label>
+                        <input name="gumroadUrl" defaultValue={editingItem?.gumroadUrl || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Description</label>
+                        <textarea name="description" defaultValue={editingItem?.description || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white" />
+                      </div>
+                      <div className="col-span-2 grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Order priority</label>
+                          <input name="order" type="number" defaultValue={editingItem?.order || 0} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        </div>
+                        <div className="flex flex-col gap-3 justify-center pt-6">
+                          <div className="flex items-center gap-3">
+                            <input type="checkbox" name="featured" id="featured" defaultChecked={editingItem ? editingItem.featured : true} value="true" className="w-4 h-4 accent-accent" />
+                            <label htmlFor="featured" className="text-sm text-gray-400">Featured</label>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <input type="checkbox" name="published" id="published" defaultChecked={editingItem ? editingItem.published : true} value="true" className="w-4 h-4 accent-accent" />
+                            <label htmlFor="published" className="text-sm text-gray-400">Published</label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-span-2 space-y-6 pt-4 border-t border-white/5">
+                        <ImageUpload label="Product Thumbnail (Square/List view)" value={uploadValue || editingItem?.thumbnail || ''} onChange={setUploadValue} />
+                        <ImageUpload label="Main Product Image (Header/Cover)" value={socialUploadValue || editingItem?.image || ''} onChange={setSocialUploadValue} />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="col-span-2 flex justify-end gap-4 mt-8 pt-6 border-t border-white/5">
+                    <button type="button" onClick={() => { setIsAdding(false); setEditingItem(null); }} className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all text-white font-medium">Cancel</button>
+                    <button type="submit" disabled={isSaving} className="bg-accent text-white font-black px-10 py-3 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 hover:bg-accent/90">
                       {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                      Save Item
+                      {editingItem ? 'Update Item' : 'Save Item'}
                     </button>
                   </div>
                 </form>
@@ -487,21 +705,64 @@ export default function AdminDashboard() {
             </motion.div>
           )}
         </AnimatePresence>
-
         {activeTab !== 'settings' && activeTab !== 'branding' && activeTab !== 'seoSettings' && (
         <div className="grid gap-4">
           {items.map((item) => (
             <motion.div key={item.id} className="bg-bg-card p-6 rounded-2xl border border-white/5 flex items-center gap-6 group hover:border-accent/30 transition-all">
-              {item.image && <img src={item.image} className="w-20 h-20 object-cover rounded-xl border border-white/10" />}
-              <div className="flex-1">
-                <h4 className="text-xl font-bold mb-1">{item.title || item.name}</h4>
+              
+              {/* Dynamic Image Display */}
+              {item.image && <img src={item.image} alt="Thumbnail" className="w-20 h-20 object-cover rounded-xl border border-white/10 shrink-0" />}
+              {item.thumbnail && !item.image && <img src={item.thumbnail} alt="Thumbnail" className="w-20 h-20 object-cover rounded-xl border border-white/10 shrink-0" />}
+              {item.avatar && <img src={item.avatar} alt="Avatar" className="w-16 h-16 object-cover rounded-full border border-white/10 shrink-0" />}
+              
+              <div className="flex-1 min-w-0">
+                {/* Specific Display Logic for Different Item Types */}
+                {activeTab === 'contactSubmissions' ? (
+                  <>
+                    <h4 className="text-xl font-bold mb-1 truncate text-white">{item.name} <span className="text-sm font-normal text-gray-500">({item.email})</span></h4>
+                    <p className="text-accent text-sm font-bold truncate mb-1">Subject: {item.subject || 'No Subject'}</p>
+                    <p className="text-gray-400 text-sm truncate">{item.message}</p>
+                  </>
+                ) : activeTab === 'resume' ? (
+                  <>
+                    <h4 className="text-xl font-bold mb-1 truncate text-white">{item.role}</h4>
+                    <p className="text-accent text-sm font-bold mb-1">{item.company} <span className="text-gray-500 font-normal">({item.year})</span></p>
+                  </>
+                ) : activeTab === 'testimonials' ? (
+                  <>
+                    <h4 className="text-xl font-bold mb-1 truncate text-white">{item.name}</h4>
+                    <p className="text-accent text-sm font-bold">{item.role}</p>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-xl font-bold mb-1 truncate text-white">{item.title || item.name}</h4>
+                    {item.displayId && <p className="text-sm text-gray-500">ID: {item.displayId}</p>}
+                    {item.price && <p className="text-sm text-gray-500">Price: {item.price}</p>}
+                    {item.category && <p className="text-sm text-gray-500">{item.category}</p>}
+                  </>
+                )}
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setEditingItem(item); setUploadValue(''); }} className="p-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"><Edit2 className="w-5 h-5" /></button>
-                <button onClick={() => handleDelete(item.id)} className="p-3 rounded-xl border border-white/10 hover:bg-red-400/10 text-gray-400 hover:text-red-400 transition-all"><Trash2 className="w-5 h-5" /></button>
+              
+              <div className="flex gap-2 shrink-0">
+                {/* Hide the Edit button for Contact Submissions (Inquiries) */}
+                {activeTab !== 'contactSubmissions' && (
+                  <button onClick={() => { setEditingItem(item); setUploadValue(''); setSocialUploadValue(''); }} className="p-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all" title="Edit">
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                )}
+                <button onClick={() => handleDelete(item.id)} className="p-3 rounded-xl border border-white/10 hover:bg-red-400/10 text-gray-400 hover:text-red-400 transition-all" title="Delete">
+                  <Trash2 className="w-5 h-5" />
+                </button>
               </div>
             </motion.div>
           ))}
+
+          {/* Empty State Message */}
+          {items.length === 0 && !loading && (
+            <div className="text-center py-20 border border-dashed border-white/10 rounded-3xl">
+              <p className="text-gray-500">No items found in {TABS.find(t => t.id === activeTab)?.label}.</p>
+            </div>
+          )}
         </div>
         )}
       </main>
