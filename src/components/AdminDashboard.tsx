@@ -898,7 +898,7 @@ export default function AdminDashboard() {
                     </>
                   )}
 
-                  {/* SERVICES ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {/* SERVICES */}
                   {activeTab === 'services' && (
                     <>
                       <div className="col-span-2">
@@ -954,7 +954,7 @@ export default function AdminDashboard() {
                     </>
                   )}
 
-                  {/* RESUME ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {/* RESUME */}
                   {activeTab === 'resume' && (
                     <>
                       <div className="col-span-2">
@@ -976,7 +976,7 @@ export default function AdminDashboard() {
                     </>
                   )}
 
-                  {/* SKILLS ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {/* SKILLS */}
                   {activeTab === 'skills' && (
                     <>
                       <div className="col-span-2">
@@ -993,7 +993,7 @@ export default function AdminDashboard() {
                     </>
                   )}
 
-                  {/* TESTIMONIALS ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {/* TESTIMONIALS */}
                   {activeTab === 'testimonials' && (
                     <>
                       <div className="col-span-2">
@@ -1019,7 +1019,7 @@ export default function AdminDashboard() {
                     </>
                   )}
 
-                  {/* PRICING PLANS ✅ FIXED: NOW HAS COMPLETE FORM */}
+                  {/* PRICING PLANS */}
                   {activeTab === 'pricingPlans' && (
                     <>
                       <div className="col-span-2 grid grid-cols-2 gap-6">
@@ -1080,6 +1080,26 @@ export default function AdminDashboard() {
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Description</label>
                         <textarea name="description" defaultValue={editingItem?.description || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-none" />
+                      </div>
+                      
+                      {/* NEW FIELDS ADDED HERE TO PREVENT DATA LOSS */}
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Display Order</label>
+                        <input name="order" type="number" defaultValue={editingItem?.order || 0} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Publish Status</label>
+                        <select name="published" defaultValue={String(editingItem?.published !== false)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                          <option value="true">Published</option>
+                          <option value="false">Hidden</option>
+                        </select>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Featured Status</label>
+                        <select name="featured" defaultValue={String(editingItem?.featured !== false)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none">
+                          <option value="true">Featured</option>
+                          <option value="false">Not Featured</option>
+                        </select>
                       </div>
                     </>
                   )}
@@ -1161,6 +1181,13 @@ export default function AdminDashboard() {
                     onClick={() => {
                       console.log(`[DEBUG] Editing item:`, item);
                       setEditingItem(item);
+                      // NEW LOGIC: This stops the image state from bleeding into the new edit
+                      setUploadValue('');
+                      setSocialUploadValue('');
+                      setGallery1('');
+                      setGallery2('');
+                      setGallery3('');
+                      setGallery4('');
                     }}
                     className="p-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"
                   >
