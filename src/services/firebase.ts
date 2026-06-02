@@ -10,7 +10,6 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  orderBy, 
   serverTimestamp,
   getDocFromServer,
   onSnapshot
@@ -22,7 +21,6 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Error Handling
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -46,7 +44,7 @@ export interface FirestoreErrorInfo {
       providerId?: string | null;
       email?: string | null;
     }[];
-  }
+  };
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
@@ -65,12 +63,11 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     },
     operationType,
     path
-  }
+  };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Validation check on boot
 async function testConnection() {
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
@@ -82,13 +79,10 @@ async function testConnection() {
 }
 testConnection();
 
-// --- Auth Helpers ---
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
-    
-    // Create/Check user record
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
     
@@ -96,14 +90,13 @@ export const signInWithGoogle = async () => {
       await setDoc(userDocRef, {
         uid: user.uid,
         email: user.email,
-        isAdmin: user.email?.toLowerCase() === 'walidxdxdxd@gmail.com' // Bootstrap admin
+        isAdmin: user.email?.toLowerCase() === 'walidxdxdxd@gmail.com'
       });
     } else if (user.email?.toLowerCase() === 'walidxdxdxd@gmail.com' && !userDoc.data()?.isAdmin) {
-      // Repair if existing account wasn't marked admin (may require rule update)
       try {
         await updateDoc(userDocRef, { isAdmin: true });
       } catch (e) {
-        console.warn("Could not self-repair admin status via client update. This is expected if rules are strict.");
+        console.warn("Could not self-repair admin status via client update.");
       }
     }
     return user;
@@ -115,15 +108,9 @@ export const signInWithGoogle = async () => {
 
 export const logout = () => signOut(auth);
 
-// --- Generic CRUD Helpers ---
-
-/**
- * Sanitizes data for Firestore by removing undefined values and ensuring consistent types.
- */
 const sanitizeForFirestore = (data: any): any => {
   if (data === null || typeof data !== 'object') return data;
   if (Array.isArray(data)) return data.map(sanitizeForFirestore);
-  
   const sanitized: any = {};
   Object.keys(data).forEach(key => {
     const value = data[key];
@@ -141,10 +128,15 @@ const sanitizeForFirestore = (data: any): any => {
 
 export const getCollection = async (collectionName: string) => {
   try {
-    const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, collectionName));
     const snapshot = await getDocs(q);
-    // Ensure document ID cannot be overwritten by any 'id' field present inside the document data
-    return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    const docs = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    
+    return docs.sort((a: any, b: any) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return timeB - timeA;
+    });
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, collectionName);
   }
@@ -165,11 +157,10 @@ export const updateDocument = async (collectionName: string, id: string, data: a
   try {
     const trimmedId = String(id || '').trim();
     if (!trimmedId) {
-      throw new Error(`Invalid or empty document ID for update operation on collection: ${collectionName}`);
+      throw new Error(`Invalid or empty document ID for update operation.`);
     }
     const sanitizedData = sanitizeForFirestore(data);
     const docRef = doc(db, collectionName, trimmedId);
-    // Use setDoc with merge: true for better stability if doc might not exist
     await setDoc(docRef, { ...sanitizedData, updatedAt: serverTimestamp() }, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id || 'NULL'}`);
@@ -180,7 +171,7 @@ export const removeDocument = async (collectionName: string, id: string) => {
   try {
     const trimmedId = String(id || '').trim();
     if (!trimmedId) {
-      throw new Error(`Invalid or empty document ID for delete operation on collection: ${collectionName}`);
+      throw new Error(`Invalid or empty document ID for delete operation.`);
     }
     await deleteDoc(doc(db, collectionName, trimmedId));
   } catch (error) {
