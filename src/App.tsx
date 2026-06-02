@@ -33,7 +33,9 @@ import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore'
 import AdminDashboard from './components/AdminDashboard';
 import ProjectDetail from './components/ProjectDetail';
 import BlogDetail from './components/BlogDetail';
-import PolicyPage from './components/PolicyPage';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import RefundPolicy from './components/RefundPolicy';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ResourcesSection from './components/ResourcesSection';
@@ -143,7 +145,7 @@ const Typewriter = ({ text }: { text: string }) => {
     const interval = setInterval(() => {
       setDisplayText(text.slice(0, i + 1));
       i++;
-      if (i === text.length) { getDocs; clearInterval(interval); setIsComplete(true); }
+      if (i === text.length) { clearInterval(interval); setIsComplete(true); }
     }, 150);
     return () => clearInterval(interval);
   }, [text]);
@@ -302,9 +304,18 @@ function Portfolio() {
   );
 }
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Portfolio />} />
         <Route path="/projects/:projectId" element={<ProjectDetail />} />
@@ -313,10 +324,10 @@ export default function App() {
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/products" element={<ResourcesPage />} />
         
-        {/* NEW EXPLICIT POLICY CHANNELS */}
-        <Route path="/terms-of-service" element={<PolicyPage type="terms" />} />
-        <Route path="/privacy-policy" element={<PolicyPage type="privacy" />} />
-        <Route path="/refund-policy" element={<PolicyPage type="refund" />} />
+        {/* THE NEW SEPARATE URLS */}
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
       </Routes>
     </BrowserRouter>
   );
