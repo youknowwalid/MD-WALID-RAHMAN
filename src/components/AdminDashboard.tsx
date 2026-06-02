@@ -818,6 +818,22 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* NEW FOOTER IMAGE SECTION */}
+              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
+                <h3 className="text-2xl font-black flex items-center gap-3">
+                  <ImageIcon className="text-accent w-6 h-6" /> Footer Settings
+                </h3>
+                <div className="space-y-6">
+                  <ImageUpload 
+                    label="Footer Portrait (Transparent PNG)" 
+                    value={footerPortrait} 
+                    onChange={setFooterPortrait} 
+                    recommendation="Recommended: Transparent PNG with no background. Shows on the right side of the desktop footer."
+                  />
+                </div>
+              </div>
+
             </div>
           </form>
         )}
