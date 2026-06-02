@@ -1,16 +1,5 @@
-/**
- * CENTRALIZED SCHEMA DEFAULTS & NORMALIZATION
- * 
- * This file is the single source of truth for safe default values and 
- * data normalization logic. Any new field added to the database MUST
- * be registered here.
- */
-
 import { PricingPlan, Project, BlogPost, Service, Testimonial, ResumeItem, Product } from '../types';
 
-/**
- * Normalizes a Pricing Plan object to ensure no undefined fields and full schema compliance.
- */
 export const normalizePricingPlan = (data: any): PricingPlan => ({
   id: String(data.id || ''),
   name: String(data.name || 'Standard Plan'),
@@ -27,9 +16,6 @@ export const normalizePricingPlan = (data: any): PricingPlan => ({
   updatedAt: data.updatedAt
 });
 
-/**
- * Normalizes a Project object.
- */
 export const normalizeProject = (data: any): Project => ({
   id: String(data.id || ''),
   title: String(data.title || 'Untitled Project'),
@@ -46,11 +32,9 @@ export const normalizeProject = (data: any): Project => ({
   updatedAt: data.updatedAt
 });
 
-/**
- * Normalizes a Service object.
- */
 export const normalizeService = (data: any): Service => ({
   id: String(data.id || ''),
+  displayId: String(data.displayId || '01'),
   title: String(data.title || 'Service'),
   iconName: String(data.iconName || 'Palette'),
   description: String(data.description || ''),
@@ -58,9 +42,6 @@ export const normalizeService = (data: any): Service => ({
   updatedAt: data.updatedAt
 });
 
-/**
- * Normalizes a Testimonial object.
- */
 export const normalizeTestimonial = (data: any): Testimonial => ({
   id: String(data.id || ''),
   name: String(data.name || 'Anonymous'),
@@ -71,9 +52,6 @@ export const normalizeTestimonial = (data: any): Testimonial => ({
   updatedAt: data.updatedAt
 });
 
-/**
- * Normalizes a Resume item.
- */
 export const normalizeResumeItem = (data: any): ResumeItem => ({
   id: String(data.id || ''),
   year: String(data.year || 'N/A'),
@@ -84,9 +62,6 @@ export const normalizeResumeItem = (data: any): ResumeItem => ({
   updatedAt: data.updatedAt
 });
 
-/**
- * Normalizes a Blog Post object.
- */
 export const normalizeBlogPost = (data: any): BlogPost => ({
   id: String(data.id || ''),
   title: String(data.title || 'Untitled Post'),
@@ -104,9 +79,6 @@ export const normalizeBlogPost = (data: any): BlogPost => ({
   updatedAt: data.updatedAt
 });
 
-/**
- * Normalizes a Product object.
- */
 export const normalizeProduct = (data: any): Product => ({
   id: String(data.id || ''),
   title: String(data.title || 'Untitled Product'),
