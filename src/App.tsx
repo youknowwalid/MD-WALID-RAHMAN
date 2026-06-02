@@ -6,7 +6,7 @@ import {
   Braces, 
   Palette, 
   Megaphone, 
-  Check, 
+  Check,
   CheckCircle2, 
   ExternalLink, 
   Linkedin, 
@@ -16,16 +16,16 @@ import {
   ChevronRight, 
   Download, 
   MessageSquare, 
-  Star, 
-  ArrowRight, 
-  Menu, 
-  X, 
-  FileText, 
-  Clock, 
-  Loader2, 
-  Facebook, 
-  Github, 
-  Globe 
+  Star,
+  ArrowRight,
+  Menu,
+  X,
+  FileText,
+  Clock,
+  Loader2,
+  Facebook,
+  Github,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { db, handleFirestoreError, OperationType, addDocument, getCollection } from './services/firebase';
@@ -33,13 +33,13 @@ import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore'
 import AdminDashboard from './components/AdminDashboard';
 import ProjectDetail from './components/ProjectDetail';
 import BlogDetail from './components/BlogDetail';
-import TermsOfService from './components/TermsOfService';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import RefundPolicy from './components/RefundPolicy';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ResourcesSection from './components/ResourcesSection';
 import ResourcesPage from './components/ResourcesPage';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import RefundPolicy from './components/RefundPolicy';
 import { useSiteConfig } from './context/SiteConfigContext';
 import { 
   normalizePricingPlan, 
@@ -49,6 +49,7 @@ import {
   normalizeTestimonial, 
   normalizeResumeItem 
 } from './lib/schema-defaults';
+
 import { 
   Project, 
   BlogPost, 
@@ -60,17 +61,29 @@ import {
   PricingPlan 
 } from './types';
 
-const ICON_MAP: Record<string, any> = { Palette, Braces, Megaphone, Laptop };
+// --- Icons Mapping ---
+const ICON_MAP: Record<string, any> = {
+  Palette,
+  Braces,
+  Megaphone,
+  Laptop
+};
 
-const DEFAULT_HEADER_LINKS = [
-  { label: 'Home', url: '/#home' },
-  { label: 'About', url: '/#about' },
-  { label: 'Resume', url: '/#resume' },
-  { label: 'Services', url: '/#services' },
-  { label: 'Projects', url: '/#projects' },
-  { label: 'Resources', url: '/#resources' },
-  { label: 'Contact', url: '/#contact' },
-  { label: 'Blog', url: '/#blog' },
+// --- Constants ---
+const NAV_LINKS = [
+  { name: 'Home', href: '/#home' },
+  { name: 'About', href: '/#about' },
+  { name: 'Resume', href: '/#resume' },
+  { name: 'Services', href: '/#services' },
+  { name: 'Projects', href: '/#projects' },
+  { name: 'Contact', href: '/#contact' },
+  { name: 'Blog', href: '/#blog' },
+];
+
+const STATS: Stat[] = [
+  { label: 'Years Experience', value: '8+', number: 8 },
+  { label: 'Projects Complete', value: '1K+', number: 1000 },
+  { label: 'Client Satisfactions', value: '97%', number: 97 },
 ];
 
 const DEFAULT_SERVICES: Service[] = [
@@ -89,13 +102,42 @@ const DEFAULT_PROJECTS: Project[] = [
     category: 'Branding', 
     image: 'https://picsum.photos/seed/nexus/800/600', 
     link: '/projects/nexus-brand',
-    content: 'Nexus is a revolutionary brand identity project...',
+    content: 'Nexus is a revolutionary brand identity project that focused on bridging the gap between corporate rigidity and creative fluidity. We developed a comprehensive design system that includes a dynamic logo, custom typography, and a vibrant color palette that scales across multi-channel touchpoints.',
     tags: ['Branding', 'Identity', 'Strategy']
-  }
+  },
+  { 
+    id: 'volt-ecommerce',
+    title: 'Volt E-Commerce', 
+    category: 'Web App', 
+    image: 'https://picsum.photos/seed/volt/800/600', 
+    link: '/projects/volt-ecommerce',
+    content: 'The Volt E-Commerce platform was built to solve the performance bottlenecks of traditional online stores. Using a headless architecture, we achieved sub-second page loads and a conversion rate increase of 45%. The project involved complex integrations with inventory systems and custom payment gateways.',
+    tags: ['E-Commerce', 'Next.js', 'Headless']
+  },
+  { 
+    id: 'lumina-dashboard',
+    title: 'Lumina Dashboard', 
+    category: 'UI/UX', 
+    image: 'https://picsum.photos/seed/lumina/800/600', 
+    link: '/projects/lumina-dashboard',
+    content: 'Lumina is a data visualization dashboard designed for energy sector executives. The challenge was to transform massive amounts of real-time data into actionable insights through an intuitive and aesthetically pleasing interface. We utilized D3.js for custom visualizations and focused heavily on user centered design principles.',
+    tags: ['UI/UX', 'Dashboard', 'Data Viz']
+  },
+  { 
+    id: 'orbit-marketing',
+    title: 'Orbit Marketing', 
+    category: 'Social Media', 
+    image: 'https://picsum.photos/seed/orbit/800/600', 
+    link: '/projects/orbit-marketing',
+    content: 'Orbit is a social media marketing campaign that leveraged the power of community and storytelling. We created a series of high-impact visuals and videos that resulted in a 300% increase in engagement for our client. The strategy focused on cross-platform consistency and authentic brand voice.',
+    tags: ['Marketing', 'Social', 'Campaign']
+  },
 ];
 
 const TESTIMONIALS: Testimonial[] = [
-  { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transform our brand completely...', avatar: 'https://i.pravatar.cc/150?u=sarah' }
+  { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transform our brand completely. His attention to detail and creative vision are unmatched.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
+  { name: 'Michael Chen', role: 'Founder, EcoStream', content: 'Working with Walid was a game-changer for our digital presence. He truly understands modern brand development.', avatar: 'https://i.pravatar.cc/150?u=michael' },
+  { name: 'Elena Rodriguez', role: 'Marketing Director, Vora', content: 'The website Walid built for us exceeded all expectations. Fast, beautiful, and highly functional.', avatar: 'https://i.pravatar.cc/150?u=elena' },
 ];
 
 const DEFAULT_BLOG_POSTS: BlogPost[] = [
@@ -105,33 +147,103 @@ const DEFAULT_BLOG_POSTS: BlogPost[] = [
     date: 'May 10, 2024', 
     excerpt: 'Exploring how minimalist design is evolving in the age of AI.', 
     image: 'https://picsum.photos/seed/blog1/800/500',
-    content: 'Minimalism has long been a staple of modern design...',
+    content: 'Minimalism has long been a staple of modern design, but as we enter the age of Artificial Intelligence, the philosophy is undergoing a significant transformation. No longer just about "less is more," minimalism today is about "intentionality" and "relevance." AI allows designers to create interfaces that are hyper-personalized, removing unnecessary elements based on specific user contexts. In this post, we explore how cognitive load and data-driven design are shaping the next generation of minimalist aesthetics.',
     author: 'Walid Rahman',
     tags: ['Design', 'AI', 'Minimalism']
-  }
+  },
+  { 
+    id: 'building-scalable-brands',
+    title: 'Building Scalable Brands', 
+    date: 'Apr 28, 2024', 
+    excerpt: 'Key strategies for creating a brand that grows with your business.', 
+    image: 'https://picsum.photos/seed/blog2/800/500',
+    content: 'Scaling a brand requires more than just a great logo; it requires a modular system that can adapt to different markets, languages, and products without losing its core identity. We call this "Brand Elasticity." In this article, we break down the five pillars of brand scalability: Consistency, Adaptability, Documentation, Authenticity, and Scalable Visual Language. Learn how top tech brands manage to feel the same whether you are using their app on an iPhone or seeing a billboard in Tokyo.',
+    author: 'Walid Rahman',
+    tags: ['Marketing', 'Branding', 'Business']
+  },
+  { 
+    id: 'ux-patterns-watch',
+    title: 'UX Patterns to Watch', 
+    date: 'Apr 15, 2024', 
+    excerpt: 'Current trends in user experience that are shaping digital products.', 
+    image: 'https://picsum.photos/seed/blog3/800/500',
+    content: 'The way users interact with digital products is changing rapidly. From micro-interactions to voice interfaces, the expectations for a "good" experience are higher than ever. Some of the patterns we are seeing emerge include: Micro-animations that provide immediate feedback, conversational UI for complex tasks, and "invisible" interfaces that anticipate user needs. We dive deep into why these patterns are gaining traction and how you can implement them in your next project to increase user delight and retention.',
+    author: 'Walid Rahman',
+    tags: ['UX', 'UI', 'Trends']
+  },
+  { 
+    id: 'brand-consistency',
+    title: 'Brand Consistency', 
+    date: 'Mar 30, 2024', 
+    excerpt: 'Why maintaining a consistent voice is crucial for long-term success.', 
+    image: 'https://picsum.photos/seed/blog4/800/500',
+    content: 'Trust is built through consistency. When a brand speaks with one voice across all departments—from customer support to social media—it creates a sense of reliability that consumers crave. In this post, we explore how consistency impacts customer loyalty and brand equity. We also provide a checklist for maintaining your brand voice, including tips on creating a comprehensive style guide and training your team to embody the brand values in every interaction.',
+    author: 'Walid Rahman',
+    tags: ['Branding', 'Strategy', 'Trust']
+  },
 ];
 
 const DEFAULT_PRICING_PLANS: PricingPlan[] = [
   { 
     name: 'Basic Plan', 
     price: '$350', 
-    features: ['Website Design (up to 3 pages)'],
-    unavailableFeatures: ['Mobile App Design'],
+    features: ['Website Design (up to 3 pages)', 'Basic Brand Identity & Logo', 'Social Media Management (2 platforms)', 'Copywriting (4 posts/month)', '1 Revision Round', '3 Hours / Day Consultation'],
+    unavailableFeatures: ['Mobile App Design', 'Product Design', 'Paid Ads / Campaigns', 'SEO & Analytics', 'UI/UX Design'],
     buttonText: "Let's Talk",
-    buttonUrl: "#",
+    buttonUrl: "https://wa.me/8801744588644?text=Hi!%20I%20was%20looking%20at%20your%20portfolio%20and%20I'm%20interested%20in%20the%20$350%20Basic%20Plan.%20Can%20we%20discuss%20my%20project?",
     accent: false 
-  }
+  },
+  { 
+    name: 'Standard Plan', 
+    price: '$500', 
+    features: ['Website Design (up to 8 pages)', 'Mobile App Design', 'Full Brand Identity & Logo Kit', 'Social Media Management (4 platforms)', 'Copywriting (12 posts/month)', 'Paid Ads / Campaigns (1 campaign)', 'Basic SEO & Monthly Report', '3 Revision Rounds', '6 Hours / Day Consultation'],
+    unavailableFeatures: ['Product Design', 'UI/UX Design & Prototyping'],
+    buttonText: 'Get Started',
+    buttonUrl: "https://wa.me/8801744588644?text=Hi!%20I%20was%20looking%20at%20your%20portfolio%20and%20I'd%20like%20to%20get%20started%20with%20the%20$500%20Standard%20Plan.%20Let's%20talk!",
+    accent: true 
+  },
+  { 
+    name: 'Premium Plan', 
+    price: '$1200', 
+    features: ['Website Design (Unlimited pages)', 'Mobile App & Product Design', 'Full Brand Identity + Style Guide', 'UI/UX Design & Prototyping', 'Social Media Management (All platforms)', 'Unlimited Paid Ads / Campaigns', 'Unlimited Copywriting', 'Full SEO, Analytics & Growth Strategy', 'Dedicated Account Manager', 'Unlimited Revision Rounds', '9 Hours / Day Consultation'],
+    unavailableFeatures: [],
+    buttonText: 'Inquire Now',
+    buttonUrl: "https://wa.me/8801744588644?text=Hi!%20I%20was%20looking%20at%20your%20portfolio%20and%20I%20need%20the%20$1200%20Premium%20Plan%20for%20my%20project.",
+    accent: false 
+  },
 ];
+
+// --- Components ---
 
 const SectionHeader = ({ label, title }: { label: string; title: string }) => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true });
+
   return (
     <div ref={containerRef} className="mb-16">
-      <motion.span initial={{ opacity: 0, y: 10 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }} className="text-accent text-xs font-bold uppercase tracking-widest mb-2 block">{label}</motion.span>
+      <motion.span
+        initial={{ opacity: 0, y: 10 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.5 }}
+        className="text-accent text-xs font-bold uppercase tracking-widest mb-2 block"
+      >
+        {label}
+      </motion.span>
       <div className="relative inline-block">
-        <motion.h2 initial={{ clipPath: 'inset(0 100% 0 0)' }} animate={isInView ? { clipPath: 'inset(0 0 0 0)' } : {}} transition={{ duration: 0.8, ease: "circOut" }} className="text-3xl md:text-5xl font-black text-text-main">{title}</motion.h2>
-        <motion.div initial={{ scaleX: 0 }} animate={isInView ? { scaleX: 1 } : {}} transition={{ duration: 0.8, delay: 0.2, ease: "circOut" }} className="absolute -bottom-2 left-0 h-1 w-20 bg-accent origin-left" />
+        <motion.h2
+          initial={{ clipPath: 'inset(0 100% 0 0)' }}
+          animate={isInView ? { clipPath: 'inset(0 0 0 0)' } : {}}
+          transition={{ duration: 0.8, ease: "circOut" }}
+          className="text-3xl md:text-5xl font-black text-text-main"
+        >
+          {title}
+        </motion.h2>
+        <motion.div 
+          initial={{ scaleX: 0 }}
+          animate={isInView ? { scaleX: 1 } : {}}
+          transition={{ duration: 0.8, delay: 0.2, ease: "circOut" }}
+          className="absolute -bottom-2 left-0 h-1 w-20 bg-accent origin-left"
+        />
       </div>
     </div>
   );
@@ -140,195 +252,181 @@ const SectionHeader = ({ label, title }: { label: string; title: string }) => {
 const Typewriter = ({ text }: { text: string }) => {
   const [displayText, setDisplayText] = useState("");
   const [isComplete, setIsComplete] = useState(false);
+
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
       setDisplayText(text.slice(0, i + 1));
       i++;
-      if (i === text.length) { clearInterval(interval); setIsComplete(true); }
+      if (i === text.length) {
+        clearInterval(interval);
+        setIsComplete(true);
+      }
     }, 150);
     return () => clearInterval(interval);
   }, [text]);
+
   return (
     <span className="relative">
       {displayText}
-      <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "steps(2)" }} className={cn("inline-block w-[3px] h-[0.9em] bg-accent ml-1 -mb-1", isComplete && "hidden")} />
+      <motion.span
+        animate={{ opacity: [1, 0] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "steps(2)" }}
+        className={cn(
+          "inline-block w-[3px] h-[0.9em] bg-accent ml-1 -mb-1",
+          isComplete && "hidden"
+        )}
+      />
     </span>
   );
 };
+
+const DEFAULT_HEADER_LINKS = [
+  { label: 'Home', url: '/#home' },
+  { label: 'About', url: '/#about' },
+  { label: 'Resume', url: '/#resume' },
+  { label: 'Services', url: '/#services' },
+  { label: 'Projects', url: '/#projects' },
+  { label: 'Resources', url: '/#resources' },
+  { label: 'Contact', url: '/#contact' },
+  { label: 'Blog', url: '/#blog' },
+];
 
 function Portfolio() {
   const { config } = useSiteConfig();
   const [activeSection, setActiveSection] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
   const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(DEFAULT_BLOG_POSTS);
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(DEFAULT_PRICING_PLANS);
   const [skills, setSkills] = useState<Skill[]>([]);
-  const [resume, setResume] = useState<any[]>([]);
+  const [resume, setResume] = useState<any[]>([]); // Initialize empty then use defaults if none from DB
   const [testimonials, setTestimonials] = useState<Testimonial[]>(TESTIMONIALS);
+
   const [hasResumeData, setHasResumeData] = useState(false);
+  const [hasTestimonialData, setHasTestimonialData] = useState(false);
   
-  const [heroImage, setHeroImage] = useState('/input_file_0.png');
-  const [heroStatus, setHeroStatus] = useState('Active Now');
-  const [heroAvailability, setHeroAvailability] = useState('Available for new projects');
-  const [cvUrl, setCvUrl] = useState('#');
-  const [resumeImage, setResumeImage] = useState('');
-  
+  const [heroImage, setHeroImage] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).heroImage || '/input_file_0.png';
+      }
+    } catch (e) {}
+    return '/input_file_0.png';
+  });
+
+  const [heroStatus, setHeroStatus] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).heroStatus || 'Active Now';
+      }
+    } catch (e) {}
+    return 'Active Now';
+  });
+
+  const [heroAvailability, setHeroAvailability] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).heroAvailability || 'Available for new projects';
+      }
+    } catch (e) {}
+    return 'Available for new projects';
+  });
+
+  const [cvUrl, setCvUrl] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).cvUrl || '#';
+      }
+    } catch (e) {}
+    return '#';
+  });
+
+  const [resumeImage, setResumeImage] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_config_hero');
+      if (cached) {
+        return JSON.parse(cached).resumeImage || '';
+      }
+    } catch (e) {}
+    return '';
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      const sections = DEFAULT_HEADER_LINKS.map(link => document.getElementById(link.url.replace('/#', '').replace('#', '')));
+      const sections = DEFAULT_HEADER_LINKS.map(link => 
+        document.getElementById(link.url.replace('/#', '').replace('#', ''))
+      );
       const scrollPos = window.scrollY + 100;
+
       sections.forEach(section => {
         if (section) {
           const top = section.offsetTop;
           const height = section.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) { setActiveSection(section.id); }
+          if (scrollPos >= top && scrollPos < top + height) {
+            setActiveSection(section.id);
+          }
         }
       });
     };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Data Fetching
   useEffect(() => {
     const fetchAllData = async () => {
       try {
+        // Use parallel fetching for speed
         const [projSnap, servSnap, blogSnap, resSnap, testSnap, pricSnap, skillSnap] = await Promise.all([
-          getCollection('projects'), getCollection('services'), getCollection('blogPosts'),
-          getCollection('resume'), getCollection('testimonials'), getCollection('pricingPlans'), getCollection('skills')
+          getCollection('projects'),
+          getCollection('services'),
+          getCollection('blogPosts'),
+          getCollection('resume'),
+          getCollection('testimonials'),
+          getCollection('pricingPlans'),
+          getCollection('skills')
         ]);
+
         if (projSnap) setProjects(projSnap.map(normalizeProject));
-        if (servSnap) setServices(servSnap.map(s => ({ ...normalizeService(s), icon: ICON_MAP[(s as any).iconName] || Palette })));
-        if (blogSnap) setBlogPosts(blogSnap.map(normalizeBlogPost));
-        if (resSnap && resSnap.length > 0) { setResume(resSnap.map(normalizeResumeItem)); setHasResumeData(true); }
-        if (skillSnap && skillSnap.length > 0) { setSkills(skillSnap as any); }
-        if (testSnap && testSnap.length > 0) setTestimonials(testSnap.map(normalizeTestimonial));
-        if (pricSnap) setPricingPlans(pricSnap.map(normalizePricingPlan));
-      } catch (error) {
-        console.error("Initial fetch error:", error);
-      }
-    };
-    fetchAllData();
-
-    const unsubscribeHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setHeroImage(data.heroImage || '/input_file_0.png');
-        setHeroStatus(data.heroStatus || 'Active Now');
-        setHeroAvailability(data.heroAvailability || 'Available for new projects');
-        setCvUrl(data.cvUrl || '#');
-        setResumeImage(data.resumeImage || '');
-      }
-    });
-    return () => unsubscribeHero();
-  }, []);
-
-  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-      subject: formData.get('subject') as string,
-      message: formData.get('message') as string,
-    };
-    try {
-      await addDocument('contactSubmissions', data);
-      setFormStatus('success');
-      (e.target as HTMLFormElement).reset();
-    } catch (error) {
-      setFormStatus('error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="relative min-h-screen bg-bg-dark overflow-x-hidden selection:bg-accent/30 selection:text-text-main">
-      <Navbar />
-      <main className="relative z-10">
-        {/* Hero Section */}
-        <section id="home" className="min-h-screen flex items-center relative overflow-hidden px-6 pt-20 pb-12 md:py-20">
-          <div className="absolute rounded-full pointer-events-none -z-10 w-[300px] h-[300px] md:w-[600px] md:h-[600px] top-[-10%] left-[-10%]" style={{ background: 'radial-gradient(circle, #f45901 0%, transparent 70%)', opacity: 0.18, filter: 'blur(150px)' }} />
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center w-full">
-            <div className="z-10 text-center lg:text-left">
-              <p className="text-accent text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-4">Brand Developer</p>
-              <h1 className="text-3xl md:text-8xl font-black mb-4 md:mb-6 leading-tight tracking-tighter uppercase">Hello, I'm <br /><span className="text-accent text-glow"><Typewriter text="Walid Rahman." /></span></h1>
-              <div className="text-sm md:text-2xl text-text-muted mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0">A Brand Developer crafting premium digital experiences.</div>
-              <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6">
-                <a href="https://wa.me/+8801744588644" target="_blank" rel="noreferrer" className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base border border-accent">Start Project</a>
-                <a href={cvUrl} download target="_blank" rel="noreferrer" className="border border-border-subtle px-6 md:px-10 py-3 md:py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-text-main text-xs md:text-base">Download CV</a>
-              </div>
-            </div>
-            <div className="relative flex justify-center order-first lg:order-last">
-              <div className="relative w-full max-w-[320px] md:max-w-[420px] aspect-square">
-                <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
-                <motion.div animate={{ y: [0, -10, 0], rotate: [1, 2, 1] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="absolute inset-8 md:inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10">
-                  <img src={heroImage} alt="Walid Rahman" className="w-full h-full object-cover" />
-                  <div className="absolute bottom-4 left-4 right-4 bg-bg-card/60 backdrop-blur-md p-3 rounded-xl border border-white/10">
-                    <div className="text-[10px] text-accent font-bold uppercase tracking-wider mb-1">{heroStatus}</div>
-                    <div className="text-xs text-text-main/80">{heroAvailability}</div>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section id="about" className="py-16 md:py-32 px-6 bg-card-dark">
-          <div className="max-w-7xl mx-auto">
-            <SectionHeader label="About Me" title="Crafting Digital Excellence" />
-            <div className="grid lg:grid-cols-2 gap-10 md:gap-16">
-              <div>
-                <p className="text-lg md:text-xl text-text-muted leading-relaxed mb-8">As a Team Leader with extensive expertise in digital marketing, ed-tech, e-commerce, and brand management, I drive strategic growth and innovation across diverse industries.</p>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="p-6 bg-bg-card rounded-2xl border border-white/5"><div className="text-sm text-text-muted">Email</div><div className="font-bold underline decoration-accent/30"><a href="mailto:info@walidrahman.com">info@walidrahman.com</a></div></div>
-                <div className="p-6 bg-bg-card rounded-2xl border border-white/5"><div className="text-sm text-text-muted">Phone</div><div className="font-bold underline decoration-accent/30"><a href="tel:+8801744588644">+880 1744 588 644</a></div></div>
-                <div className="p-6 bg-bg-card rounded-2xl border border-white/5 col-span-full"><div className="text-sm text-text-muted">Location</div><div className="font-bold">Nikunja 2, Dhaka 1229, Bangladesh</div></div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-};
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Portfolio />} />
-        <Route path="/projects/:projectId" element={<ProjectDetail />} />
-        <Route path="/blog/:blogId" element={<BlogDetail />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/resources" element={<ResourcesPage />} />
-        <Route path="/products" element={<ResourcesPage />} />
         
-        {/* THE NEW SEPARATE URLS */}
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/refund-policy" element={<RefundPolicy />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
+        if (servSnap) setServices(servSnap.map(s => ({ 
+          ...normalizeService(s), 
+          icon: ICON_MAP[(s as any).iconName] || Palette,
+        })));
+        
+        if (blogSnap) setBlogPosts(blogSnap.map(normalizeBlogPost));
+        
+        if (resSnap && resSnap.length > 0) {
+          setResume(resSnap.map(normalizeResumeItem));
+          setHasResumeData(true);
+        }
+
+        if (skillSnap && skillSnap.length > 0) {
+          setSkills(skillSnap as any);
+        } else {
+          // Fallback to defaults if none in DB
+          setSkills([
+            { name: 'Canva', level: 98 },
+            { name: 'Meta Ads', level: 96 },
+            { name: 'MS Office', level: 95 },
+            { name: 'GA4 / GTM', level: 94 },
+            { name: 'WordPress', level: 85 },
+            { name: 'Trello', level: 84 },
+            { name: 'Adobe Creative Suite', level: 83 },
+            { name: 'Google Ads', level: 76 },
+          ]);
+        }
+        
+        if (testSnap && testSnap.
