@@ -148,6 +148,9 @@ export default function AdminDashboard() {
   
   // Settings States
   const [heroImage, setHeroImage] = useState('');
+  const [siteTitle, setSiteTitle] = useState('');
+const [siteLogo, setSiteLogo] = useState('');
+const [favicon, setFavicon] = useState('');
   const [heroStatus, setHeroStatus] = useState('');
   const [heroAvailability, setHeroAvailability] = useState('');
   const [cvUrl, setCvUrl] = useState('');
@@ -233,7 +236,7 @@ export default function AdminDashboard() {
         const globalDoc = await getDoc(doc(db, 'siteConfig', 'global'));
         if (globalDoc.exists()) {
           const data = globalDoc.data();
-          setSiteTitle(data.siteTitle || 'youknowwalid'); setSiteLogo(data.siteLogo || ''); setFavicon(data.favicon || ''); setFooterPortrait(data.footerPortrait || '');
+          setSiteTitle(data.siteTitle || ''); setSiteLogo(data.siteLogo || ''); setFavicon(data.favicon || ''); setFooterPortrait(data.footerPortrait || '');
           setHeaderLinks(data.headerLinks || []); setFooterColumns(data.footerColumns || []); setSocialLinks(data.socialLinks || []); setCopyrightText(data.copyrightText || '');
           setOfficeAddress(data.officeAddress || ''); setContactEmail(data.contactEmail || ''); setOfficePhone(data.officePhone || '');
           setPrimaryColor(data.primaryColor || '#f45901'); setSecondaryColor(data.secondaryColor || '#00c6ff');
@@ -415,6 +418,17 @@ export default function AdminDashboard() {
             <div className="max-w-4xl">
               <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
                 <h3 className="text-2xl font-black flex items-center gap-3"><ImageIcon className="text-accent w-6 h-6" /> Hero Settings</h3>
+                <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
+  <h3 className="text-2xl font-black flex items-center gap-3"><Settings className="text-accent w-6 h-6" /> Site Identity</h3>
+  <div className="space-y-6">
+    <div>
+      <label className="block text-sm text-gray-400 mb-2">Site Title (Browser Tab)</label>
+      <input value={siteTitle} onChange={(e) => setSiteTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" />
+    </div>
+    <ImageUpload label="Site Logo URL" value={siteLogo} onChange={setSiteLogo} />
+    <ImageUpload label="Favicon URL" value={favicon} onChange={setFavicon} />
+  </div>
+</div>
                 <div className="space-y-6">
                   <ImageUpload label="Hero Profile Photo" value={heroImage} onChange={setHeroImage} />
                   <ImageUpload label="Resume Side Image" value={resumeImage} onChange={setResumeImage} />
