@@ -287,6 +287,19 @@ function Portfolio() {
       }
     });
     return () => unsubscribeHero();
+    // This automatically handles the Browser Tab and Favicon for you
+useEffect(() => {
+  if (config.siteTitle) {
+    document.title = config.siteTitle;
+  }
+  if (config.favicon) {
+    let link: HTMLLinkElement = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    link.type = 'image/x-icon';
+    link.rel = 'shortcut icon';
+    link.href = config.favicon;
+    document.getElementsByTagName('head')[0].appendChild(link);
+  }
+}, [config.siteTitle, config.favicon]);
   }, []);
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
