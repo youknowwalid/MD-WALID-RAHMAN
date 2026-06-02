@@ -2,30 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useSpring, useTransform, AnimatePresence, useInView } from 'motion/react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
-  Laptop, 
-  Braces, 
-  Palette, 
-  Megaphone, 
-  Check,
-  CheckCircle2, 
-  ExternalLink, 
-  Linkedin, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  ChevronRight, 
-  Download, 
-  MessageSquare, 
-  Star,
-  ArrowRight,
-  Menu,
-  X,
-  FileText,
-  Clock,
-  Loader2,
-  Facebook,
-  Github,
-  Globe
+  Laptop, Braces, Palette, Megaphone, Check, CheckCircle2, ExternalLink, 
+  Linkedin, Mail, Phone, MapPin, ChevronRight, Download, MessageSquare, 
+  Star, ArrowRight, Menu, X, FileText, Clock, Loader2, Facebook, Github, Globe 
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { db, handleFirestoreError, OperationType, addDocument, getCollection } from './services/firebase';
@@ -42,31 +21,17 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import RefundPolicy from './components/RefundPolicy';
 import { useSiteConfig } from './context/SiteConfigContext';
 import { 
-  normalizePricingPlan, 
-  normalizeProject, 
-  normalizeBlogPost, 
-  normalizeService, 
-  normalizeTestimonial, 
-  normalizeResumeItem 
+  normalizePricingPlan, normalizeProject, normalizeBlogPost, normalizeService, 
+  normalizeTestimonial, normalizeResumeItem 
 } from './lib/schema-defaults';
 
 import { 
-  Project, 
-  BlogPost, 
-  Service, 
-  NavLink, 
-  Stat, 
-  Skill, 
-  Testimonial, 
-  PricingPlan 
+  Project, BlogPost, Service, NavLink, Stat, Skill, Testimonial, PricingPlan 
 } from './types';
 
 // --- Icons Mapping ---
 const ICON_MAP: Record<string, any> = {
-  Palette,
-  Braces,
-  Megaphone,
-  Laptop
+  Palette, Braces, Megaphone, Laptop
 };
 
 // --- Constants ---
@@ -199,7 +164,6 @@ const Typewriter = ({ text }: { text: string }) => {
     </span>
   );
 };
-
 function Portfolio() {
   const { config } = useSiteConfig();
   const [activeSection, setActiveSection] = useState('home');
@@ -284,7 +248,7 @@ function Portfolio() {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [projSnap, servSnap, blogSnap, resSnap, testSnap, pricSnap, skillSnap] = await Promise.all([
+        const results = await Promise.allSettled([
           getCollection('projects'),
           getCollection('services'),
           getCollection('blogPosts'),
@@ -294,79 +258,48 @@ function Portfolio() {
           getCollection('skills')
         ]);
 
+        const projSnap = results[0].status === 'fulfilled' ? results[0].value : null;
+        const servSnap = results[1].status === 'fulfilled' ? results[1].value : null;
+        const blogSnap = results[2].status === 'fulfilled' ? results[2].value : null;
+        const resSnap = results[3].status === 'fulfilled' ? results[3].value : null;
+        const testSnap = results[4].status === 'fulfilled' ? results[4].value : null;
+        const pricSnap = results[5].status === 'fulfilled' ? results[5].value : null;
+        const skillSnap = results[6].status === 'fulfilled' ? results[6].value : null;
+
         if (projSnap && projSnap.length > 0) setProjects(projSnap.map(normalizeProject));
-        if (servSnap && servSnap.length > 0) setServices(servSnap.map(s => ({ 
-          ...normalizeService(s), 
-          icon: ICON_MAP[(s as any).iconName] || Palette,
-        })));
+        if (servSnap && servSnap.length > 0) setServices(servSnap.map(s => ({ ...normalizeService(s), icon: ICON_MAP[(s as any).iconName] || Palette })));
         if (blogSnap && blogSnap.length > 0) setBlogPosts(blogSnap.map(normalizeBlogPost));
-        if (resSnap && resSnap.length > 0) {
-          setResume(resSnap.map(normalizeResumeItem));
-          setHasResumeData(true);
-        }
-        if (skillSnap && skillSnap.length > 0) {
-          setSkills(skillSnap as any);
-        } else {
-          setSkills([
-            { name: 'Canva', level: 98 },
-            { name: 'Meta Ads', level: 96 },
-            { name: 'MS Office', level: 95 },
-            { name: 'GA4 / GTM', level: 94 },
-          ]);
-        }
+        if (resSnap && resSnap.length > 0) { setResume(resSnap.map(normalizeResumeItem)); setHasResumeData(true); }
+        if (skillSnap && skillSnap.length > 0) setSkills(skillSnap as any);
         if (testSnap && testSnap.length > 0) setTestimonials(testSnap.map(normalizeTestimonial));
         if (pricSnap && pricSnap.length > 0) setPricingPlans(pricSnap.map(normalizePricingPlan));
       } catch (error) {
-        console.error("Initial fetch error:", error);
+        console.error("Fetch isolated error:", error);
       }
     };
-
     fetchAllData();
 
     const unsubscribeHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        setHeroImage(data.heroImage || '/input_file_0.png');
-        setHeroStatus(data.heroStatus || 'Active Now');
-        setHeroAvailability(data.heroAvailability || 'Available for new projects');
-        setCvUrl(data.cvUrl || '#');
-        setResumeImage(data.resumeImage || '');
+        setHeroImage(data.heroImage || '/input_file_0.png'); setHeroStatus(data.heroStatus || 'Active Now');
+        setHeroAvailability(data.heroAvailability || 'Available for new projects'); setCvUrl(data.cvUrl || '#'); setResumeImage(data.resumeImage || '');
       }
     });
-
     return () => unsubscribeHero();
   }, []);
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setFormStatus('idle');
-    
+    e.preventDefault(); setIsSubmitting(true); setFormStatus('idle');
     const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-      subject: formData.get('subject') as string,
-      message: formData.get('message') as string,
-    };
-
-    try {
-      await addDocument('contactSubmissions', data);
-      setFormStatus('success');
-      (e.target as HTMLFormElement).reset();
-    } catch (error) {
-      console.error("Form error:", error);
-      setFormStatus('error');
-    } finally {
-      setIsSubmitting(false);
-      setTimeout(() => setFormStatus('idle'), 5000);
-    }
+    const data = { name: formData.get('name') as string, email: formData.get('email') as string, subject: formData.get('subject') as string, message: formData.get('message') as string };
+    try { await addDocument('contactSubmissions', data); setFormStatus('success'); (e.target as HTMLFormElement).reset(); } 
+    catch (error) { setFormStatus('error'); } finally { setIsSubmitting(false); setTimeout(() => setFormStatus('idle'), 5000); }
   };
 
   return (
     <div className="relative min-h-screen bg-bg-dark overflow-x-hidden selection:bg-accent/30 selection:text-text-main">
       <Navbar />
-      
       <main className="relative z-10">
         
         {/* HERO SECTION */}
@@ -513,7 +446,6 @@ function Portfolio() {
             </div>
           </div>
         </section>
-
         {/* SERVICES SECTION */}
         <section id="services" className="py-16 md:py-32 px-6 bg-bg-card/30">
           <div className="max-w-7xl mx-auto">
@@ -521,7 +453,7 @@ function Portfolio() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {services.map((service, i) => (
                 <motion.div key={service.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} whileHover={{ y: -10 }} className="p-8 bg-bg-card rounded-3xl border border-white/5 hover:border-accent/30 transition-all relative overflow-hidden group">
-                  <div className="absolute -top-4 -right-4 text-6xl font-black text-text-main/5 group-hover:text-accent/10 transition-colors">{service.id}</div>
+                  <div className="absolute -top-4 -right-4 text-6xl font-black text-text-main/5 group-hover:text-accent/10 transition-colors">{service.displayId || '00'}</div>
                   <div className="mb-6 w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-black transition-all">
                     {service.icon && <service.icon className="w-6 h-6" />}
                   </div>
