@@ -1,174 +1,213 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useSpring, useTransform, AnimatePresence, useInView } from 'motion/react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { 
-  Laptop, Braces, Palette, Megaphone, Check, CheckCircle2, ExternalLink, 
-  Linkedin, Mail, Phone, MapPin, ChevronRight, Download, MessageSquare, 
-  Star, ArrowRight, Menu, X, FileText, Clock, Loader2, Facebook, Github, Globe 
-} from 'lucide-react';
-import { cn } from '@/src/lib/utils';
-import { db, handleFirestoreError, OperationType, addDocument, getCollection } from './services/firebase';
-import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
-import AdminDashboard from './components/AdminDashboard';
-import ProjectDetail from './components/ProjectDetail';
-import BlogDetail from './components/BlogDetail';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import ResourcesSection from './components/ResourcesSection';
-import ResourcesPage from './components/ResourcesPage';
-import TermsOfService from './components/TermsOfService';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import RefundPolicy from './components/RefundPolicy';
-import { useSiteConfig } from './context/SiteConfigContext';
-import { 
-  normalizePricingPlan, normalizeProject, normalizeBlogPost, normalizeService, 
-  normalizeTestimonial, normalizeResumeItem 
-} from './lib/schema-defaults';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
-import { 
-  Project, BlogPost, Service, NavLink, Stat, Skill, Testimonial, PricingPlan 
-} from './types';
+// Helper to check if a value is a base64 string or asset url
+const preloadAsset = (url: string) => {
+  if (!url) return;
+  // If it is a base64 string or already preloaded, we don't need link preload, 
+  // but prefetching it keeps a browser cache reference.
+  const img = new Image();
+  img.src = url;
 
-// --- Icons Mapping ---
-const ICON_MAP: Record<string, any> = {
-  Palette, Braces, Megaphone, Laptop
+  // Also add regular preload link for standard URLs
+  if (url.startsWith('http')) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = url;
+    document.head.appendChild(link);
+  }
 };
 
-// --- Constants ---
-const DEFAULT_HEADER_LINKS = [
-  { label: 'Home', url: '/#home' },
-  { label: 'About', url: '/#about' },
-  { label: 'Resume', url: '/#resume' },
-  { label: 'Services', url: '/#services' },
-  { label: 'Projects', url: '/#projects' },
-  { label: 'Resources', url: '/#resources' },
-  { label: 'Contact', url: '/#contact' },
-  { label: 'Blog', url: '/#blog' },
-];
+// Apply CSS Variables instantly to dynamic document node
+export const applyThemeVariables = (primaryColor: string, secondaryColor: string) => {
+  const root = document.documentElement;
+  const primary = primaryColor || '#f45901';
+  const secondary = secondaryColor || '#00c6ff';
+  
+  root.style.setProperty('--color-accent', primary);
+  root.style.setProperty('--color-accent-secondary', secondary);
 
-const DEFAULT_SERVICES: Service[] = [
-  { id: '01', title: 'Brand Identity', description: 'Crafting unique visual identities that resonate with your target audience.', icon: Palette },
-  { id: '02', title: 'Web Development', description: 'Building fast, responsive, and modern websites using the latest technologies.', icon: Braces },
-  { id: '03', title: 'Digital Marketing', description: 'Strategic marketing campaigns to grow your brand and reach new customers.', icon: Megaphone },
-  { id: '04', title: 'Product Strategy', description: 'Defining the roadmap and vision for your digital products.', icon: Laptop },
-  { id: '05', title: 'UI/UX Design', description: 'Designing intuitive and beautiful user experiences.', icon: Palette },
-  { id: '06', title: 'Content Creation', description: 'Engaging content that tells your brands story across all platforms.', icon: Megaphone },
-];
-
-const DEFAULT_PROJECTS: Project[] = [
-  { 
-    id: 'nexus-brand',
-    title: 'Nexus Brand Identity', 
-    category: 'Branding', 
-    image: 'https://picsum.photos/seed/nexus/800/600', 
-    link: '/projects/nexus-brand',
-    content: 'Nexus is a revolutionary brand identity project that focused on bridging the gap between corporate rigidity and creative fluidity.',
-    tags: ['Branding', 'Identity', 'Strategy']
-  }
-];
-
-const TESTIMONIALS: Testimonial[] = [
-  { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transform our brand completely. His attention to detail and creative vision are unmatched.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
-  { name: 'Michael Chen', role: 'Founder, EcoStream', content: 'Working with Walid was a game-changer for our digital presence.', avatar: 'https://i.pravatar.cc/150?u=michael' },
-];
-
-const DEFAULT_BLOG_POSTS: BlogPost[] = [
-  { 
-    id: 'future-minimalism',
-    title: 'The Future of Minimalism', 
-    date: 'May 10, 2024', 
-    excerpt: 'Exploring how minimalist design is evolving in the age of AI.', 
-    image: 'https://picsum.photos/seed/blog1/800/500',
-    content: 'Minimalism has long been a staple of modern design, but as we enter the age of Artificial Intelligence, the philosophy is undergoing a significant transformation.',
-    author: 'Walid Rahman',
-    tags: ['Design', 'AI', 'Minimalism']
-  }
-];
-
-const DEFAULT_PRICING_PLANS: PricingPlan[] = [
-  { 
-    name: 'Basic Plan', 
-    price: '$350', 
-    features: ['Website Design (up to 3 pages)', 'Basic Brand Identity & Logo'],
-    unavailableFeatures: ['Mobile App Design', 'Product Design'],
-    buttonText: "Let's Talk",
-    buttonUrl: "#",
-    accent: false 
-  }
-];
-
-// --- Components ---
-
-const SectionHeader = ({ label, title }: { label: string; title: string }) => {
-  const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true });
-
-  return (
-    <div ref={containerRef} className="mb-16">
-      <motion.span
-        initial={{ opacity: 0, y: 10 }}
-        animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5 }}
-        className="text-accent text-xs font-bold uppercase tracking-widest mb-2 block"
-      >
-        {label}
-      </motion.span>
-      <div className="relative inline-block">
-        <motion.h2
-          initial={{ clipPath: 'inset(0 100% 0 0)' }}
-          animate={isInView ? { clipPath: 'inset(0 0 0 0)' } : {}}
-          transition={{ duration: 0.8, ease: "circOut" }}
-          className="text-3xl md:text-5xl font-black text-text-main"
-        >
-          {title}
-        </motion.h2>
-        <motion.div 
-          initial={{ scaleX: 0 }}
-          animate={isInView ? { scaleX: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.2, ease: "circOut" }}
-          className="absolute -bottom-2 left-0 h-1 w-20 bg-accent origin-left"
-        />
-      </div>
-    </div>
-  );
-};
-
-const Typewriter = ({ text }: { text: string }) => {
-  const [displayText, setDisplayText] = useState("");
-  const [isComplete, setIsComplete] = useState(false);
-
-  useEffect(() => {
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayText(text.slice(0, i + 1));
-      i++;
-      if (i === text.length) {
-        clearInterval(interval);
-        setIsComplete(true);
+  // Inject a style block for smooth changes if not already present
+  let transitionStyle = document.getElementById('smooth-color-transitions');
+  if (!transitionStyle) {
+    transitionStyle = document.createElement('style');
+    transitionStyle.id = 'smooth-color-transitions';
+    transitionStyle.innerHTML = `
+      body, header, footer, button, a, div, span, img, svg {
+        transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
       }
-    }, 150);
-    return () => clearInterval(interval);
-  }, [text]);
+    `;
+    document.head.appendChild(transitionStyle);
+  }
+};
 
-  return (
-    <span className="relative">
-      {displayText}
-      <motion.span
-        animate={{ opacity: [1, 0] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "steps(2)" }}
-        className={cn(
-          "inline-block w-[3px] h-[0.9em] bg-accent ml-1 -mb-1",
-          isComplete && "hidden"
-        )}
-      />
-    </span>
-  );
+// Apply SEO elements synchronously
+export const applySEOElements = (seo: any) => {
+  if (!seo) return;
+
+  const setMetaContent = (name: string, content: string, isProperty = false) => {
+    if (!content) return;
+    const selector = isProperty ? `meta[property='${name}']` : `meta[name='${name}']`;
+    let element = document.querySelector(selector);
+    if (!element) {
+      element = document.createElement('meta');
+      if (isProperty) {
+        element.setAttribute('property', name);
+      } else {
+        element.setAttribute('name', name);
+      }
+      document.head.appendChild(element);
+    }
+    element.setAttribute('content', content);
+  };
+
+  setMetaContent('description', seo.metaDescription || '');
+  setMetaContent('keywords', seo.focusKeywords || '');
+  setMetaContent('robots', seo.robotsIndex ? 'index, follow' : 'noindex, nofollow');
+  
+  // OpenGraph tags
+  setMetaContent('og:title', seo.ogTitle || seo.metaTitle, true);
+  setMetaContent('og:description', seo.ogDescription || seo.metaDescription, true);
+  setMetaContent('og:image', seo.ogImageUrl, true);
+  
+  // Twitter tags
+  setMetaContent('twitter:card', seo.twitterCardType || 'summary_large_image');
+  setMetaContent('twitter:title', seo.twitterTitle || seo.metaTitle);
+  setMetaContent('twitter:description', seo.twitterDescription || seo.metaDescription);
+  setMetaContent('twitter:image', seo.twitterImageUrl);
+};
+
+// Initialize settings synchronously from local cache, then execute fetch
+export async function initializeAppSettings(): Promise<void> {
+  // 1. Synchronously try to load cached copy from LocalStorage for 0ms render latency.
+  const cachedGlobal = localStorage.getItem('site_config_global');
+  const cachedSeo = localStorage.getItem('site_config_seo');
+  const cachedHero = localStorage.getItem('site_config_hero');
+
+  if (cachedGlobal) {
+    try {
+      const global = JSON.parse(cachedGlobal);
+      
+      // Enforce Tab Title instantly on first paint to prevent flicker
+      if (global.siteTitle) {
+        document.title = global.siteTitle;
+      }
+
+      applyThemeVariables(global.primaryColor, global.secondaryColor);
+      if (global.favicon) {
+        const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement || document.createElement('link');
+        link.rel = 'icon';
+        link.href = global.favicon;
+        document.head.appendChild(link);
+      }
+      if (global.siteLogo) {
+        preloadAsset(global.siteLogo);
+      }
+    } catch (e) {
+      console.warn("Error parsing cached global configs:", e);
+    }
+  } else {
+    // If absolutely no colors exist, let's write baseline defaults temporarily so we don't flash
+    applyThemeVariables('#f45901', '#00c6ff');
+  }
+
+  if (cachedSeo) {
+    try {
+      applySEOElements(JSON.parse(cachedSeo));
+    } catch (e) {
+      console.warn("Error parsing cached SEO settings:", e);
+    }
+  }
+
+  if (cachedHero) {
+    try {
+      const hero = JSON.parse(cachedHero);
+      if (hero.heroImage) preloadAsset(hero.heroImage);
+      if (hero.resumeImage) preloadAsset(hero.resumeImage);
+    } catch (e) {
+      console.warn("Error parsing cached Hero settings:", e);
+    }
+  }
+
+  // Preload primary fonts to make them native-fast
+  const fontPreload = document.createElement('link');
+  fontPreload.rel = 'preload';
+  fontPreload.as = 'font';
+  fontPreload.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap';
+  fontPreload.crossOrigin = 'anonymous';
+  document.head.appendChild(fontPreload);
+
+  // If we already have cached configs, we resolve right away so the user goes straight to 
+  // the app with 0ms interruption. We can sync fresh data in the background inside context.
+  if (cachedGlobal && cachedSeo && cachedHero) {
+    // Trigger background sync silently to update cache if necessary
+    triggerSilentBackgroundSync();
+    return;
+  }
+
+  // Otherwise, if first initial paint (no cache matches), block for network fetch to prevent default flash
+  try {
+    const [globalSnap, seoSnap, heroSnap] = await Promise.all([
+      getDoc(doc(db, 'siteConfig', 'global')),
+      getDoc(doc(db, 'siteConfig', 'seo')),
+      getDoc(doc(db, 'siteConfig', 'hero'))
+    ]);
+
+    if (globalSnap.exists()) {
+      const global = globalSnap.data();
+      localStorage.setItem('site_config_global', JSON.stringify(global));
+      
+      if (global.siteTitle) {
+        document.title = global.siteTitle;
+      }
+      
+      applyThemeVariables(global.primaryColor, global.secondaryColor);
+      if (global.siteLogo) preloadAsset(global.siteLogo);
+    }
+    if (seoSnap.exists()) {
+      const seo = seoSnap.data();
+      localStorage.setItem('site_config_seo', JSON.stringify(seo));
+      applySEOElements(seo);
+    }
+    if (heroSnap.exists()) {
+      const hero = heroSnap.data();
+      localStorage.setItem('site_config_hero', JSON.stringify(hero));
+      if (hero.heroImage) preloadAsset(hero.heroImage);
+      if (hero.resumeImage) preloadAsset(hero.resumeImage);
+    }
+  } catch (err) {
+    console.error("Critical fail loading pre-flight admin config settings:", err);
+  }
+}
+
+// Quietly fetch data in the background and rewrite clean local cache
+const triggerSilentBackgroundSync = async () => {
+  try {
+    const [globalSnap, seoSnap, heroSnap] = await Promise.all([
+      getDoc(doc(db, 'siteConfig', 'global')),
+      getDoc(doc(db, 'siteConfig', 'seo')),
+      getDoc(doc(db, 'siteConfig', 'hero'))
+    ]);
+    
+    if (globalSnap.exists()) {
+      localStorage.setItem('site_config_global', JSON.stringify(globalSnap.data()));
+    }
+    if (seoSnap.exists()) {
+      localStorage.setItem('site_config_seo', JSON.stringify(seoSnap.data()));
+    }
+    if (heroSnap.exists()) {
+      localStorage.setItem('site_config_hero', JSON.stringify(heroSnap.data()));
+    }
+  } catch (err) {
+    console.warn("Background admin presets cache sync failed:", err);
+  }
 };
 function Portfolio() {
   const { config } = useSiteConfig();
   const [activeSection, setActiveSection] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
-  
+
   const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
   const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(DEFAULT_BLOG_POSTS);
@@ -176,9 +215,8 @@ function Portfolio() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [resume, setResume] = useState<any[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(TESTIMONIALS);
-
   const [hasResumeData, setHasResumeData] = useState(false);
-  
+
   const [heroImage, setHeroImage] = useState(() => {
     try {
       const cached = localStorage.getItem('site_config_hero');
@@ -229,7 +267,6 @@ function Portfolio() {
         document.getElementById(link.url.replace('/#', '').replace('#', ''))
       );
       const scrollPos = window.scrollY + 100;
-
       sections.forEach(section => {
         if (section) {
           const top = section.offsetTop;
@@ -240,7 +277,6 @@ function Portfolio() {
         }
       });
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -257,7 +293,6 @@ function Portfolio() {
           getCollection('pricingPlans'),
           getCollection('skills')
         ]);
-
         const projSnap = results[0].status === 'fulfilled' ? results[0].value : null;
         const servSnap = results[1].status === 'fulfilled' ? results[1].value : null;
         const blogSnap = results[2].status === 'fulfilled' ? results[2].value : null;
@@ -286,28 +321,25 @@ function Portfolio() {
         setHeroAvailability(data.heroAvailability || 'Available for new projects'); setCvUrl(data.cvUrl || '#'); setResumeImage(data.resumeImage || '');
       }
     });
+
     return () => unsubscribeHero();
-    // This automatically handles the Browser Tab and Favicon for you
-useEffect(() => {
-  if (config.siteTitle) {
-    document.title = config.siteTitle;
-  }
-  if (config.favicon) {
-    let link: HTMLLinkElement = document.querySelector("link[rel*='icon']") || document.createElement('link');
-    link.type = 'image/x-icon';
-    link.rel = 'shortcut icon';
-    link.href = config.favicon;
-    document.getElementsByTagName('head')[0].appendChild(link);
-  }
-}, [config.siteTitle, config.favicon]);
   }, []);
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setIsSubmitting(true); setFormStatus('idle');
     const formData = new FormData(e.currentTarget);
     const data = { name: formData.get('name') as string, email: formData.get('email') as string, subject: formData.get('subject') as string, message: formData.get('message') as string };
-    try { await addDocument('contactSubmissions', data); setFormStatus('success'); (e.target as HTMLFormElement).reset(); } 
-    catch (error) { setFormStatus('error'); } finally { setIsSubmitting(false); setTimeout(() => setFormStatus('idle'), 5000); }
+    
+    try { 
+      await addDocument('contactSubmissions', data); 
+      setFormStatus('success'); 
+      (e.target as HTMLFormElement).reset(); 
+    } catch (error) { 
+      setFormStatus('error'); 
+    } finally { 
+      setIsSubmitting(false); 
+      setTimeout(() => setFormStatus('idle'), 5000); 
+    }
   };
 
   return (
@@ -394,6 +426,7 @@ useEffect(() => {
                   ))}
                 </div>
               </motion.div>
+              
               <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="grid sm:grid-cols-2 gap-6">
                 <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default">
                   <Mail className="text-accent mb-4" />
@@ -442,6 +475,7 @@ useEffect(() => {
                   </motion.div>
                 ))}
               </div>
+              
               {resumeImage && (
                 <div className="relative sticky top-32 hidden lg:flex justify-center">
                   <motion.div initial={{ opacity: 0, scale: 0.8, rotate: -5 }} whileInView={{ opacity: 1, scale: 1, rotate: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: 'easeOut' }} className="relative w-full max-w-[450px] aspect-[3/4]">
@@ -459,6 +493,7 @@ useEffect(() => {
             </div>
           </div>
         </section>
+
         {/* SERVICES SECTION */}
         <section id="services" className="py-16 md:py-32 px-6 bg-bg-card/30">
           <div className="max-w-7xl mx-auto">
@@ -572,6 +607,7 @@ useEffect(() => {
                       <span className="text-text-muted/60 font-medium text-sm">/month</span>
                     </div>
                   </div>
+                  
                   <div className="space-y-8 mb-10 text-left">
                     {plan.showPriorityBox && (
                       <div className="p-5 bg-accent/5 border border-accent/10 rounded-2xl flex items-center gap-4 transition-all group-hover:bg-accent/10">
@@ -582,6 +618,7 @@ useEffect(() => {
                         </div>
                       </div>
                     )}
+                    
                     <div className="space-y-4">
                       <h4 className="text-[10px] font-black text-text-main/40 uppercase tracking-[0.3em] mb-2">Technical Arsenal</h4>
                       <ul className="space-y-4">
@@ -639,6 +676,7 @@ useEffect(() => {
             <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <SectionHeader label="Contact" title="Let's Build Something" />
               <p className="text-gray-400 text-base md:text-lg mb-12">Have a project in mind or just want to say hi? I'm always open to discussing new opportunities and creative ideas.</p>
+              
               <div className="space-y-6">
                 {[
                   { icon: Mail, label: 'Email', value: config.contactEmail || 'info@walidrahman.com', href: `mailto:${config.contactEmail || 'info@walidrahman.com'}` },
