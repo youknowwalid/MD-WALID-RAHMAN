@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '../lib/utils'; // FIXED TO RELATIVE PATH
 import { useSiteConfig } from '../context/SiteConfigContext';
 
 const ThemeToggle = () => {
