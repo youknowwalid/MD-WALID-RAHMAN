@@ -107,6 +107,7 @@ export default function Footer({ portraitUrl }: FooterProps) {
               />
             </div>
           )}
+
         </div>
 
         {/* Bottom Bar: Copyright & Legal Policies */}
@@ -119,17 +120,16 @@ export default function Footer({ portraitUrl }: FooterProps) {
             <Link to="/terms-of-service" className="text-text-muted hover:text-accent transition-colors">
               Terms of Service
             </Link>
-            <span className="text-white/10">|</span>
+            <span className="text-white/10">•</span>
             <Link to="/privacy-policy" className="text-text-muted hover:text-accent transition-colors">
               Privacy Policy
             </Link>
-            <span className="text-white/10">|</span>
+            <span className="text-white/10">•</span>
             <Link to="/refund-policy" className="text-text-muted hover:text-accent transition-colors">
               Refund Policy
             </Link>
           </div>
         </div>
-
       </div>
     </footer>
   );
