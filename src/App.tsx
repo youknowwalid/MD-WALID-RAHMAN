@@ -1,65 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon } from 'lucide-react';
-import { cn } from '../lib/utils'; // FIXED TO RELATIVE PATH
-import { useSiteConfig } from '../context/SiteConfigContext';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useInView } from 'motion/react';
+import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom';
+import { 
+  Laptop, Braces, Palette, Megaphone, Check, X, ExternalLink, 
+  Mail, Phone, MapPin, Clock, Loader2, MessageSquare, Star 
+} from 'lucide-react';
 
-const ThemeToggle = () => {
-  const [isLight, setIsLight] = useState(false);
+import { cn } from './lib/utils';
+import { db, addDocument, getCollection } from './services/firebase';
+import { onSnapshot, doc } from 'firebase/firestore';
 
-  useEffect(() => {
-    const isLightMode = document.body.classList.contains('light-mode');
-    setIsLight(isLightMode);
-  }, []);
+import AdminDashboard from './components/AdminDashboard';
+import ProjectDetail from './components/ProjectDetail';
+import BlogDetail from './components/BlogDetail';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import ResourcesSection from './components/ResourcesSection';
+import ResourcesPage from './components/ResourcesPage';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import RefundPolicy from './components/RefundPolicy';
+import { useSiteConfig } from './context/SiteConfigContext';
 
-  const toggleTheme = () => {
-    const newMode = !isLight;
-    setIsLight(newMode);
-    if (newMode) {
-      document.body.classList.add('light-mode');
-    } else {
-      document.body.classList.remove('light-mode');
-    }
-  };
+import { 
+  normalizePricingPlan, normalizeProject, normalizeBlogPost, normalizeService, 
+  normalizeTestimonial, normalizeResumeItem 
+} from './lib/schema-defaults';
+import { Project, BlogPost, Service, Skill, Testimonial, PricingPlan } from './types';
 
-  return (
-    <div className="relative w-11 h-11 flex items-center justify-center">
-      <button
-        onClick={toggleTheme}
-        className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 hover:bg-accent/10 group overflow-hidden"
-        aria-label="Toggle Theme"
-      >
-        <div className="relative w-6 h-6 flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            {isLight ? (
-              <motion.div
-                key="sun"
-                initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-                transition={{ duration: 0.3, ease: "circOut" }}
-              >
-                <Sun className="w-6 h-6 text-accent" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="moon"
-                initial={{ rotate: 90, opacity: 0, scale: 0.5 }}
-                animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                transition={{ duration: 0.3, ease: "circOut" }}
-              >
-                <Moon className="w-6 h-6 text-accent" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </button>
-    </div>
-  );
+// --- Icons Mapping ---
+const ICON_MAP: Record<string, any> = {
+  Palette, Braces, Megaphone, Laptop
 };
 
+// --- Constants ---
 const DEFAULT_HEADER_LINKS = [
   { label: 'Home', url: '/#home' },
   { label: 'About', url: '/#about' },
@@ -71,119 +45,125 @@ const DEFAULT_HEADER_LINKS = [
   { label: 'Blog', url: '/#blog' },
 ];
 
-export default function Navbar() {
-  const { config } = useSiteConfig();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
-  const [activeSection, setActiveSection] = useState('home');
+const DEFAULT_SERVICES: Service[] = [
+  { id: '01', title: 'Brand Identity', description: 'Crafting unique visual identities that resonate with your target audience.', icon: Palette },
+  { id: '02', title: 'Web Development', description: 'Building fast, responsive, and modern websites using the latest technologies.', icon: Braces },
+  { id: '03', title: 'Digital Marketing', description: 'Strategic marketing campaigns to grow your brand and reach new customers.', icon: Megaphone },
+  { id: '04', title: 'Product Strategy', description: 'Defining the roadmap and vision for your digital products.', icon: Laptop },
+  { id: '05', title: 'UI/UX Design', description: 'Designing intuitive and beautiful user experiences.', icon: Palette },
+  { id: '06', title: 'Content Creation', description: 'Engaging content that tells your brands story across all platforms.', icon: Megaphone },
+];
 
-  const headerLinks = config.headerLinks && config.headerLinks.length > 0 ? config.headerLinks : DEFAULT_HEADER_LINKS;
+const DEFAULT_PROJECTS: Project[] = [
+  { 
+    id: 'nexus-brand',
+    title: 'Nexus Brand Identity', 
+    category: 'Branding', 
+    image: 'https://picsum.photos/seed/nexus/800/600', 
+    link: '/projects/nexus-brand',
+    content: 'Nexus is a revolutionary brand identity project that focused on bridging the gap between corporate rigidity and creative fluidity.',
+    tags: ['Branding', 'Identity', 'Strategy']
+  }
+];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-      
-      if (location.pathname === '/') {
-        const sections = headerLinks.map(link => 
-          document.getElementById(link.url.replace('/#', '').replace('#', ''))
-        );
-        const scrollPos = window.scrollY + 100;
+const TESTIMONIALS: Testimonial[] = [
+  { name: 'Sarah Johnson', role: 'CEO, TechBase', content: 'Walid transform our brand completely. His attention to detail and creative vision are unmatched.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
+  { name: 'Michael Chen', role: 'Founder, EcoStream', content: 'Working with Walid was a game-changer for our digital presence.', avatar: 'https://i.pravatar.cc/150?u=michael' },
+];
 
-        sections.forEach(section => {
-          if (section) {
-            const top = section.offsetTop;
-            const height = section.offsetHeight;
-            if (scrollPos >= top && scrollPos < top + height) {
-              setActiveSection(section.id);
-            }
-          }
-        });
-      }
-    };
+const DEFAULT_BLOG_POSTS: BlogPost[] = [
+  { 
+    id: 'future-minimalism',
+    title: 'The Future of Minimalism', 
+    date: 'May 10, 2024', 
+    excerpt: 'Exploring how minimalist design is evolving in the age of AI.', 
+    image: 'https://picsum.photos/seed/blog1/800/500',
+    content: 'Minimalism has long been a staple of modern design, but as we enter the age of Artificial Intelligence, the philosophy is undergoing a significant transformation.',
+    author: 'Walid Rahman',
+    tags: ['Design', 'AI', 'Minimalism']
+  }
+];
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [location, headerLinks]);
+const DEFAULT_PRICING_PLANS: PricingPlan[] = [
+  { 
+    name: 'Basic Plan', 
+    price: '$350', 
+    features: ['Website Design (up to 3 pages)', 'Basic Brand Identity & Logo'],
+    unavailableFeatures: ['Mobile App Design', 'Product Design'],
+    buttonText: "Let's Talk",
+    buttonUrl: "#",
+    accent: false 
+  }
+];
+
+// --- Components ---
+const SectionHeader = ({ label, title }: { label: string; title: string }) => {
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { once: true });
 
   return (
-    <nav className={cn(
-      "fixed top-0 left-0 w-full z-40 transition-all duration-300 px-6 md:px-12 py-4",
-      isScrolled ? "bg-bg-dark/80 backdrop-blur-xl py-3 border-b border-border-subtle" : "bg-transparent"
-    )}>
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
-        {/* Brand / Logo Section */}
-        <Link to="/" className="flex items-center gap-2 hover:text-accent transition-all">
-          {config.siteLogo ? (
-            <img src={config.siteLogo} alt="Logo" className="h-10 w-auto" />
-          ) : (
-            <span className="font-black text-xl tracking-tighter text-white">
-              {config.siteTitle || 'Portfolio'}
-            </span>
-          )}
-        </Link>
-
-        {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-8">
-          {headerLinks.map((link) => {
-            const sectionId = link.url.replace('/#', '').replace('#', '');
-            const isActive = location.pathname === '/' && activeSection === sectionId;
-            return (
-              <a
-                key={link.label}
-                href={link.url}
-                className={cn(
-                  "text-sm font-medium transition-all hover:text-accent relative py-1",
-                  isActive ? "text-accent" : "text-gray-400"
-                )}
-              >
-                {link.label}
-                {isActive && (
-                  <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />
-                )}
-              </a>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <button className="lg:hidden text-text-main" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle Menu">
-          {isMenuOpen ? <X /> : <Menu />}
-        </button>
+    <div ref={containerRef} className="mb-16">
+      <motion.span
+        initial={{ opacity: 0, y: 10 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.5 }}
+        className="text-accent text-xs font-bold uppercase tracking-widest mb-2 block"
+      >
+        {label}
+      </motion.span>
+      <div className="relative inline-block">
+        <motion.h2
+          initial={{ clipPath: 'inset(0 100% 0 0)' }}
+          animate={isInView ? { clipPath: 'inset(0 0 0 0)' } : {}}
+          transition={{ duration: 0.8, ease: "circOut" }}
+          className="text-3xl md:text-5xl font-black text-text-main"
+        >
+          {title}
+        </motion.h2>
+        <motion.div 
+          initial={{ scaleX: 0 }}
+          animate={isInView ? { scaleX: 1 } : {}}
+          transition={{ duration: 0.8, delay: 0.2, ease: "circOut" }}
+          className="absolute -bottom-2 left-0 h-1 w-20 bg-accent origin-left"
+        />
       </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="lg:hidden absolute top-full left-0 w-full bg-bg-dark/95 backdrop-blur-2xl border-b border-border-subtle p-8 flex flex-col gap-6 z-50 shadow-2xl"
-          >
-            {headerLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.url}
-                onClick={() => setIsMenuOpen(false)}
-                className={cn(
-                  "text-2xl font-black uppercase tracking-tighter transition-all text-text-muted hover:text-accent"
-                )}
-              >
-                {link.label}
-              </a>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+    </div>
   );
-  function Portfolio() {
+};
+
+const Typewriter = ({ text }: { text: string }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayText(text.slice(0, i + 1));
+      i++;
+      if (i === text.length) {
+        clearInterval(interval);
+        setIsComplete(true);
+      }
+    }, 150);
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return (
+    <span className="relative">
+      {displayText}
+      <motion.span
+        animate={{ opacity: [1, 0] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "steps(2)" }}
+        className={cn(
+          "inline-block w-[3px] h-[0.9em] bg-accent ml-1 -mb-1",
+          isComplete && "hidden"
+        )}
+      />
+    </span>
+  );
+};
+
+function Portfolio() {
   const { config } = useSiteConfig();
   const [activeSection, setActiveSection] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
@@ -339,7 +319,7 @@ export default function Navbar() {
                 Brand Developer
               </motion.p>
               <h1 className="text-3xl md:text-8xl font-black mb-4 md:mb-6 leading-tight tracking-tighter uppercase">
-                Hello, I'm <br />
+                Hello, I&apos;m <br />
                 <span className="text-accent text-glow">
                   <Typewriter text="Walid Rahman." />
                 </span>
@@ -349,7 +329,7 @@ export default function Navbar() {
               </motion.div>
               
               <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6">
-                <motion.a href="https://wa.me/+8801744588644" target="_blank" rel="noreferrer" whileHover={{ scale: 1.05 }} className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base border border-accent">
+                <motion.a href={`https://wa.me/${config.officePhone ? config.officePhone.replace(/[^0-9+]/g, '') : '+8801744588644'}`} target="_blank" rel="noreferrer" whileHover={{ scale: 1.05 }} className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base border border-accent">
                   {config.globalCtaText || "Start Project"}
                 </motion.a>
                 <motion.a href={cvUrl} download="Walid_Rahman_CV.pdf" target="_blank" rel="noreferrer" whileHover={{ scale: 1.05 }} className="border border-border-subtle px-6 md:px-10 py-3 md:py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-text-main text-xs md:text-base">
@@ -556,7 +536,7 @@ export default function Navbar() {
                 <div key={`${t.id}-${i}`} className="w-[320px] md:w-[400px] h-[200px] p-5 md:p-6 bg-bg-card rounded-2xl border border-white/5 relative group hover:border-accent/30 transition-all flex flex-col shrink-0">
                   <div className="absolute top-4 right-4 text-accent/10 opacity-40"><MessageSquare className="w-5 h-5" /></div>
                   <div className="flex gap-0.5 mb-2">{[1,2,3,4,5].map(s => <Star key={s} className="w-2 h-2 md:w-2.5 md:h-2.5 fill-accent text-accent" />)}</div>
-                  <p className="text-[11px] md:text-[13px] text-gray-400 leading-snug italic mb-4 flex-grow line-clamp-3">"{t.content}"</p>
+                  <p className="text-[11px] md:text-[13px] text-gray-400 leading-snug italic mb-4 flex-grow line-clamp-3">&quot;{t.content}&quot;</p>
                   <div className="flex items-center gap-3 pt-3 border-t border-white/5">
                     <div className="relative w-12 h-12 md:w-14 md:h-14 shrink-0">
                       <img src={t.avatar} alt={t.name} className="w-full h-full rounded-full object-cover relative z-10 border-2 border-bg-card" referrerPolicy="no-referrer" loading="lazy" />
@@ -655,12 +635,12 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 md:gap-16">
             <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <SectionHeader label="Contact" title="Let's Build Something" />
-              <p className="text-gray-400 text-base md:text-lg mb-12">Have a project in mind or just want to say hi? I'm always open to discussing new opportunities and creative ideas.</p>
+              <p className="text-gray-400 text-base md:text-lg mb-12">Have a project in mind or just want to say hi? I&apos;m always open to discussing new opportunities and creative ideas.</p>
               
               <div className="space-y-6">
                 {[
                   { icon: Mail, label: 'Email', value: config.contactEmail || 'info@walidrahman.com', href: `mailto:${config.contactEmail || 'info@walidrahman.com'}` },
-                  { icon: Phone, label: 'Phone', value: config.officePhone || '+880 1744 588 644', href: `tel:${config.officePhone || '+8801744588644'}` },
+                  { icon: Phone, label: 'Phone', value: config.officePhone || '+880 1744 588 644', href: `tel:${config.officePhone ? config.officePhone.replace(/[^0-9+]/g, '') : '+8801744588644'}` },
                   { icon: MapPin, label: 'Office', value: config.officeAddress || 'Nikunja 2, Dhaka 1229', href: '#' },
                 ].map((item, i) => (
                   <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="flex items-center gap-6">
@@ -718,7 +698,6 @@ export default function App() {
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/products" element={<ResourcesPage />} />
         
-        {/* NEW EXPLICIT POLICY CHANNELS */}
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
