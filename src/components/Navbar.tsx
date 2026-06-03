@@ -112,17 +112,17 @@ export default function Navbar() {
       isScrolled ? "bg-bg-dark/80 backdrop-blur-xl py-3 border-b border-border-subtle" : "bg-transparent"
     )}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
+        
+        {/* Brand / Logo Section */}
         <Link to="/" className="flex items-center gap-2 hover:text-accent transition-all">
-       // Find where your logo or site name is currently rendered and replace with:
-<Link to="/" className="flex items-center">
-  {config.siteLogo ? (
-    <img src={config.siteLogo} alt="Logo" className="h-10 w-auto" />
-  ) : (
-    <span className="font-black text-xl tracking-tighter text-white">
-      {config.siteTitle || ''}
-    </span>
-  )}
-</Link>
+          {config.siteLogo ? (
+            <img src={config.siteLogo} alt="Logo" className="h-10 w-auto" />
+          ) : (
+            <span className="font-black text-xl tracking-tighter text-white">
+              {config.siteTitle || 'Portfolio'}
+            </span>
+          )}
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
