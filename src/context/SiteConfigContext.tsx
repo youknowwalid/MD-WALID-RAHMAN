@@ -51,24 +51,20 @@ export interface SeoConfig {
   robotsIndex: boolean;
   sitemapUrl: string;
   focusKeywords: string;
-
   ogTitle: string;
   ogDescription: string;
   ogImageUrl: string;
   ogType: string;
   ogSiteName: string;
   ogLocale: string;
-
   twitterCardType: string;
   twitterTitle: string;
   twitterDescription: string;
   twitterImageUrl: string;
   twitterHandle: string;
-
   linkedinHeadline: string;
   linkedinSnippet: string;
   linkedinImageUrl: string;
-
   facebookPostTitle: string;
   facebookSubtitleSnippet: string;
   facebookSharedImageCover: string;
@@ -175,6 +171,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     return DEFAULT_CONFIG;
   });
+
   const [seoConfig, setSeoConfig] = useState<SeoConfig>(() => {
     const cached = localStorage.getItem('site_config_seo');
     if (cached) {
@@ -184,6 +181,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     return DEFAULT_SEO_CONFIG;
   });
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -254,7 +252,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           facebookSubtitleSnippet: data.facebookSubtitleSnippet || DEFAULT_SEO_CONFIG.facebookSubtitleSnippet,
           facebookSharedImageCover: data.facebookSharedImageCover || DEFAULT_SEO_CONFIG.facebookSharedImageCover,
         };
-
         setSeoConfig(nextSeo);
         localStorage.setItem('site_config_seo', JSON.stringify(nextSeo));
       } else {
@@ -273,6 +270,13 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       unsubscribeSeo();
     };
   }, []);
+
+  // Enforce absolute control over the Browser Tab Title exclusively via global config
+  useEffect(() => {
+    if (config.siteTitle) {
+      document.title = config.siteTitle;
+    }
+  }, [config.siteTitle]);
 
   useEffect(() => {
     const primary = config.primaryColor || '#f45901';
@@ -295,10 +299,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   useEffect(() => {
     if (!seoConfig) return;
-
-    if (seoConfig.metaTitle) {
-      document.title = seoConfig.metaTitle;
-    }
 
     let descMeta = document.querySelector("meta[name='description']");
     if (!descMeta) {
@@ -342,6 +342,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       'og:site_name': seoConfig.ogSiteName,
       'og:locale': seoConfig.ogLocale,
     };
+
     Object.entries(ogTags).forEach(([key, val]) => {
       let tag = document.querySelector(`meta[property='${key}']`);
       if (!tag) {
@@ -359,6 +360,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       'twitter:image': seoConfig.twitterImageUrl,
       'twitter:site': seoConfig.twitterHandle,
     };
+
     Object.entries(twitterTags).forEach(([key, val]) => {
       let tag = document.querySelector(`meta[name='${key}']`);
       if (!tag) {
@@ -376,6 +378,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       schemaScript.setAttribute('type', 'application/ld+json');
       document.head.appendChild(schemaScript);
     }
+
     const schemaObj = {
       "@context": "https://schema.org",
       "@type": "Person",
@@ -389,7 +392,6 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ]
     };
     schemaScript.innerHTML = JSON.stringify(schemaObj, null, 2);
-
   }, [seoConfig]);
 
   const updateConfig = async (newConfig: Partial<SiteConfig>) => {
