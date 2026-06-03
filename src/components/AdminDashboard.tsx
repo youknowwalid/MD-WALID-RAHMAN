@@ -148,9 +148,6 @@ export default function AdminDashboard() {
   
   // Settings States
   const [heroImage, setHeroImage] = useState('');
-  const [siteTitle, setSiteTitle] = useState('');
-const [siteLogo, setSiteLogo] = useState('');
-const [favicon, setFavicon] = useState('');
   const [heroStatus, setHeroStatus] = useState('');
   const [heroAvailability, setHeroAvailability] = useState('');
   const [cvUrl, setCvUrl] = useState('');
@@ -185,7 +182,6 @@ const [favicon, setFavicon] = useState('');
   const [gallery2, setGallery2] = useState('');
   const [gallery3, setGallery3] = useState('');
   const [gallery4, setGallery4] = useState('');
-
   const handleCVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -375,7 +371,6 @@ const [favicon, setFavicon] = useState('');
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-bg-dark text-text-main flex">
       <aside className="w-64 bg-bg-card border-r border-border-subtle p-6 flex flex-col shrink-0">
