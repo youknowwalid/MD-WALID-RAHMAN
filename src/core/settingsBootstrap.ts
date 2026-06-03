@@ -27,7 +27,7 @@ export const applyThemeVariables = (primaryColor: string, secondaryColor: string
   
   root.style.setProperty('--color-accent', primary);
   root.style.setProperty('--color-accent-secondary', secondary);
-  
+
   // Inject a style block for smooth changes if not already present
   let transitionStyle = document.getElementById('smooth-color-transitions');
   if (!transitionStyle) {
@@ -45,10 +45,7 @@ export const applyThemeVariables = (primaryColor: string, secondaryColor: string
 // Apply SEO elements synchronously
 export const applySEOElements = (seo: any) => {
   if (!seo) return;
-  if (seo.metaTitle) {
-    document.title = seo.metaTitle;
-  }
-  
+
   const setMetaContent = (name: string, content: string, isProperty = false) => {
     if (!content) return;
     const selector = isProperty ? `meta[property='${name}']` : `meta[name='${name}']`;
@@ -91,6 +88,12 @@ export async function initializeAppSettings(): Promise<void> {
   if (cachedGlobal) {
     try {
       const global = JSON.parse(cachedGlobal);
+      
+      // Enforce Tab Title instantly on first paint to prevent flicker
+      if (global.siteTitle) {
+        document.title = global.siteTitle;
+      }
+
       applyThemeVariables(global.primaryColor, global.secondaryColor);
       if (global.favicon) {
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement || document.createElement('link');
@@ -154,6 +157,11 @@ export async function initializeAppSettings(): Promise<void> {
     if (globalSnap.exists()) {
       const global = globalSnap.data();
       localStorage.setItem('site_config_global', JSON.stringify(global));
+      
+      if (global.siteTitle) {
+        document.title = global.siteTitle;
+      }
+      
       applyThemeVariables(global.primaryColor, global.secondaryColor);
       if (global.siteLogo) preloadAsset(global.siteLogo);
     }
@@ -181,7 +189,7 @@ const triggerSilentBackgroundSync = async () => {
       getDoc(doc(db, 'siteConfig', 'seo')),
       getDoc(doc(db, 'siteConfig', 'hero'))
     ]);
-
+    
     if (globalSnap.exists()) {
       localStorage.setItem('site_config_global', JSON.stringify(globalSnap.data()));
     }
