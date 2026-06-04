@@ -87,7 +87,7 @@ export const normalizeProduct = (data: any): Product => ({
   price: String(data.price || '$0.00'),
   thumbnail: String(data.thumbnail || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80'),
   image: String(data.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80'),
-  gumroadUrl: String(data.gumroadUrl || 'https://gumroad.com'),
+  paddleUrl: String(data.paddleUrl || '#'),
   order: Number(data.order !== undefined ? data.order : 0),
   featured: Boolean(data.featured !== undefined ? data.featured : true),
   published: Boolean(data.published !== undefined ? data.published : true),
