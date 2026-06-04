@@ -170,14 +170,14 @@
         "price": { "type": "string" },
         "thumbnail": { "type": "string" },
         "image": { "type": "string" },
-        "gumroadUrl": { "type": "string" },
+        "paddleUrl": { "type": "string" },
         "order": { "type": "integer" },
         "featured": { "type": "boolean" },
         "published": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["title", "shortTitle", "description", "price", "thumbnail", "image", "gumroadUrl"]
+      "required": ["title", "shortTitle", "description", "price", "thumbnail", "image", "paddleUrl"]
     }
   },
   "firestore": {
