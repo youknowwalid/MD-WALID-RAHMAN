@@ -47,7 +47,7 @@ const SEED_DATA: Record<string, any[]> = {
   ],
   products: [
     {
-      title: 'The Ultimate Design System Kit', shortTitle: 'Design System Kit', description: 'A comprehensive toolkit.', price: '$29.00', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80', gumroadUrl: 'https://gumroad.com', order: 1, featured: true, published: true
+      title: 'The Ultimate Design System Kit', shortTitle: 'Design System Kit', description: 'A comprehensive toolkit.', price: '$29.00', thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80', paddleUrl: '#', order: 1, featured: true, published: true
     },
   ],
 };
@@ -148,14 +148,14 @@ export default function AdminDashboard() {
   
   // Settings States
   const [heroImage, setHeroImage] = useState('');
+  const [siteTitle, setSiteTitle] = useState('');
+  const [siteLogo, setSiteLogo] = useState('');
+  const [favicon, setFavicon] = useState('');
   const [heroStatus, setHeroStatus] = useState('');
   const [heroAvailability, setHeroAvailability] = useState('');
   const [cvUrl, setCvUrl] = useState('');
   const [resumeImage, setResumeImage] = useState('');
   
-  const [siteTitle, setSiteTitle] = useState('youknowwalid');
-  const [siteLogo, setSiteLogo] = useState('');
-  const [favicon, setFavicon] = useState('');
   const [footerPortrait, setFooterPortrait] = useState('');
   const [headerLinks, setHeaderLinks] = useState<{label: string, url: string}[]>([]);
   const [footerColumns, setFooterColumns] = useState<{title: string, links: {label: string, url: string}[]}[]>([]);
@@ -182,6 +182,7 @@ export default function AdminDashboard() {
   const [gallery2, setGallery2] = useState('');
   const [gallery3, setGallery3] = useState('');
   const [gallery4, setGallery4] = useState('');
+
   const handleCVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -371,6 +372,7 @@ export default function AdminDashboard() {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-bg-dark text-text-main flex">
       <aside className="w-64 bg-bg-card border-r border-border-subtle p-6 flex flex-col shrink-0">
@@ -411,26 +413,29 @@ export default function AdminDashboard() {
             </div>
 
             <div className="max-w-4xl">
-              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
+              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
+                <h3 className="text-2xl font-black flex items-center gap-3"><Settings className="text-accent w-6 h-6" /> Site Identity</h3>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Site Title (Browser Tab)</label>
+                    <input value={siteTitle} onChange={(e) => setSiteTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" />
+                  </div>
+                  <ImageUpload label="Site Logo URL" value={siteLogo} onChange={setSiteLogo} />
+                  <ImageUpload label="Favicon URL" value={favicon} onChange={setFavicon} />
+                </div>
+              </div>
+              
+              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
                 <h3 className="text-2xl font-black flex items-center gap-3"><ImageIcon className="text-accent w-6 h-6" /> Hero Settings</h3>
-                <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
-  <h3 className="text-2xl font-black flex items-center gap-3"><Settings className="text-accent w-6 h-6" /> Site Identity</h3>
-  <div className="space-y-6">
-    <div>
-      <label className="block text-sm text-gray-400 mb-2">Site Title (Browser Tab)</label>
-      <input value={siteTitle} onChange={(e) => setSiteTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" />
-    </div>
-    <ImageUpload label="Site Logo URL" value={siteLogo} onChange={setSiteLogo} />
-    <ImageUpload label="Favicon URL" value={favicon} onChange={setFavicon} />
-  </div>
-</div>
                 <div className="space-y-6">
                   <ImageUpload label="Hero Profile Photo" value={heroImage} onChange={setHeroImage} />
                   <ImageUpload label="Resume Side Image" value={resumeImage} onChange={setResumeImage} />
+                  
                   <div className="grid grid-cols-2 gap-6">
                     <div><label className="block text-sm text-gray-400 mb-2">Status Badge</label><input value={heroStatus} onChange={(e) => setHeroStatus(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" /></div>
                     <div><label className="block text-sm text-gray-400 mb-2">Availability Text</label><input value={heroAvailability} onChange={(e) => setHeroAvailability(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" /></div>
                   </div>
+
                   <div className="space-y-2">
                     <label className="block text-sm text-gray-400">Download CV (PDF)</label>
                     <div className="flex gap-4 items-center">
@@ -672,8 +677,8 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Gumroad URL *</label>
-                        <input name="gumroadUrl" defaultValue={editingItem?.gumroadUrl || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                        <label className="block text-sm text-gray-400 mb-2">Paddle Checkout URL *</label>
+                        <input name="paddleUrl" defaultValue={editingItem?.paddleUrl || ''} required className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Description</label>
@@ -714,6 +719,7 @@ export default function AdminDashboard() {
             </motion.div>
           )}
         </AnimatePresence>
+
         {activeTab !== 'settings' && activeTab !== 'branding' && activeTab !== 'seoSettings' && (
         <div className="grid gap-4">
           {items.map((item) => (
