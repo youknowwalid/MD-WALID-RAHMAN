@@ -105,7 +105,7 @@ export interface Product {
   price: string;
   thumbnail: string;
   image: string;
-  gumroadUrl: string;
+  paddleUrl: string;
   order?: number;
   featured?: boolean;
   published?: boolean;
