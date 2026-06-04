@@ -26,7 +26,6 @@ service cloud.firestore {
     }
 
     // --- Validation Helpers ---
-
     function isValidProject(data) {
       return data.keys().hasAll(['title', 'category', 'image']) &&
              data.get('title', '') is string && 
@@ -87,14 +86,14 @@ service cloud.firestore {
     }
 
     function isValidProduct(data) {
-      return data.keys().hasAll(['title', 'shortTitle', 'description', 'price', 'thumbnail', 'image', 'gumroadUrl']) &&
+      return data.keys().hasAll(['title', 'shortTitle', 'description', 'price', 'thumbnail', 'image', 'paddleUrl']) &&
              data.get('title', '') is string &&
              data.get('shortTitle', '') is string &&
              data.get('description', '') is string &&
              data.get('price', '') is string &&
              data.get('thumbnail', '') is string &&
              data.get('image', '') is string &&
-             data.get('gumroadUrl', '') is string &&
+             data.get('paddleUrl', '') is string &&
              data.get('gallery1', '') is string &&
              data.get('gallery2', '') is string &&
              data.get('gallery3', '') is string &&
@@ -103,7 +102,6 @@ service cloud.firestore {
     }
 
     // --- Collection Matches ---
-
     match /products/{id} {
       allow read: if true;
       allow create, update: if isAdmin() && isValidProduct(incoming());
