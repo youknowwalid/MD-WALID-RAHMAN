@@ -18,7 +18,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: '$29.00',
     thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
     image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
-    gumroadUrl: 'https://gumroad.com',
+    paddleUrl: '#',
     published: true,
     featured: true,
     order: 1
@@ -31,7 +31,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: '$19.00',
     thumbnail: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=800&auto=format&fit=crop&q=80',
     image: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=1200&auto=format&fit=crop&q=80',
-    gumroadUrl: 'https://gumroad.com',
+    paddleUrl: '#',
     published: true,
     featured: true,
     order: 2
@@ -44,7 +44,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: '$15.00',
     thumbnail: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80',
     image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&auto=format&fit=crop&q=80',
-    gumroadUrl: 'https://gumroad.com',
+    paddleUrl: '#',
     published: true,
     featured: true,
     order: 3
@@ -251,21 +251,21 @@ export default function ResourcesPage() {
                 <HelpCircle className="w-6 h-6 text-[#f45901] mb-3" />
                 <h4 className="text-sm font-bold text-white mb-2">How do I access/receive files?</h4>
                 <p className="text-xs leading-relaxed">
-                  Upon purchase completion, Gumroad will securely process the payment and instantly direct you to high-quality PDF downloads. Backups are also emailed immediately to your inbox.
+                  Upon purchase completion, Paddle will securely process the payment and instantly direct you to high-quality PDF downloads. Backups are also emailed immediately to your inbox.
                 </p>
               </div>
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
                 <LayoutGrid className="w-6 h-6 text-[#f45901] mb-3" />
                 <h4 className="text-sm font-bold text-white mb-2">Can these be updated?</h4>
                 <p className="text-xs leading-relaxed">
-                  Absolutely! All active templates, manuals, or kits are continuously refined. Free lifetime revisions are synced directly to your Gumroad library as they go live.
+                  Absolutely! All active templates, manuals, or kits are continuously refined. Free lifetime revisions are synced directly to your email via Paddle as they go live.
                 </p>
               </div>
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
                 <ShieldCheck className="w-6 h-6 text-[#f45901] mb-3" />
                 <h4 className="text-sm font-bold text-white mb-2">Secured Payments?</h4>
                 <p className="text-xs leading-relaxed">
-                  Yes, fully. Checkout processing systems are completely operated through safe 256-bit encrypted Gumroad gateways, handling secure transaction safety globally.
+                  Yes, fully. Checkout processing systems are completely operated through safe 256-bit encrypted Paddle gateways, handling secure transaction safety globally.
                 </p>
               </div>
             </div>
