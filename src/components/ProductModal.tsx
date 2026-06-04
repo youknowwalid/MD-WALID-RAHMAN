@@ -8,12 +8,6 @@ interface ProductModalProps {
   onClose: () => void;
 }
 
-declare global {
-  interface Window {
-    GumroadOverlay?: any;
-  }
-}
-
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   // Prevent body scrolling when modal is open
   useEffect(() => {
@@ -22,33 +16,6 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       document.body.style.overflow = '';
     };
   }, []);
-
-  // Bind dynamic Gumroad buttons
-  useEffect(() => {
-    // If window.GumroadOverlay is loaded, initialize/bind new links
-    if (window.GumroadOverlay) {
-      try {
-        window.GumroadOverlay.init();
-      } catch (err) {
-        console.warn('Failed to initialize GumroadOverlay:', err);
-      }
-    } else {
-      // Fallback: load Gumroad script if missing
-      const script = document.createElement('script');
-      script.src = 'https://gumroad.com/js/gumroad.js';
-      script.async = true;
-      script.onload = () => {
-        if (window.GumroadOverlay) {
-          try {
-            window.GumroadOverlay.init();
-          } catch (e) {
-            console.warn('GumroadOverlay loading initiation failed:', e);
-          }
-        }
-      };
-      document.head.appendChild(script);
-    }
-  }, [product]);
 
   // Handle ESC key to close
   useEffect(() => {
@@ -61,15 +28,10 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  // Helper to safely serialize/sanitize Gumroad Link
-  const getGumroadHref = (url: string) => {
+  // Helper to safely serialize the Paddle Checkout Link
+  const getCheckoutHref = (url?: string) => {
     if (!url) return '#';
-    const trimmed = url.trim();
-    // Validate that it contains gumroad or gum.co
-    if (trimmed.includes('gumroad.com') || trimmed.includes('gum.co')) {
-      return trimmed;
-    }
-    return trimmed; // Return raw value as fallback if the admin provided another link
+    return url.trim();
   };
 
   // Compile valid truthy gallery images
@@ -298,7 +260,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
                 <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span>Secured 256-bit SSL Checkout via Gumroad</span>
+                <span>Secured 256-bit SSL Checkout via Paddle</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
                 <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
@@ -310,19 +272,20 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           {/* Call-to-Action & Terms Footer */}
           <div className="space-y-4">
             
-            {/* Gumroad Embedded Button */}
+            {/* Paddle Checkout Button */}
             <a
               id={`buy-now-btn-${product.id}`}
-              href={getGumroadHref(product.gumroadUrl)}
-              data-gumroad-single-product="true"
-              className="gumroad-button group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
+              href={getCheckoutHref(product.paddleUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
             >
               Buy Now
             </a>
 
             {/* Dynamic Checkout note */}
             <p className="text-[10px] text-center text-neutral-500 uppercase tracking-widest leading-relaxed">
-              Processed securely via Gumroad • Secured file download
+              Processed securely via Paddle • Instant email delivery
             </p>
 
           </div>
