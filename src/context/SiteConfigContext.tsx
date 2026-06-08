@@ -42,6 +42,7 @@ export interface SiteConfig {
   termsOfService?: string;
   privacyPolicy?: string;
   refundPolicy?: string;
+  aboutVideoUrl?: string;
 }
 
 export interface SeoConfig {
@@ -157,6 +158,7 @@ const DEFAULT_CONFIG: SiteConfig = {
   termsOfService: 'Terms of Service will appear here...',
   privacyPolicy: 'Privacy Policy will appear here...',
   refundPolicy: 'Refund Policy will appear here...',
+  aboutVideoUrl: '',
 };
 
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
@@ -211,6 +213,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           termsOfService: data.termsOfService || DEFAULT_CONFIG.termsOfService,
           privacyPolicy: data.privacyPolicy || DEFAULT_CONFIG.privacyPolicy,
           refundPolicy: data.refundPolicy || DEFAULT_CONFIG.refundPolicy,
+          aboutVideoUrl: data.aboutVideoUrl || '',
         };
 
         setConfig(nextConfig);
