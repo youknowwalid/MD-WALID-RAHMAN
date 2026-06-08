@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { 
   Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, Briefcase, FileText,
   Loader2, ChevronLeft, Database, Users, Settings, Upload, Image as ImageIcon, DollarSign,
-  MessageSquare, Cpu, ShoppingCart, Palette, Globe
+  MessageSquare, Cpu, ShoppingCart, Palette, Globe, PlayCircle
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
@@ -174,6 +174,7 @@ export default function AdminDashboard() {
   const [termsOfService, setTermsOfService] = useState('');
   const [privacyPolicy, setPrivacyPolicy] = useState('');
   const [refundPolicy, setRefundPolicy] = useState('');
+  const [aboutVideoUrl, setAboutVideoUrl] = useState(''); // NEW STATE
 
   // Form Upload States
   const [uploadValue, setUploadValue] = useState('');
@@ -182,7 +183,6 @@ export default function AdminDashboard() {
   const [gallery2, setGallery2] = useState('');
   const [gallery3, setGallery3] = useState('');
   const [gallery4, setGallery4] = useState('');
-
   const handleCVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -239,6 +239,7 @@ export default function AdminDashboard() {
           setPrimaryColor(data.primaryColor || '#f45901'); setSecondaryColor(data.secondaryColor || '#00c6ff');
           setBrandTagline(data.brandTagline || ''); setGlobalCtaText(data.globalCtaText || ''); setGlobalCtaUrl(data.globalCtaUrl || '');
           setTermsOfService(data.termsOfService || ''); setPrivacyPolicy(data.privacyPolicy || ''); setRefundPolicy(data.refundPolicy || '');
+          setAboutVideoUrl(data.aboutVideoUrl || '');
         }
       } catch (err) {}
       setItems([]);
@@ -318,6 +319,7 @@ export default function AdminDashboard() {
           primaryColor: str(primaryColor), secondaryColor: str(secondaryColor), 
           globalCtaText: str(globalCtaText), globalCtaUrl: str(globalCtaUrl), 
           termsOfService: str(termsOfService), privacyPolicy: str(privacyPolicy), refundPolicy: str(refundPolicy), 
+          aboutVideoUrl: str(aboutVideoUrl),
           updatedAt: new Date().toISOString()
         };
         await updateDocument('siteConfig', 'global', globalSettingsPayload);
@@ -372,7 +374,6 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-bg-dark text-text-main flex">
       <aside className="w-64 bg-bg-card border-r border-border-subtle p-6 flex flex-col shrink-0">
@@ -448,6 +449,22 @@ export default function AdminDashboard() {
                         <input type="file" accept="application/pdf" onChange={handleCVUpload} className="hidden" />
                       </label>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8 mt-10">
+                <h3 className="text-2xl font-black flex items-center gap-3"><PlayCircle className="text-accent w-6 h-6" /> About Section Video</h3>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Introductory Video URL (YouTube or Cloudinary MP4)</label>
+                    <input 
+                      value={aboutVideoUrl} 
+                      onChange={(e) => setAboutVideoUrl(e.target.value)} 
+                      placeholder="https://youtube.com/watch?v=... or https://res.cloudinary.com/...mp4" 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent text-white" 
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Paste a YouTube link or a direct .mp4 link. It will automatically replace the contact cards in the About section.</p>
                   </div>
                 </div>
               </div>
