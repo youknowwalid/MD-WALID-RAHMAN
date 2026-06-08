@@ -34,6 +34,48 @@ const ICON_MAP: Record<string, any> = {
 };
 
 // --- Constants ---
+// --- Custom Video Player ---
+const VideoPlayer = ({ url }: { url?: string }) => {
+  if (!url) {
+    return (
+      <div className="w-full aspect-video rounded-2xl border border-dashed border-white/10 flex items-center justify-center bg-white/5 text-gray-500 shadow-2xl">
+        Add introductory video URL in Admin Panel
+      </div>
+    );
+  }
+
+  const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+
+  if (isYouTube) {
+    let videoId = '';
+    if (url.includes('youtube.com/watch?v=')) {
+      videoId = url.split('v=')[1]?.split('&')[0];
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1]?.split('?')[0];
+    }
+    return (
+      <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-neutral-900">
+        <iframe
+          className="w-full h-full"
+          src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+          title="Introductory Video"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-neutral-900">
+      <video className="w-full h-full object-cover" controls playsInline preload="metadata">
+        <source src={url} />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  );
+};
 const DEFAULT_HEADER_LINKS = [
   { label: 'Home', url: '/#home' },
   { label: 'About', url: '/#about' },
@@ -369,11 +411,11 @@ function Portfolio() {
           </div>
         </section>
 
-        {/* ABOUT SECTION */}
+{/* ABOUT SECTION */}
         <section id="about" className="py-16 md:py-32 px-6 bg-card-dark">
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="About Me" title="Crafting Digital Excellence" />
-            <div className="grid lg:grid-cols-2 gap-10 md:gap-16">
+            <div className="grid lg:grid-cols-2 gap-10 md:gap-16 items-center">
               <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
                 <p className="text-lg md:text-xl text-text-muted leading-relaxed mb-8">
                   As a Team Leader with extensive expertise in digital marketing, ed-tech, e-commerce, and brand management, I drive strategic growth and innovation across diverse industries. With a background that spans art direction, product design, sales, and more, I bring a multifaceted perspective to every project.
@@ -387,22 +429,8 @@ function Portfolio() {
                 </div>
               </motion.div>
               
-              <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="grid sm:grid-cols-2 gap-6">
-                <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default">
-                  <Mail className="text-accent mb-4" />
-                  <div className="text-sm text-text-muted">Email</div>
-                  <div className="font-bold underline decoration-accent/30"><a href={`mailto:${config.contactEmail}`}>{config.contactEmail}</a></div>
-                </div>
-                <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default">
-                  <Phone className="text-accent mb-4" />
-                  <div className="text-sm text-text-muted">Phone</div>
-                  <div className="font-bold underline decoration-accent/30"><a href={`tel:${config.officePhone}`}>{config.officePhone}</a></div>
-                </div>
-                <div className="p-6 bg-bg-card rounded-2xl border border-white/5 hover:border-accent/40 transition-all cursor-default col-span-full">
-                  <MapPin className="text-accent mb-4" />
-                  <div className="text-sm text-text-muted">Location</div>
-                  <div className="font-bold">{config.officeAddress}</div>
-                </div>
+              <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="flex items-center justify-center w-full h-full">
+                <VideoPlayer url={config.aboutVideoUrl} />
               </motion.div>
             </div>
           </div>
