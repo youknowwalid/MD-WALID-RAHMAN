@@ -10,14 +10,13 @@ import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { 
-  auth, db, signInWithGoogle, logout, getCollection, addDocument, updateDocument, removeDocument 
-} from '../services/firebase';
+  supabase, signInWithGoogle, logout, getCollection, addDocument, updateDocument, removeDocument, getDocument 
+} from '../services/supabase';
 import { 
   normalizePricingPlan, normalizeProject, normalizeBlogPost, normalizeService, 
   normalizeTestimonial, normalizeResumeItem, normalizeProduct
 } from '../lib/schema-defaults';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import type { User } from '@supabase/supabase-js';
 
 const SEED_DATA: Record<string, any[]> = {
   projects: [
@@ -196,18 +195,31 @@ export default function AdminDashboard() {
   const checkAdminStatus = useCallback(async (currentUser: User) => {
     try {
       const isSystemAdmin = currentUser.email?.toLowerCase() === 'walidxdxdxd@gmail.com';
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      setIsAdmin(userDoc.exists() ? userDoc.data()?.isAdmin || isSystemAdmin : isSystemAdmin);
+      const userDoc = await getDocument('users', currentUser.id);
+      setIsAdmin(userDoc ? userDoc.isAdmin || isSystemAdmin : isSystemAdmin);
     } catch (error) { setIsAdmin(currentUser.email?.toLowerCase() === 'walidxdxdxd@gmail.com'); }
   }, []);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, async (user) => {
+    // Check initial user
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       setUser(user);
       if (user) await checkAdminStatus(user);
       else setIsAdmin(false);
       setLoading(false);
     });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      if (currentUser) await checkAdminStatus(currentUser);
+      else setIsAdmin(false);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [checkAdminStatus]);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -225,14 +237,14 @@ export default function AdminDashboard() {
     setLoading(true);
     if (activeTab === 'settings' || activeTab === 'branding' || activeTab === 'seoSettings') {
       try {
-        const configDoc = await getDoc(doc(db, 'siteConfig', 'hero'));
-        if (configDoc.exists()) {
-          const data = configDoc.data();
+        const heroData = await getDocument('siteConfig', 'hero');
+        if (heroData) {
+          const data = heroData.data || heroData;
           setHeroImage(data.heroImage || ''); setHeroStatus(data.heroStatus || ''); setHeroAvailability(data.heroAvailability || ''); setCvUrl(data.cvUrl || ''); setResumeImage(data.resumeImage || '');
         }
-        const globalDoc = await getDoc(doc(db, 'siteConfig', 'global'));
-        if (globalDoc.exists()) {
-          const data = globalDoc.data();
+        const globalData = await getDocument('siteConfig', 'global');
+        if (globalData) {
+          const data = globalData.data || globalData;
           setSiteTitle(data.siteTitle || ''); setSiteLogo(data.siteLogo || ''); setFavicon(data.favicon || ''); setFooterPortrait(data.footerPortrait || '');
           setHeaderLinks(data.headerLinks || []); setFooterColumns(data.footerColumns || []); setSocialLinks(data.socialLinks || []); setCopyrightText(data.copyrightText || '');
           setOfficeAddress(data.officeAddress || ''); setContactEmail(data.contactEmail || ''); setOfficePhone(data.officePhone || '');

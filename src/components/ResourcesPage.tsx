@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, LayoutGrid, Search, Eye, Filter, ShieldCheck, HelpCircle } from 'lucide-react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { subscribeToCollection } from '../services/supabase';
 import { Product } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ProductModal from './ProductModal';
 
-// Static fallbacks in case Firestore collection is not yet populated
+// Static fallbacks in case Database collection is not yet populated
 const DEFAULT_PRODUCTS: Product[] = [
   {
     id: 'design-system-kit',
@@ -58,29 +57,15 @@ export default function ResourcesPage() {
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    // Listen to firestore products in real-time
-    const q = query(
-      collection(db, 'products'),
-      where('published', '==', true),
-      orderBy('order', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const dbProducts: Product[] = [];
-      snapshot.forEach((doc) => {
-        dbProducts.push({ ...doc.data(), id: doc.id } as Product);
-      });
-      
-      // If none found in DB, use our premium defaults as starting point
-      if (dbProducts.length === 0) {
+    // Listen to Supabase products in real-time
+    const unsubscribe = subscribeToCollection('products', (dbProducts) => {
+      const activeProducts = (dbProducts || []).filter(p => p.published !== false);
+      if (activeProducts.length === 0) {
         setProducts(DEFAULT_PRODUCTS);
       } else {
-        setProducts(dbProducts);
+        activeProducts.sort((a, b) => (a.order || 0) - (b.order || 0));
+        setProducts(activeProducts);
       }
-      setLoading(false);
-    }, (error) => {
-      console.warn("Firestore products fetch failed or empty (falling back to default resources):", error);
-      setProducts(DEFAULT_PRODUCTS);
       setLoading(false);
     });
 

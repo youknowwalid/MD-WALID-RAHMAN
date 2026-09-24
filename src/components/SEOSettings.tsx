@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Loader2, Globe, Image as ImageIcon, Upload } from 'lucide-react';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../services/firebase';
+import { getDocument, setDocument, handleDatabaseError, OperationType } from '../services/supabase';
 
 const SeoImageUpload = ({ label, value, onChange, recommendation }: { label: string; value: string; onChange: (val: string) => void; recommendation?: string; }) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -72,10 +71,9 @@ export function SEOSettings() {
   useEffect(() => {
     const fetchSEO = async () => {
       try {
-        const docRef = doc(db, 'siteConfig', 'seo');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        const docSnap = await getDocument('siteConfig', 'seo');
+        if (docSnap) {
+          const data = docSnap.data || docSnap;
           setDefaultTitle(data.defaultTitle || '');
           setTitleTemplate(data.titleTemplate || '');
           setDefaultDescription(data.defaultDescription || '');
@@ -85,7 +83,7 @@ export function SEOSettings() {
           setKeywords(data.keywords || '');
         }
       } catch (error) {
-        handleFirestoreError(error, OperationType.GET, 'siteConfig/seo');
+        handleDatabaseError(error, OperationType.GET, 'siteConfig/seo');
       } finally {
         setLoading(false);
       }
@@ -105,12 +103,12 @@ export function SEOSettings() {
         twitterHandle,
         ogImage,
         keywords,
-        updatedAt: serverTimestamp()
+        updatedAt: new Date().toISOString()
       };
-      await updateDoc(doc(db, 'siteConfig', 'seo'), payload);
+      await setDocument('siteConfig', 'seo', payload);
       alert('SEO Settings successfully updated!');
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'siteConfig/seo');
+      handleDatabaseError(error, OperationType.UPDATE, 'siteConfig/seo');
     } finally {
       setIsSaving(false);
     }

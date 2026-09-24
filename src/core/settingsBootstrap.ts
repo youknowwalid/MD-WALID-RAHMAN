@@ -1,5 +1,4 @@
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { getDocument } from '../services/supabase';
 
 // Helper to check if a value is a base64 string or asset url
 const preloadAsset = (url: string) => {
@@ -149,13 +148,13 @@ export async function initializeAppSettings(): Promise<void> {
   // Otherwise, if first initial paint (no cache matches), block for network fetch to prevent default flash
   try {
     const [globalSnap, seoSnap, heroSnap] = await Promise.all([
-      getDoc(doc(db, 'siteConfig', 'global')),
-      getDoc(doc(db, 'siteConfig', 'seo')),
-      getDoc(doc(db, 'siteConfig', 'hero'))
+      getDocument('siteConfig', 'global'),
+      getDocument('siteConfig', 'seo'),
+      getDocument('siteConfig', 'hero')
     ]);
 
-    if (globalSnap.exists()) {
-      const global = globalSnap.data();
+    if (globalSnap) {
+      const global = globalSnap.data || globalSnap;
       localStorage.setItem('site_config_global', JSON.stringify(global));
       
       if (global.siteTitle) {
@@ -165,13 +164,13 @@ export async function initializeAppSettings(): Promise<void> {
       applyThemeVariables(global.primaryColor, global.secondaryColor);
       if (global.siteLogo) preloadAsset(global.siteLogo);
     }
-    if (seoSnap.exists()) {
-      const seo = seoSnap.data();
+    if (seoSnap) {
+      const seo = seoSnap.data || seoSnap;
       localStorage.setItem('site_config_seo', JSON.stringify(seo));
       applySEOElements(seo);
     }
-    if (heroSnap.exists()) {
-      const hero = heroSnap.data();
+    if (heroSnap) {
+      const hero = heroSnap.data || heroSnap;
       localStorage.setItem('site_config_hero', JSON.stringify(hero));
       if (hero.heroImage) preloadAsset(hero.heroImage);
       if (hero.resumeImage) preloadAsset(hero.resumeImage);
@@ -185,19 +184,19 @@ export async function initializeAppSettings(): Promise<void> {
 const triggerSilentBackgroundSync = async () => {
   try {
     const [globalSnap, seoSnap, heroSnap] = await Promise.all([
-      getDoc(doc(db, 'siteConfig', 'global')),
-      getDoc(doc(db, 'siteConfig', 'seo')),
-      getDoc(doc(db, 'siteConfig', 'hero'))
+      getDocument('siteConfig', 'global'),
+      getDocument('siteConfig', 'seo'),
+      getDocument('siteConfig', 'hero')
     ]);
     
-    if (globalSnap.exists()) {
-      localStorage.setItem('site_config_global', JSON.stringify(globalSnap.data()));
+    if (globalSnap) {
+      localStorage.setItem('site_config_global', JSON.stringify(globalSnap.data || globalSnap));
     }
-    if (seoSnap.exists()) {
-      localStorage.setItem('site_config_seo', JSON.stringify(seoSnap.data()));
+    if (seoSnap) {
+      localStorage.setItem('site_config_seo', JSON.stringify(seoSnap.data || seoSnap));
     }
-    if (heroSnap.exists()) {
-      localStorage.setItem('site_config_hero', JSON.stringify(heroSnap.data()));
+    if (heroSnap) {
+      localStorage.setItem('site_config_hero', JSON.stringify(heroSnap.data || heroSnap));
     }
   } catch (err) {
     console.warn("Background admin presets cache sync failed:", err);

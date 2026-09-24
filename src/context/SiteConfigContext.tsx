@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { subscribeToDocument, setDocument } from '../services/supabase';
 
 export interface HeaderLink {
   label: string;
@@ -187,9 +186,9 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribeGlobal = onSnapshot(doc(db, 'siteConfig', 'global'), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
+    const unsubscribeGlobal = subscribeToDocument('siteConfig', 'global', (docData) => {
+      if (docData) {
+        const data = docData.data || docData;
         let loadedHeaderLinks = Array.isArray(data.headerLinks) ? data.headerLinks : DEFAULT_CONFIG.headerLinks;
         let loadedFooterColumns = Array.isArray(data.footerColumns) ? data.footerColumns : DEFAULT_CONFIG.footerColumns;
 
@@ -219,17 +218,15 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setConfig(nextConfig);
         localStorage.setItem('site_config_global', JSON.stringify(nextConfig));
       } else {
-        setDoc(doc(db, 'siteConfig', 'global'), DEFAULT_CONFIG).catch(err => {
+        setDocument('siteConfig', 'global', DEFAULT_CONFIG).catch(err => {
           console.warn("Bootstrap initial global config failed:", err);
         });
       }
-    }, (error) => {
-      console.error("Failed to load site config:", error);
     });
 
-    const unsubscribeSeo = onSnapshot(doc(db, 'siteConfig', 'seo'), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
+    const unsubscribeSeo = subscribeToDocument('siteConfig', 'seo', (docData) => {
+      if (docData) {
+        const data = docData.data || docData;
         const nextSeo = {
           metaTitle: data.metaTitle || DEFAULT_SEO_CONFIG.metaTitle,
           metaDescription: data.metaDescription || DEFAULT_SEO_CONFIG.metaDescription,
@@ -258,13 +255,10 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setSeoConfig(nextSeo);
         localStorage.setItem('site_config_seo', JSON.stringify(nextSeo));
       } else {
-        setDoc(doc(db, 'siteConfig', 'seo'), DEFAULT_SEO_CONFIG).catch(err => {
+        setDocument('siteConfig', 'seo', DEFAULT_SEO_CONFIG).catch(err => {
           console.warn("Bootstrap initial SEO site config failed:", err);
         });
       }
-      setLoading(false);
-    }, (error) => {
-      console.error("Failed to load SEO site config:", error);
       setLoading(false);
     });
 
@@ -405,7 +399,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
     setConfig(updated);
     localStorage.setItem('site_config_global', JSON.stringify(updated));
-    await setDoc(doc(db, 'siteConfig', 'global'), updated, { merge: true });
+    await setDocument('siteConfig', 'global', updated);
   };
 
   const updateSeoConfig = async (newSeo: Partial<SeoConfig>) => {
@@ -416,7 +410,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
     setSeoConfig(updated);
     localStorage.setItem('site_config_seo', JSON.stringify(updated));
-    await setDoc(doc(db, 'siteConfig', 'seo'), updated, { merge: true });
+    await setDocument('siteConfig', 'seo', updated);
   };
 
   return (

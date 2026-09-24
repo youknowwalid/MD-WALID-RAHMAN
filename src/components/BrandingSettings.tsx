@@ -58,7 +58,7 @@ export const BrandingSettings: React.FC<{ onBack?: () => void }> = ({ onBack }) 
     setIsDirty(true);
   };
 
-  // Save colors atomically to Firestore
+  // Save colors atomically to Database
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSaving(true);
@@ -77,7 +77,7 @@ export const BrandingSettings: React.FC<{ onBack?: () => void }> = ({ onBack }) 
       console.error(err);
       setToast({
         type: 'error',
-        message: err.message || 'Fatal error overwriting brand colors in Firestore.',
+        message: err.message || 'Fatal error overwriting brand colors in Database.',
       });
     } finally {
       setIsSaving(false);

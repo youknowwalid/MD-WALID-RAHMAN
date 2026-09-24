@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, Calendar, User, Clock, Share2, Facebook, Linkedin, Twitter } from 'lucide-react';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { getDocument, queryDocuments } from '../services/supabase';
 import { BlogPost } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -42,21 +41,18 @@ export default function BlogDetail() {
       try {
         if (!blogId) return;
         
-        // Try Firestore by ID first
-        const docRef = doc(db, 'blogPosts', blogId);
-        const docSnap = await getDoc(docRef);
+        // Try Supabase by ID first
+        const docData = await getDocument('blogPosts', blogId);
         
-        if (docSnap.exists()) {
-          setPost({ id: docSnap.id, ...docSnap.data() } as BlogPost);
+        if (docData) {
+          setPost({ id: docData.id, ...docData } as BlogPost);
         } else {
           // Try looking up by slug
-          const postsRef = collection(db, 'blogPosts');
-          const q = query(postsRef, where('slug', '==', blogId), limit(1));
-          const querySnapshot = await getDocs(q);
+          const slugDocs = await queryDocuments('blogPosts', 'slug', blogId, 1);
           
-          if (!querySnapshot.empty) {
-            const firstDoc = querySnapshot.docs[0];
-            setPost({ id: firstDoc.id, ...firstDoc.data() } as BlogPost);
+          if (slugDocs.length > 0) {
+            const firstDoc = slugDocs[0];
+            setPost({ id: firstDoc.id, ...firstDoc } as BlogPost);
           } else {
             const localPost = DEFAULT_BLOG_POSTS.find(p => p.id === blogId || p.slug === blogId);
             setPost(localPost || null);

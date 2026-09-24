@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, ExternalLink, Calendar, Tag, User } from 'lucide-react';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { getDocument, queryDocuments } from '../services/supabase';
 import { Project } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -59,21 +58,18 @@ export default function ProjectDetail() {
       try {
         if (!projectId) return;
         
-        // Try Firestore by ID first
-        const docRef = doc(db, 'projects', projectId);
-        const docSnap = await getDoc(docRef);
+        // Try Supabase by ID first
+        const docData = await getDocument('projects', projectId);
         
-        if (docSnap.exists()) {
-          setProject({ id: docSnap.id, ...docSnap.data() } as Project);
+        if (docData) {
+          setProject({ id: docData.id, ...docData } as Project);
         } else {
           // If not found by ID, try looking up by slug
-          const projectsRef = collection(db, 'projects');
-          const q = query(projectsRef, where('slug', '==', projectId), limit(1));
-          const querySnapshot = await getDocs(q);
+          const slugDocs = await queryDocuments('projects', 'slug', projectId, 1);
           
-          if (!querySnapshot.empty) {
-            const firstDoc = querySnapshot.docs[0];
-            setProject({ id: firstDoc.id, ...firstDoc.data() } as Project);
+          if (slugDocs.length > 0) {
+            const firstDoc = slugDocs[0];
+            setProject({ id: firstDoc.id, ...firstDoc } as Project);
           } else {
             // Fallback to local defaults
             const localProject = DEFAULT_PROJECTS.find(p => p.id === projectId || p.slug === projectId);
