@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight, Eye, Sparkles } from 'lucide-react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { subscribeToCollection } from '../services/supabase';
 import { Product } from '../types';
 import ProductModal from './ProductModal';
 
@@ -22,21 +21,10 @@ export default function ResourcesSection() {
   const scrollLeftStartRef = useRef<number>(0);
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'products'),
-      where('published', '==', true),
-      orderBy('order', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items: Product[] = [];
-      snapshot.forEach((doc) => {
-        items.push({ ...doc.data(), id: doc.id } as Product);
-      });
-      setProducts(items);
-      setLoading(false);
-    }, (error) => {
-      console.error("Failed to fetch products for home view:", error);
+    const unsubscribe = subscribeToCollection('products', (dbProducts) => {
+      const activeProducts = (dbProducts || []).filter(p => p.published !== false);
+      activeProducts.sort((a, b) => (a.order || 0) - (b.order || 0));
+      setProducts(activeProducts);
       setLoading(false);
     });
 

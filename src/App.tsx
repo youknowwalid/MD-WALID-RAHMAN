@@ -7,8 +7,7 @@ import {
 } from 'lucide-react';
 
 import { cn } from './lib/utils';
-import { db, addDocument, getCollection } from './services/firebase';
-import { onSnapshot, doc } from 'firebase/firestore';
+import { addDocument, getCollection, subscribeToDocument } from './services/supabase';
 
 import AdminDashboard from './components/AdminDashboard';
 import ProjectDetail from './components/ProjectDetail';
@@ -316,9 +315,8 @@ function Portfolio() {
     };
     fetchAllData();
 
-    const unsubscribeHero = onSnapshot(doc(db, 'siteConfig', 'hero'), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
+    const unsubscribeHero = subscribeToDocument('siteConfig', 'hero', (data) => {
+      if (data) {
         setHeroImage(data.heroImage || '/input_file_0.png'); setHeroStatus(data.heroStatus || 'Active Now');
         setHeroAvailability(data.heroAvailability || 'Available for new projects'); setCvUrl(data.cvUrl || '#'); setResumeImage(data.resumeImage || '');
       }
