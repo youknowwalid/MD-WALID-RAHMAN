@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowLeft, ExternalLink, Calendar, Tag, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, LayoutGrid } from 'lucide-react';
 import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { db, getCollection } from '../services/firebase';
 import { Project } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -53,6 +53,14 @@ export default function ProjectDetail() {
   const { projectId } = useParams();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [allProjects, setAllProjects] = useState<Project[]>(DEFAULT_PROJECTS);
+
+  // Sibling projects (same ordering as the listing) for prev / next navigation
+  useEffect(() => {
+    getCollection('projects')
+      .then(docs => { if (docs && docs.length > 0) setAllProjects(docs as Project[]); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -114,130 +122,184 @@ export default function ProjectDetail() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
-      <Navbar />
-      
-      <main className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Back link */}
-          <Link to="/#projects" className="inline-flex items-center gap-2 text-gray-500 hover:text-accent transition-colors mb-12 group">
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            Back to Projects
-          </Link>
+  const projectPath = (p: Project) => `/projects/${p.slug || p.id || p.title.toLowerCase().replace(/\s+/g, '-')}`;
 
-          {/* Hero Section */}
-          <div className="mb-16">
-            <motion.span 
-              initial={{ opacity: 0, y: 20 }}
+  // Overview: first paragraph is the lead, the remainder is body copy
+  const paragraphs = (project.content || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
+  const [lead, ...rest] = paragraphs;
+
+  // Published date from existing createdAt field (Firestore Timestamp or string)
+  const created = project.createdAt?.toDate ? project.createdAt.toDate() : project.createdAt ? new Date(project.createdAt) : null;
+  const published = created && !isNaN(created.getTime())
+    ? created.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+
+  const hasLink = !!project.link && project.link !== '#';
+  const tags = project.tags || [];
+  const gallery = (project.gallery || []).filter(Boolean);
+
+  // Editorial rhythm: two-up, full-width, two-up, full-width...
+  const galleryRows: { img: string; n: number }[][] = [];
+  for (let i = 0, pair = true; i < gallery.length; pair = !pair) {
+    const take = pair && i + 1 < gallery.length ? 2 : 1;
+    galleryRows.push(gallery.slice(i, i + take).map((img, k) => ({ img, n: i + k + 1 })));
+    i += take;
+  }
+
+  const currentIndex = allProjects.findIndex(p => p.id === project.id || (!!p.slug && p.slug === project.slug));
+  const hasSiblings = currentIndex !== -1 && allProjects.length > 1;
+  const prev = hasSiblings ? allProjects[(currentIndex - 1 + allProjects.length) % allProjects.length] : null;
+  const next = hasSiblings ? allProjects[(currentIndex + 1) % allProjects.length] : null;
+
+  const meta = [
+    { label: 'Category', value: project.category },
+    tags.length > 0 ? { label: 'Tech Stack', value: tags.join(', ') } : null,
+    published ? { label: 'Published', value: published } : null,
+    hasLink ? { label: 'Live Site', href: project.link } : null,
+  ].filter(Boolean) as { label: string; value?: string; href?: string }[];
+
+  const reveal = {
+    initial: { opacity: 0, y: 24 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: '-60px' },
+    transition: { duration: 0.6, ease: 'easeOut' as const },
+  };
+
+  return (
+    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main overflow-x-hidden">
+      <Navbar />
+
+      <main>
+        {/* Hero banner */}
+        <header className="relative h-[52vh] min-h-[360px] md:h-[60vh] md:min-h-[440px] flex items-end">
+          <img
+            src={project.image}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover opacity-70"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-bg-dark/70 via-transparent to-bg-dark" />
+          <div className="relative w-full max-w-6xl mx-auto px-6 pb-10 md:pb-16">
+            <Link to="/#projects" className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent transition-colors mb-6 md:mb-8 group">
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Projects
+            </Link>
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-accent text-sm font-bold uppercase tracking-[0.3em] mb-4 block"
-            >
-              {project.category}
-            </motion.span>
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-4xl md:text-7xl font-black mb-8 leading-tight tracking-tight uppercase"
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+              className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05] max-w-4xl break-words"
             >
               {project.title}
             </motion.h1>
           </div>
+        </header>
 
-          {/* Main Image */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="rounded-[40px] overflow-hidden border border-white/10 mb-16 shadow-2xl relative aspect-[16/9]"
-          >
-            <img src={project.image} alt={project.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
-          </motion.div>
-
-          {/* Content Grid */}
-          <div className="grid lg:grid-cols-3 gap-16">
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold mb-6 text-accent">Overview</h2>
-              <div className="text-text-muted text-lg leading-relaxed mb-12 whitespace-pre-wrap">
-                {project.content || "Detailed description coming soon..."}
+        <div className="max-w-6xl mx-auto px-6">
+          {/* Project meta */}
+          <motion.dl {...reveal} className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 py-10 md:py-14 border-b border-border-subtle mt-6 md:mt-10">
+            {meta.map(m => (
+              <div key={m.label} className="min-w-0">
+                <dt className="text-xs text-text-muted mb-2">{m.label} :</dt>
+                <dd className="text-sm md:text-base font-medium break-words">
+                  {m.href ? (
+                    <a href={m.href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline">
+                      Visit Site <ArrowUpRight className="w-4 h-4" />
+                    </a>
+                  ) : m.value}
+                </dd>
               </div>
+            ))}
+          </motion.dl>
 
-              {project.gallery && project.gallery.length > 0 && (
-                <div className="space-y-8">
-                  <h2 className="text-2xl font-bold mb-6 text-accent">Project Gallery</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {project.gallery.map((img, i) => (
-                      <motion.div 
-                        key={i}
-                        whileHover={{ scale: 1.02 }}
-                        className="rounded-2xl overflow-hidden border border-white/5 aspect-square"
-                      >
-                        <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
-                      </motion.div>
-                    ))}
-                  </div>
+          {/* 01 Overview */}
+          <motion.section {...reveal} className="grid md:grid-cols-12 gap-6 md:gap-10 py-14 md:py-24">
+            <h2 className="md:col-span-5 md:pl-8 text-xl md:text-2xl font-medium">
+              <span className="text-accent">01</span> . Overview
+            </h2>
+            <div className="md:col-span-7 lg:col-span-6 lg:col-start-6 space-y-6">
+              <p className="text-lg md:text-xl leading-relaxed whitespace-pre-wrap">
+                {lead || 'Detailed description coming soon...'}
+              </p>
+              {rest.length > 0 && (
+                <div className="space-y-4 text-sm md:text-[15px] leading-relaxed text-text-muted whitespace-pre-wrap">
+                  {rest.map((t, i) => <p key={i}>{t}</p>)}
                 </div>
               )}
             </div>
+          </motion.section>
 
-            <div className="space-y-10">
-              <div className="p-8 bg-bg-card rounded-3xl border border-white/5">
-                <h3 className="text-xl font-bold mb-6 border-b border-white/10 pb-4">Project Info</h3>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
-                      <Tag className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-text-muted uppercase font-black">Category</div>
-                      <div className="font-bold">{project.category}</div>
-                    </div>
-                  </div>
-                  {project.tags && (
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
-                        <User className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-text-muted uppercase font-black">Tech Stack</div>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {project.tags.map(tag => (
-                            <span key={tag} className="text-[10px] px-2 py-1 bg-border-subtle rounded-md text-text-muted">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {project.link !== '#' && (
-                    <motion.a
-                      href={project.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      whileHover={{ scale: 1.05 }}
-                      className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-4 bg-accent text-black font-black rounded-xl accent-shadow transition-all text-sm"
-                    >
-                      Visit Site <ExternalLink className="w-4 h-4" />
-                    </motion.a>
-                  )}
-                </div>
-              </div>
+          {/* Featured image when no gallery has been added */}
+          {gallery.length === 0 && (
+            <motion.div {...reveal} className="overflow-hidden bg-bg-card aspect-[4/3] md:aspect-[5/3] mb-14 md:mb-24">
+              <img src={project.image} alt={project.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
+            </motion.div>
+          )}
 
-              {/* Promo Card */}
-              <div className="p-8 bg-gradient-to-tr from-accent/20 to-transparent rounded-3xl border border-accent/20 transition-all duration-300">
-                <h3 className="text-xl font-black mb-4">Have a similar project?</h3>
-                <p className="text-text-muted text-sm mb-6 leading-relaxed">
-                  Let's collaborate to build something extraordinary tailored to your brand's unique mission.
-                </p>
-                <Link to="/#contact" className="text-accent font-bold flex items-center gap-2 hover:underline">
-                  Let's Talk <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Link>
+          {/* 02 Gallery */}
+          {gallery.length > 0 && (
+            <section className="pb-14 md:pb-24">
+              <motion.h2 {...reveal} className="text-xl md:text-2xl font-medium mb-8 md:mb-12 md:pl-8">
+                <span className="text-accent">02</span> . Project Gallery
+              </motion.h2>
+              <div className="space-y-4 md:space-y-6">
+                {galleryRows.map((row, r) => (
+                  <motion.div
+                    key={r}
+                    {...reveal}
+                    className={row.length === 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6' : ''}
+                  >
+                    {row.map(({ img, n }) => (
+                      <div
+                        key={n}
+                        className={`overflow-hidden bg-bg-card ${row.length === 2 ? 'aspect-[4/3] sm:aspect-[4/5]' : 'aspect-[4/3] md:aspect-[5/3]'}`}
+                      >
+                        <img src={img} alt={`${project.title} ${n}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
+                      </div>
+                    ))}
+                  </motion.div>
+                ))}
               </div>
-            </div>
+            </section>
+          )}
+
+          {/* Contact CTA */}
+          <motion.section {...reveal} className="border-t border-border-subtle py-14 md:py-20 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <h3 className="text-2xl md:text-4xl font-semibold tracking-tight">Have a similar project?</h3>
+            <Link to="/#contact" className="inline-flex items-center gap-2 text-accent font-medium hover:underline">
+              Let's Talk <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.section>
+
+          {/* All projects */}
+          <div className="flex justify-center py-8">
+            <Link to="/#projects" className="flex flex-col items-center gap-2 px-6 py-4 text-text-muted hover:text-accent transition-colors">
+              <LayoutGrid className="w-5 h-5" />
+              <span className="text-[10px] uppercase tracking-widest">All Projects</span>
+            </Link>
           </div>
         </div>
+
+        {/* Prev / Next project */}
+        {prev && next && (
+          <nav className="max-w-7xl mx-auto px-6 py-10 md:py-16 grid grid-cols-2 gap-6 md:gap-10" aria-label="Project navigation">
+            <Link to={projectPath(prev)} className="group flex items-center gap-3 md:gap-5 min-w-0">
+              <ArrowLeft className="w-5 h-5 shrink-0 text-text-muted group-hover:text-accent group-hover:-translate-x-1 transition-all" />
+              <span className="min-w-0">
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Prev Project</span>
+                <span className="block text-base sm:text-xl md:text-3xl font-semibold tracking-tight truncate text-text-muted group-hover:text-text-main transition-colors">{prev.title}</span>
+              </span>
+            </Link>
+            <Link to={projectPath(next)} className="group flex items-center justify-end gap-3 md:gap-5 min-w-0 text-right">
+              <span className="min-w-0">
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Next Project</span>
+                <span className="block text-base sm:text-xl md:text-3xl font-semibold tracking-tight truncate text-text-muted group-hover:text-text-main transition-colors">{next.title}</span>
+              </span>
+              <ArrowRight className="w-5 h-5 shrink-0 text-text-muted group-hover:text-accent group-hover:translate-x-1 transition-all" />
+            </Link>
+          </nav>
+        )}
       </main>
 
       <Footer />

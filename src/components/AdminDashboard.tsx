@@ -298,6 +298,7 @@ export default function AdminDashboard() {
       
       // Parse arrays
       if (rawData.tags) rawData.tags = (rawData.tags as string).split(',').map(t => t.trim()).filter(t => t !== '');
+      if (activeTab === 'projects') rawData.gallery = String(rawData.gallery || '').split('\n').map(u => u.trim()).filter(u => u !== '');
       if (activeTab === 'pricingPlans') {
         rawData.features = (rawData.features as string).split(',').map(f => f.trim()).filter(f => f !== '');
         rawData.unavailableFeatures = (rawData.unavailableFeatures as string || '').split(',').map(f => f.trim()).filter(f => f !== '');
@@ -520,6 +521,10 @@ export default function AdminDashboard() {
                       <div className="col-span-2">
                         <label className="block text-sm text-gray-400 mb-2">Tags (Comma Separated)</label>
                         <input name="tags" defaultValue={editingItem?.tags?.join(', ') || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Gallery Images (Optional, one image URL per line)</label>
+                        <textarea name="gallery" defaultValue={editingItem?.gallery?.join('\n') || ''} rows={4} placeholder="https://..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white font-mono text-sm" />
                       </div>
                       <div className="col-span-2 space-y-6 pt-4 border-t border-white/5">
                         <ImageUpload label="Main Project Image" value={uploadValue || editingItem?.image || ''} onChange={setUploadValue} />
