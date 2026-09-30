@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, LayoutGrid } from 'lucide-react';
+import { ArrowLeft, ArrowRight, LayoutGrid } from 'lucide-react';
 import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db, getCollection } from '../services/firebase';
 import { Project } from '../types';
@@ -123,180 +123,132 @@ export default function ProjectDetail() {
   }
 
   const projectPath = (p: Project) => `/projects/${p.slug || p.id || p.title.toLowerCase().replace(/\s+/g, '-')}`;
+  const paragraphs = (text?: string) => (text || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
 
-  // Overview: first paragraph is the lead, the remainder is body copy
-  const paragraphs = (project.content || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
-  const [lead, ...rest] = paragraphs;
+  // Section 01: first paragraph is the lead, the rest is body copy. Section 02: body copy only.
+  const [lead, ...introRest] = paragraphs(project.content);
+  const detailsParagraphs = paragraphs(project.detailsContent);
 
-  // Published date from existing createdAt field (Firestore Timestamp or string)
-  const created = project.createdAt?.toDate ? project.createdAt.toDate() : project.createdAt ? new Date(project.createdAt) : null;
-  const published = created && !isNaN(created.getTime())
-    ? created.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-    : '';
-
-  const hasLink = !!project.link && project.link !== '#';
-  const tags = project.tags || [];
+  // Image slots: hero banner, side-by-side pair (gallery 1-2), wide images (gallery 3+)
+  const heroImage = project.heroImage || project.image;
   const gallery = (project.gallery || []).filter(Boolean);
+  const images = gallery.length > 0 ? gallery : [project.image];
+  const pair = images.length >= 2 ? images.slice(0, 2) : [];
+  const wide = images.length >= 2 ? images.slice(2) : images;
 
-  // Editorial rhythm: two-up, full-width, two-up, full-width...
-  const galleryRows: { img: string; n: number }[][] = [];
-  for (let i = 0, pair = true; i < gallery.length; pair = !pair) {
-    const take = pair && i + 1 < gallery.length ? 2 : 1;
-    galleryRows.push(gallery.slice(i, i + take).map((img, k) => ({ img, n: i + k + 1 })));
-    i += take;
-  }
+  // Metadata row: only fields that have data, filled left to right
+  const meta = [
+    { label: 'Category', value: project.category },
+    { label: 'Client', value: project.client },
+    { label: 'Start Date', value: project.startDate },
+    { label: 'Designer', value: project.designer },
+    { label: 'Technologies', value: (project.tags || []).join(', ') },
+    { label: 'Live Site', value: project.link && project.link !== '#' ? 'Visit Site' : '', href: project.link },
+  ].filter(m => m.value);
 
   const currentIndex = allProjects.findIndex(p => p.id === project.id || (!!p.slug && p.slug === project.slug));
   const hasSiblings = currentIndex !== -1 && allProjects.length > 1;
   const prev = hasSiblings ? allProjects[(currentIndex - 1 + allProjects.length) % allProjects.length] : null;
   const next = hasSiblings ? allProjects[(currentIndex + 1) % allProjects.length] : null;
 
-  const meta = [
-    { label: 'Category', value: project.category },
-    tags.length > 0 ? { label: 'Tech Stack', value: tags.join(', ') } : null,
-    published ? { label: 'Published', value: published } : null,
-    hasLink ? { label: 'Live Site', href: project.link } : null,
-  ].filter(Boolean) as { label: string; value?: string; href?: string }[];
-
-  const reveal = {
-    initial: { opacity: 0, y: 24 },
+  const fade = {
+    initial: { opacity: 0, y: 16 },
     whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, margin: '-60px' },
+    viewport: { once: true, margin: '-40px' },
     transition: { duration: 0.6, ease: 'easeOut' as const },
   };
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main overflow-x-hidden">
+    <div className="pd-root min-h-screen">
+      <style>{PROJECT_PAGE_CSS}</style>
       <Navbar />
 
       <main>
-        {/* Hero banner */}
-        <header className="relative h-[52vh] min-h-[360px] md:h-[60vh] md:min-h-[440px] flex items-end">
-          <img
-            src={project.image}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover opacity-70"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-bg-dark/70 via-transparent to-bg-dark" />
-          <div className="relative w-full max-w-6xl mx-auto px-6 pb-10 md:pb-16">
-            <Link to="/#projects" className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent transition-colors mb-6 md:mb-8 group">
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Back to Projects
-            </Link>
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: 'easeOut' }}
-              className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05] max-w-4xl break-words"
-            >
+        {/* Hero: dimmed banner image, title inside it */}
+        <header className="pd-hero">
+          <img src={heroImage} alt="" aria-hidden="true" className="pd-hero-img" referrerPolicy="no-referrer" />
+          <div className="pd-wrap pd-hero-inner">
+            <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'easeOut' }} className="pd-title">
               {project.title}
             </motion.h1>
           </div>
         </header>
 
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Project meta */}
-          <motion.dl {...reveal} className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 py-10 md:py-14 border-b border-border-subtle mt-6 md:mt-10">
+        <div className="pd-wrap">
+          {/* Metadata row + divider */}
+          <dl className="pd-meta">
             {meta.map(m => (
-              <div key={m.label} className="min-w-0">
-                <dt className="text-xs text-text-muted mb-2">{m.label} :</dt>
-                <dd className="text-sm md:text-base font-medium break-words">
-                  {m.href ? (
-                    <a href={m.href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline">
-                      Visit Site <ArrowUpRight className="w-4 h-4" />
-                    </a>
-                  ) : m.value}
+              <div key={m.label} className="pd-meta-item">
+                <dt>{m.label} :</dt>
+                <dd>
+                  {m.href ? <a href={m.href} target="_blank" rel="noreferrer">{m.value}</a> : m.value}
                 </dd>
               </div>
             ))}
-          </motion.dl>
+          </dl>
 
-          {/* 01 Overview */}
-          <motion.section {...reveal} className="grid md:grid-cols-12 gap-6 md:gap-10 py-14 md:py-24">
-            <h2 className="md:col-span-5 md:pl-8 text-xl md:text-2xl font-medium">
-              <span className="text-accent">01</span> . Overview
-            </h2>
-            <div className="md:col-span-7 lg:col-span-6 lg:col-start-6 space-y-6">
-              <p className="text-lg md:text-xl leading-relaxed whitespace-pre-wrap">
-                {lead || 'Detailed description coming soon...'}
-              </p>
-              {rest.length > 0 && (
-                <div className="space-y-4 text-sm md:text-[15px] leading-relaxed text-text-muted whitespace-pre-wrap">
-                  {rest.map((t, i) => <p key={i}>{t}</p>)}
-                </div>
-              )}
+          {/* 01 . Section: label left, text right */}
+          <motion.section {...fade} className="pd-sec pd-sec-first">
+            <h2 className="pd-sec-label">01 . {project.introTitle || 'Overview'}</h2>
+            <div className="pd-sec-text">
+              <p className="pd-lead">{lead || 'Detailed description coming soon...'}</p>
+              {introRest.map((t, i) => <p key={i} className="pd-body">{t}</p>)}
             </div>
           </motion.section>
 
-          {/* Featured image when no gallery has been added */}
-          {gallery.length === 0 && (
-            <motion.div {...reveal} className="overflow-hidden bg-bg-card aspect-[4/3] md:aspect-[5/3] mb-14 md:mb-24">
-              <img src={project.image} alt={project.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
+          {/* Two images side by side */}
+          {pair.length === 2 && (
+            <motion.div {...fade} className="pd-pair">
+              {pair.map((img, i) => (
+                <div key={i} className="pd-pair-img">
+                  <img src={img} alt={`${project.title} ${i + 1}`} referrerPolicy="no-referrer" loading="lazy" />
+                </div>
+              ))}
             </motion.div>
           )}
 
-          {/* 02 Gallery */}
-          {gallery.length > 0 && (
-            <section className="pb-14 md:pb-24">
-              <motion.h2 {...reveal} className="text-xl md:text-2xl font-medium mb-8 md:mb-12 md:pl-8">
-                <span className="text-accent">02</span> . Project Gallery
-              </motion.h2>
-              <div className="space-y-4 md:space-y-6">
-                {galleryRows.map((row, r) => (
-                  <motion.div
-                    key={r}
-                    {...reveal}
-                    className={row.length === 2 ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6' : ''}
-                  >
-                    {row.map(({ img, n }) => (
-                      <div
-                        key={n}
-                        className={`overflow-hidden bg-bg-card ${row.length === 2 ? 'aspect-[4/3] sm:aspect-[4/5]' : 'aspect-[4/3] md:aspect-[5/3]'}`}
-                      >
-                        <img src={img} alt={`${project.title} ${n}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
-                      </div>
-                    ))}
-                  </motion.div>
-                ))}
+          {/* 02 . Section */}
+          {detailsParagraphs.length > 0 && (
+            <motion.section {...fade} className="pd-sec pd-sec-second">
+              <h2 className="pd-sec-label">02 . {project.detailsTitle || 'Details'}</h2>
+              <div className="pd-sec-text">
+                {detailsParagraphs.map((t, i) => <p key={i} className="pd-body">{t}</p>)}
               </div>
-            </section>
+            </motion.section>
           )}
 
-          {/* Contact CTA */}
-          <motion.section {...reveal} className="border-t border-border-subtle py-14 md:py-20 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <h3 className="text-2xl md:text-4xl font-semibold tracking-tight">Have a similar project?</h3>
-            <Link to="/#contact" className="inline-flex items-center gap-2 text-accent font-medium hover:underline">
-              Let's Talk <ArrowRight className="w-4 h-4" />
-            </Link>
-          </motion.section>
-
-          {/* All projects */}
-          <div className="flex justify-center py-8">
-            <Link to="/#projects" className="flex flex-col items-center gap-2 px-6 py-4 text-text-muted hover:text-accent transition-colors">
-              <LayoutGrid className="w-5 h-5" />
-              <span className="text-[10px] uppercase tracking-widest">All Projects</span>
-            </Link>
-          </div>
+          {/* Wide image(s) */}
+          {wide.map((img, i) => (
+            <motion.div key={i} {...fade} className="pd-wide">
+              <img src={img} alt={`${project.title} ${pair.length + i + 1}`} referrerPolicy="no-referrer" loading="lazy" />
+            </motion.div>
+          ))}
         </div>
 
-        {/* Prev / Next project */}
+        {/* All projects */}
+        <div className="pd-all">
+          <Link to="/#projects" className="pd-all-btn">
+            <LayoutGrid strokeWidth={1.25} />
+            <span>All Projects</span>
+          </Link>
+        </div>
+
+        {/* Prev / next project */}
         {prev && next && (
-          <nav className="max-w-7xl mx-auto px-6 py-10 md:py-16 grid grid-cols-2 gap-6 md:gap-10" aria-label="Project navigation">
-            <Link to={projectPath(prev)} className="group flex items-center gap-3 md:gap-5 min-w-0">
-              <ArrowLeft className="w-5 h-5 shrink-0 text-text-muted group-hover:text-accent group-hover:-translate-x-1 transition-all" />
-              <span className="min-w-0">
-                <span className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Prev Project</span>
-                <span className="block text-base sm:text-xl md:text-3xl font-semibold tracking-tight truncate text-text-muted group-hover:text-text-main transition-colors">{prev.title}</span>
+          <nav className="pd-nav" aria-label="Project navigation">
+            <Link to={projectPath(prev)} className="pd-nav-link pd-nav-prev">
+              <ArrowLeft strokeWidth={1} />
+              <span className="pd-nav-text">
+                <span className="pd-nav-label">Prev Project</span>
+                <span className="pd-nav-title">{prev.title}</span>
               </span>
             </Link>
-            <Link to={projectPath(next)} className="group flex items-center justify-end gap-3 md:gap-5 min-w-0 text-right">
-              <span className="min-w-0">
-                <span className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Next Project</span>
-                <span className="block text-base sm:text-xl md:text-3xl font-semibold tracking-tight truncate text-text-muted group-hover:text-text-main transition-colors">{next.title}</span>
+            <Link to={projectPath(next)} className="pd-nav-link pd-nav-next">
+              <span className="pd-nav-text">
+                <span className="pd-nav-label">Next Project</span>
+                <span className="pd-nav-title">{next.title}</span>
               </span>
-              <ArrowRight className="w-5 h-5 shrink-0 text-text-muted group-hover:text-accent group-hover:translate-x-1 transition-all" />
+              <ArrowRight strokeWidth={1} />
             </Link>
           </nav>
         )}
@@ -306,3 +258,136 @@ export default function ProjectDetail() {
     </div>
   );
 }
+
+/*
+ * Project page styles, scoped to .pd-root.
+ * Desktop is built from a 1440px-wide reference: 1u = 1px at 1440, scaling
+ * proportionally below that (and capped above it). Below 1024px the same
+ * composition is recomposed with fixed sizes.
+ */
+const PROJECT_PAGE_CSS = `
+.pd-root{
+  --u:calc(min(100vw,1440px)/1440);
+  --pd-bg:#0f0f0f; --pd-hero-top:#030303; --pd-text:#fff; --pd-body:#b9bbba; --pd-label:#b3b3b3;
+  --pd-line:rgba(255,255,255,.09); --pd-fill:#3b3b3b; --pd-stroke:#8f8f8f; --pd-btn:rgba(255,255,255,.015);
+  background:var(--pd-bg); color:var(--pd-text); overflow-x:hidden;
+}
+.light-mode .pd-root{
+  --pd-bg:#f8f9fa; --pd-hero-top:#e9ecef; --pd-text:#1a1a1a; --pd-body:#4a4a4a; --pd-label:#6b6b6b;
+  --pd-line:rgba(0,0,0,.1); --pd-fill:#d6d6d6; --pd-stroke:#8a8a8a; --pd-btn:rgba(0,0,0,.03);
+}
+.light-mode .pd-hero-img{opacity:.3}
+.pd-root a{color:inherit;text-decoration:none}
+.pd-wrap{width:calc(972*var(--u));margin-inline:auto;position:relative}
+
+/* Hero */
+.pd-hero{position:relative;height:calc(408*var(--u));background:linear-gradient(to bottom,var(--pd-hero-top),var(--pd-bg))}
+.pd-hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 12%,#000 34%,#000 52%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 12%,#000 34%,#000 52%,transparent 100%)}
+.pd-hero-inner{height:100%}
+.pd-title{position:absolute;left:0;right:0;top:calc(267*var(--u));margin:0;
+  font-size:calc(53*var(--u));line-height:1.12;font-weight:600;letter-spacing:-.03em}
+
+/* Metadata */
+.pd-meta{display:grid;grid-template-columns:repeat(4,1fr);column-gap:calc(18*var(--u));row-gap:calc(24*var(--u));
+  margin:calc(114*var(--u)) 0 0;padding-bottom:calc(34*var(--u));border-bottom:1px solid var(--pd-line)}
+.pd-meta-item{min-width:0}
+.pd-meta dt{font-size:max(11px,calc(12*var(--u)));line-height:1.5;color:var(--pd-label);font-weight:400}
+.pd-meta dd{margin:calc(4*var(--u)) 0 0;font-size:max(13px,calc(15.5*var(--u)));line-height:1.4;font-weight:500;overflow-wrap:anywhere}
+.pd-meta dd a:hover{color:#f45901}
+
+/* Sections */
+.pd-sec{display:grid;grid-template-columns:calc(422*var(--u)) minmax(0,1fr)}
+.pd-sec-first{padding-top:calc(63*var(--u))}
+.pd-sec-second{padding-top:calc(108*var(--u))}
+.pd-sec-label{margin:0;padding-left:calc(47*var(--u));font-size:max(17px,calc(22*var(--u)));line-height:1.3;font-weight:500;letter-spacing:-.01em}
+.pd-sec-text{max-width:calc(530*var(--u))}
+.pd-lead{margin:0;font-size:max(16px,calc(19.5*var(--u)));line-height:calc(30*var(--u));font-weight:400;letter-spacing:-.02em;white-space:pre-wrap}
+.pd-body{max-width:calc(500*var(--u));margin:calc(24*var(--u)) 0 0;font-size:max(12.5px,calc(14*var(--u)));line-height:1.73;color:var(--pd-body);white-space:pre-wrap}
+.pd-sec-second .pd-body{margin:0}
+.pd-sec-second .pd-body + .pd-body{margin-top:calc(14*var(--u))}
+
+/* Images */
+.pd-pair{display:grid;grid-template-columns:1fr 1fr;gap:calc(24*var(--u));margin:calc(104*var(--u)) calc(3*var(--u)) 0}
+.pd-pair-img,.pd-wide{overflow:hidden;background:#151515}
+.pd-pair-img{aspect-ratio:2/3}
+.pd-wide{aspect-ratio:643/381;margin-top:calc(110*var(--u))}
+.pd-sec + .pd-wide{margin-top:calc(104*var(--u))}
+.pd-wide + .pd-wide{margin-top:calc(24*var(--u))}
+.pd-pair-img img,.pd-wide img{display:block;width:100%;height:100%;object-fit:cover}
+
+/* All projects */
+.pd-all{display:flex;justify-content:center;margin-top:calc(103*var(--u))}
+.pd-all-btn{display:flex;flex-direction:column;align-items:center;gap:calc(2*var(--u));width:calc(109*var(--u));padding:calc(20*var(--u)) 0;
+  background:var(--pd-btn);border-radius:calc(4*var(--u));transition:color .2s}
+.pd-all-btn svg{width:calc(24*var(--u));height:calc(24*var(--u));min-width:18px;min-height:18px}
+.pd-all-btn span{font-size:max(9px,calc(10*var(--u)));letter-spacing:.04em;text-transform:uppercase;font-weight:500;color:var(--pd-label)}
+.pd-all-btn:hover{color:#f45901}
+.pd-all-btn:hover span{color:#f45901}
+
+/* Prev / next */
+.pd-nav{display:flex;justify-content:space-between;align-items:flex-end;gap:calc(24*var(--u));padding:calc(69*var(--u)) calc(44*var(--u)) calc(29*var(--u))}
+.pd-nav-link{display:flex;align-items:center;gap:calc(14*var(--u));min-width:0;color:var(--pd-text)}
+.pd-nav-next{text-align:right;justify-content:flex-end}
+.pd-nav-link svg{width:calc(36*var(--u));height:calc(36*var(--u));min-width:22px;min-height:22px;flex:none;transition:transform .25s}
+.pd-nav-prev:hover svg{transform:translateX(-4px)}
+.pd-nav-next:hover svg{transform:translateX(4px)}
+.pd-nav-text{display:flex;flex-direction:column;min-width:0}
+.pd-nav-label{font-size:max(9px,calc(11*var(--u)));letter-spacing:.1em;text-transform:uppercase;font-weight:600;line-height:1.4}
+.pd-nav-title{margin-top:calc(8*var(--u));font-size:max(16px,calc(32*var(--u)));line-height:1.2;font-weight:600;letter-spacing:-.025em;
+  color:var(--pd-fill);-webkit-text-stroke:.6px var(--pd-stroke);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .25s}
+.pd-nav-link:hover .pd-nav-title{color:var(--pd-text)}
+
+/* Tablet: same composition, fixed sizes */
+@media (max-width:1023px){
+  .pd-root{--u:1px}
+  .pd-wrap{width:calc(100% - 64px)}
+  .pd-hero{height:340px}
+  .pd-title{top:auto;bottom:56px;font-size:44px}
+  .pd-meta{margin-top:48px;padding-bottom:32px;column-gap:16px}
+  .pd-sec{grid-template-columns:34% minmax(0,1fr)}
+  .pd-sec-label{padding-left:0;font-size:20px}
+  .pd-sec-text{max-width:none}
+  .pd-lead{font-size:19px}
+  .pd-body{font-size:14px;margin-top:20px}
+  .pd-sec-first{padding-top:48px}
+  .pd-sec-second{padding-top:72px}
+  .pd-pair{gap:16px;margin:72px 0 0}
+  .pd-wide{margin-top:72px}
+  .pd-sec + .pd-wide{margin-top:72px}
+  .pd-all{margin-top:72px}
+  .pd-all-btn{width:109px}
+  .pd-all-btn svg{width:24px;height:24px}
+  .pd-nav-link svg{width:30px;height:30px}
+  .pd-nav{padding:56px 32px 28px}
+  .pd-nav-title{font-size:26px}
+  .pd-nav-label{font-size:10px}
+  .pd-nav-link{gap:16px}
+}
+
+/* Mobile: stacked sections, pair stays side by side */
+@media (max-width:639px){
+  .pd-wrap{width:calc(100% - 40px)}
+  .pd-hero{height:280px}
+  .pd-title{bottom:36px;font-size:32px;line-height:1.15}
+  .pd-meta{grid-template-columns:repeat(2,1fr);margin-top:32px;padding-bottom:26px;row-gap:20px}
+  .pd-meta dt{font-size:11px}
+  .pd-meta dd{font-size:14px}
+  .pd-sec{grid-template-columns:1fr}
+  .pd-sec-first{padding-top:36px}
+  .pd-sec-second{padding-top:56px}
+  .pd-sec-label{font-size:18px;margin-bottom:16px}
+  .pd-lead{font-size:17px;line-height:1.55}
+  .pd-body{font-size:13.5px;margin-top:18px}
+  .pd-pair{gap:10px;margin:48px 0 0}
+  .pd-wide,.pd-sec + .pd-wide{margin-top:56px}
+  .pd-wide + .pd-wide{margin-top:10px}
+  .pd-all{margin-top:56px}
+  .pd-nav{padding:40px 20px 24px;gap:12px}
+  .pd-nav-link{flex:1 1 0;gap:10px}
+  .pd-nav-link svg{width:24px;height:24px;min-width:0;min-height:0}
+  .pd-nav-title{font-size:16px;-webkit-text-stroke-width:.4px}
+  .pd-nav-label{font-size:9px}
+}
+`;
