@@ -24,6 +24,7 @@ export const normalizeProject = (data: any): Project => ({
   link: String(data.link || ''),
   slug: String(data.slug || ''),
   tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+  gallery: Array.isArray(data.gallery) ? data.gallery.map(String).filter(Boolean) : [],
   content: String(data.content || ''),
   socialTitle: String(data.socialTitle || ''),
   socialDescription: String(data.socialDescription || ''),
