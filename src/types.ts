@@ -10,6 +10,13 @@ export interface Project {
   content?: string;
   gallery?: string[];
   tags?: string[];
+  heroImage?: string;
+  client?: string;
+  designer?: string;
+  startDate?: string;
+  introTitle?: string;
+  detailsTitle?: string;
+  detailsContent?: string;
   socialTitle?: string;
   socialDescription?: string;
   socialImage?: string;

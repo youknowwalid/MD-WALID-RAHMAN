@@ -522,8 +522,39 @@ export default function AdminDashboard() {
                         <label className="block text-sm text-gray-400 mb-2">Tags (Comma Separated)</label>
                         <input name="tags" defaultValue={editingItem?.tags?.join(', ') || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
                       </div>
+                      <div className="col-span-2 pt-4 border-t border-white/5">
+                        <p className="text-xs uppercase tracking-widest text-accent mb-4">Project Page Details (all optional)</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Client</label>
+                        <input name="client" defaultValue={editingItem?.client || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Designer</label>
+                        <input name="designer" defaultValue={editingItem?.designer || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Start Date</label>
+                        <input name="startDate" defaultValue={editingItem?.startDate || ''} placeholder="e.g. 7 August 2021" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Hero Banner Image URL (defaults to main image)</label>
+                        <input name="heroImage" defaultValue={editingItem?.heroImage || ''} placeholder="https://..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Section 01 Title (default: Overview)</label>
+                        <input name="introTitle" defaultValue={editingItem?.introTitle || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Section 02 Title (default: Details)</label>
+                        <input name="detailsTitle" defaultValue={editingItem?.detailsTitle || ''} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white" />
+                      </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-gray-400 mb-2">Gallery Images (Optional, one image URL per line)</label>
+                        <label className="block text-sm text-gray-400 mb-2">Section 02 Content (shown after the first two gallery images)</label>
+                        <textarea name="detailsContent" defaultValue={editingItem?.detailsContent || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none text-white resize-y" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-gray-400 mb-2">Gallery Images (one URL per line: 1st and 2nd = side-by-side pair, 3rd+ = wide images)</label>
                         <textarea name="gallery" defaultValue={editingItem?.gallery?.join('\n') || ''} rows={4} placeholder="https://..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-accent outline-none resize-y text-white font-mono text-sm" />
                       </div>
                       <div className="col-span-2 space-y-6 pt-4 border-t border-white/5">
