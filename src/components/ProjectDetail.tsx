@@ -3,100 +3,37 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, ArrowRight, LayoutGrid } from 'lucide-react';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db, getCollection } from '../services/firebase';
+import { getRow, listRows } from '../lib/api';
+import { normalizeProject } from '../lib/schema-defaults';
+import { safeUrl } from '../lib/text';
 import { Project } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
-
-// Fallback data if not in DB
-const DEFAULT_PROJECTS: Project[] = [
-  { 
-    id: 'nexus-brand',
-    title: 'Nexus Brand Identity', 
-    category: 'Branding', 
-    image: 'https://picsum.photos/seed/nexus/800/600', 
-    link: '#',
-    content: 'Nexus is a revolutionary brand identity project that focused on bridging the gap between corporate rigidity and creative fluidity. We developed a comprehensive design system that includes a dynamic logo, custom typography, and a vibrant color palette that scales across multi-channel touchpoints.',
-    tags: ['Branding', 'Identity', 'Strategy']
-  },
-  { 
-    id: 'volt-ecommerce',
-    title: 'Volt E-Commerce', 
-    category: 'Web App', 
-    image: 'https://picsum.photos/seed/volt/800/600', 
-    link: '#',
-    content: 'The Volt E-Commerce platform was built to solve the performance bottlenecks of traditional online stores. Using a headless architecture, we achieved sub-second page loads and a conversion rate increase of 45%. The project involved complex integrations with inventory systems and custom payment gateways.',
-    tags: ['E-Commerce', 'Next.js', 'Headless']
-  },
-  { 
-    id: 'lumina-dashboard',
-    title: 'Lumina Dashboard', 
-    category: 'UI/UX', 
-    image: 'https://picsum.photos/seed/lumina/800/600', 
-    link: '#',
-    content: 'Lumina is a data visualization dashboard designed for energy sector executives. The challenge was to transform massive amounts of real-time data into actionable insights through an intuitive and aesthetically pleasing interface. We utilized D3.js for custom visualizations and focused heavily on user centered design principles.',
-    tags: ['UI/UX', 'Dashboard', 'Data Viz']
-  },
-  { 
-    id: 'orbit-marketing',
-    title: 'Orbit Marketing', 
-    category: 'Social Media', 
-    image: 'https://picsum.photos/seed/orbit/800/600', 
-    link: '#',
-    content: 'Orbit is a social media marketing campaign that leveraged the power of community and storytelling. We created a series of high-impact visuals and videos that resulted in a 300% increase in engagement for our client. The strategy focused on cross-platform consistency and authentic brand voice.',
-    tags: ['Marketing', 'Social', 'Campaign']
-  },
-];
+import NotFound from './NotFound';
+import Seo from './Seo';
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [allProjects, setAllProjects] = useState<Project[]>(DEFAULT_PROJECTS);
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
 
   // Sibling projects (same ordering as the listing) for prev / next navigation
   useEffect(() => {
-    getCollection('projects')
-      .then(docs => { if (docs && docs.length > 0) setAllProjects(docs as Project[]); })
-      .catch(() => {});
+    listRows('projects').then((rows) => { if (rows) setAllProjects(rows.map(normalizeProject)); });
   }, []);
 
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        if (!projectId) return;
-        
-        // Try Firestore by ID first
-        const docRef = doc(db, 'projects', projectId);
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          setProject({ id: docSnap.id, ...docSnap.data() } as Project);
-        } else {
-          // If not found by ID, try looking up by slug
-          const projectsRef = collection(db, 'projects');
-          const q = query(projectsRef, where('slug', '==', projectId), limit(1));
-          const querySnapshot = await getDocs(q);
-          
-          if (!querySnapshot.empty) {
-            const firstDoc = querySnapshot.docs[0];
-            setProject({ id: firstDoc.id, ...firstDoc.data() } as Project);
-          } else {
-            // Fallback to local defaults
-            const localProject = DEFAULT_PROJECTS.find(p => p.id === projectId || p.slug === projectId);
-            setProject(localProject || null);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching project:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProject();
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      const row = projectId ? await getRow('projects', projectId) : null;
+      if (cancelled) return;
+      setProject(row ? normalizeProject(row) : null);
+      setLoading(false);
+    })();
     window.scrollTo(0, 0);
+    return () => { cancelled = true; };
   }, [projectId]);
 
   if (loading) {
@@ -111,18 +48,9 @@ export default function ProjectDetail() {
     );
   }
 
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center gap-6 p-6">
-        <h1 className="text-4xl font-black text-text-main">Project Not Found</h1>
-        <Link to="/" className="text-accent hover:underline flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back to Home
-        </Link>
-      </div>
-    );
-  }
+  if (!project) return <NotFound />;
 
-  const projectPath = (p: Project) => `/projects/${p.slug || p.id || p.title.toLowerCase().replace(/\s+/g, '-')}`;
+  const projectPath = (p: Project) => `/projects/${p.slug || p.id}`;
   const paragraphs = (text?: string) => (text || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
 
   // Section 01: first paragraph is the lead, the rest is body copy. Section 02: body copy only.
@@ -132,7 +60,7 @@ export default function ProjectDetail() {
   // Image slots: hero banner, side-by-side pair (gallery 1-2), wide images (gallery 3+)
   const heroImage = project.heroImage || project.image;
   const gallery = (project.gallery || []).filter(Boolean);
-  const images = gallery.length > 0 ? gallery : [project.image];
+  const images = (gallery.length > 0 ? gallery : [project.image]).filter(Boolean);
   const pair = images.length >= 2 ? images.slice(0, 2) : [];
   const wide = images.length >= 2 ? images.slice(2) : images;
 
@@ -143,7 +71,7 @@ export default function ProjectDetail() {
     { label: 'Start Date', value: project.startDate },
     { label: 'Designer', value: project.designer },
     { label: 'Technologies', value: (project.tags || []).join(', ') },
-    { label: 'Live Site', value: project.link && project.link !== '#' ? 'Visit Site' : '', href: project.link },
+    { label: 'Live Site', value: safeUrl(project.link) && project.link !== '#' ? 'Visit Site' : '', href: safeUrl(project.link) },
   ].filter(m => m.value);
 
   const currentIndex = allProjects.findIndex(p => p.id === project.id || (!!p.slug && p.slug === project.slug));
@@ -161,12 +89,17 @@ export default function ProjectDetail() {
   return (
     <div className="pd-root min-h-screen">
       <style>{PROJECT_PAGE_CSS}</style>
+      <Seo
+        title={project.socialTitle || project.title}
+        description={project.socialDescription || (project.content || '').split(/\n\s*\n/)[0]}
+        image={project.socialImage || project.heroImage || project.image}
+      />
       <Navbar />
 
       <main>
         {/* Hero: dimmed banner image, title inside it */}
         <header className="pd-hero">
-          <img src={heroImage} alt="" aria-hidden="true" className="pd-hero-img" referrerPolicy="no-referrer" />
+          {heroImage && <img src={heroImage} alt="" aria-hidden="true" className="pd-hero-img" referrerPolicy="no-referrer" fetchPriority="high" />}
           <div className="pd-wrap pd-hero-inner">
             <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'easeOut' }} className="pd-title">
               {project.title}
@@ -181,7 +114,7 @@ export default function ProjectDetail() {
               <div key={m.label} className="pd-meta-item">
                 <dt>{m.label} :</dt>
                 <dd>
-                  {m.href ? <a href={m.href} target="_blank" rel="noreferrer">{m.value}</a> : m.value}
+                  {m.href ? <a href={m.href} target="_blank" rel="noopener noreferrer">{m.value}</a> : m.value}
                 </dd>
               </div>
             ))}
@@ -191,7 +124,7 @@ export default function ProjectDetail() {
           <motion.section {...fade} className="pd-sec pd-sec-first">
             <h2 className="pd-sec-label">01 . {project.introTitle || 'Overview'}</h2>
             <div className="pd-sec-text">
-              <p className="pd-lead">{lead || 'Detailed description coming soon...'}</p>
+              <p className="pd-lead">{lead || 'A detailed description of this project is coming soon.'}</p>
               {introRest.map((t, i) => <p key={i} className="pd-body">{t}</p>)}
             </div>
           </motion.section>

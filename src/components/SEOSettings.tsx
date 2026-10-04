@@ -1,181 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import { Save, Loader2, Globe, Image as ImageIcon, Upload } from 'lucide-react';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../services/firebase';
+import React, { useEffect, useState } from 'react';
+import { Save, Loader2, Globe, Image as ImageIcon } from 'lucide-react';
+import { useSiteConfig } from '../context/SiteConfigContext';
+import { SeoConfig } from '../lib/defaults';
+import { patchSettings } from '../lib/admin';
+import { ImageField, inputCls, labelCls } from './admin/fields';
+import { friendlyError } from './admin/forms';
 
-const SeoImageUpload = ({ label, value, onChange, recommendation }: { label: string; value: string; onChange: (val: string) => void; recommendation?: string; }) => {
-  const [isUploading, setIsUploading] = useState(false);
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploading(true);
-    try {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width; let height = img.height;
-          const MAX_SIZE = 1200;
-          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
-          else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-          canvas.width = width; canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          onChange(canvas.toDataURL('image/jpeg', 0.8));
-          setIsUploading(false);
-        };
-        img.src = event.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    } catch (error) { setIsUploading(false); }
-  };
-  return (
-    <div className="space-y-2">
-      <label className="block text-sm text-gray-400">{label}</label>
-      <div className="flex gap-4 items-start">
-        <div className="relative group shrink-0">
-          {value ? (
-            <img src={value} alt="Preview" className="w-32 h-20 object-cover rounded-xl border border-white/10" />
-          ) : (
-            <div className="w-32 h-20 bg-white/5 border border-dashed border-white/10 rounded-xl flex items-center justify-center"><ImageIcon className="w-6 h-6 text-gray-600" /></div>
-          )}
-          <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
-            <Upload className="w-5 h-5 text-white" />
-            <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-          </label>
-        </div>
-        <div className="flex-1 space-y-3">
-          <div className="flex items-center gap-3">
-            <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder="Or paste an image URL..." className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-accent outline-none text-white transition-all" />
-            {value && <button type="button" onClick={() => onChange('')} className="px-3 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all border border-red-500/15">Clear</button>}
-          </div>
-          {recommendation && <p className="text-xs text-accent italic">{recommendation}</p>}
-          {isUploading && <div className="flex items-center gap-2 text-xs text-accent"><Loader2 className="w-3 h-3 animate-spin" /> Processing image...</div>}
-        </div>
-      </div>
-    </div>
-  );
-};
+export function SEOSettings({ onToast }: { onToast: (type: 'success' | 'error', message: string) => void }) {
+  const { refresh } = useSiteConfig();
+  const [f, setF] = useState<SeoConfig | null>(null);
+  const [saving, setSaving] = useState(false);
 
-export function SEOSettings() {
-  const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [defaultTitle, setDefaultTitle] = useState('');
-  const [titleTemplate, setTitleTemplate] = useState('');
-  const [defaultDescription, setDefaultDescription] = useState('');
-  const [siteName, setSiteName] = useState('');
-  const [twitterHandle, setTwitterHandle] = useState('');
-  const [ogImage, setOgImage] = useState('');
-  const [keywords, setKeywords] = useState('');
+  useEffect(() => { refresh().then(({ seoConfig }) => setF(seoConfig)); }, [refresh]);
 
-  useEffect(() => {
-    const fetchSEO = async () => {
-      try {
-        const docRef = doc(db, 'siteConfig', 'seo');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setDefaultTitle(data.defaultTitle || '');
-          setTitleTemplate(data.titleTemplate || '');
-          setDefaultDescription(data.defaultDescription || '');
-          setSiteName(data.siteName || '');
-          setTwitterHandle(data.twitterHandle || '');
-          setOgImage(data.ogImage || '');
-          setKeywords(data.keywords || '');
-        }
-      } catch (error) {
-        handleFirestoreError(error, OperationType.GET, 'siteConfig/seo');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSEO();
-  }, []);
+  if (!f) return <div className="flex items-center justify-center p-20" role="status" aria-label="Loading"><Loader2 className="w-8 h-8 text-accent animate-spin" /></div>;
+  const set = <K extends keyof SeoConfig>(k: K) => (v: SeoConfig[K]) => setF({ ...f, [k]: v });
 
-  const handleSave = async (e: React.FormEvent) => {
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
+    setSaving(true);
     try {
-      const payload = {
-        defaultTitle,
-        titleTemplate,
-        defaultDescription,
-        siteName,
-        twitterHandle,
-        ogImage,
-        keywords,
-        updatedAt: serverTimestamp()
-      };
-      await updateDoc(doc(db, 'siteConfig', 'seo'), payload);
-      alert('SEO Settings successfully updated!');
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'siteConfig/seo');
+      await patchSettings('seo', { ...f, siteUrl: f.siteUrl.trim().replace(/\/+$/, '') });
+      await refresh();
+      onToast('success', 'SEO settings saved.');
+    } catch (err: any) {
+      onToast('error', `Could not save: ${friendlyError(err.message)}`);
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center p-20"><Loader2 className="w-8 h-8 text-accent animate-spin" /></div>;
-  }
-
+  const preview = f.defaultTitle;
   return (
-    <form onSubmit={handleSave} className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center bg-bg-card p-6 rounded-2xl border border-white/5 w-full">
-        <div>
-          <h2 className="text-3xl font-black text-text-main">SEO Management</h2>
-          <p className="text-gray-400 text-sm mt-1">Control how your site appears on Google and social media.</p>
-        </div>
-        <button type="submit" disabled={isSaving} className="bg-accent text-white font-black px-8 py-3.5 rounded-xl flex items-center gap-2 hover:bg-accent/90 transition-all disabled:opacity-50">
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Save Changes
+    <form onSubmit={save} className="space-y-8 max-w-4xl">
+      <div className="flex justify-between items-center gap-4 bg-bg-card p-4 sm:p-6 rounded-2xl border border-white/5">
+        <p className="text-gray-300 text-sm">Control how your site appears on Google and when shared on social media.</p>
+        <button type="submit" disabled={saving} className="bg-accent text-white font-black px-6 sm:px-8 py-3 rounded-xl flex items-center gap-2 disabled:opacity-60 shrink-0">
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Save className="w-4 h-4" aria-hidden="true" />}Save
         </button>
       </div>
 
-      <div className="max-w-4xl space-y-10">
-        <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
-          <h3 className="text-2xl font-black flex items-center gap-3"><Globe className="text-accent w-6 h-6" /> Global Meta Tags</h3>
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Default Site Title</label>
-              <input type="text" value={defaultTitle} onChange={(e) => setDefaultTitle(e.target.value)} placeholder="e.g. Walid Rahman | Brand Developer" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-accent outline-none transition-colors" />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Title Template (Optional)</label>
-              <input type="text" value={titleTemplate} onChange={(e) => setTitleTemplate(e.target.value)} placeholder="e.g. %s | Walid Rahman" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-accent outline-none transition-colors" />
-              <p className="text-xs text-gray-500 mt-2">Used for sub-pages. The <span className="text-accent">%s</span> will be replaced by the specific page name.</p>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Default Meta Description</label>
-              <textarea value={defaultDescription} onChange={(e) => setDefaultDescription(e.target.value)} rows={3} placeholder="A brief description of your portfolio for search engine results..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-accent outline-none resize-y transition-colors" />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Keywords (Comma Separated)</label>
-              <textarea value={keywords} onChange={(e) => setKeywords(e.target.value)} rows={2} placeholder="brand developer, web design, digital marketing, dhaka..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-accent outline-none resize-y transition-colors" />
-            </div>
-          </div>
+      <section className="bg-bg-card p-6 sm:p-10 rounded-3xl border border-white/5 space-y-6">
+        <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3"><Globe className="text-accent w-6 h-6" aria-hidden="true" /> Search results (Google)</h2>
+        <div className="rounded-xl bg-white p-4 text-left" aria-label="Google result preview">
+          <div className="text-[#1a0dab] text-xl truncate">{preview}</div>
+          <div className="text-[#006621] text-sm truncate">{f.siteUrl}</div>
+          <div className="text-[#545454] text-sm line-clamp-2">{f.defaultDescription}</div>
         </div>
+        <div>
+          <label htmlFor="seo-title" className={labelCls}>Home page title</label>
+          <input id="seo-title" value={f.defaultTitle} onChange={(e) => set('defaultTitle')(e.target.value)} maxLength={70} className={inputCls} />
+          <p className="text-xs text-gray-400 mt-1">{f.defaultTitle.length}/60 characters is ideal.</p>
+        </div>
+        <div>
+          <label htmlFor="seo-template" className={labelCls}>Title for other pages (%s becomes the page name)</label>
+          <input id="seo-template" value={f.titleTemplate} onChange={(e) => set('titleTemplate')(e.target.value)} placeholder="%s | Walid Rahman" className={inputCls} />
+        </div>
+        <div>
+          <label htmlFor="seo-desc" className={labelCls}>Description</label>
+          <textarea id="seo-desc" rows={3} maxLength={300} value={f.defaultDescription} onChange={(e) => set('defaultDescription')(e.target.value)} className={inputCls} />
+          <p className="text-xs text-gray-400 mt-1">{f.defaultDescription.length}/160 characters is ideal.</p>
+        </div>
+        <div>
+          <label htmlFor="seo-keywords" className={labelCls}>Keywords (comma separated)</label>
+          <input id="seo-keywords" value={f.keywords} onChange={(e) => set('keywords')(e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label htmlFor="seo-url" className={labelCls}>Website address</label>
+          <input id="seo-url" value={f.siteUrl} onChange={(e) => set('siteUrl')(e.target.value)} className={inputCls} />
+        </div>
+        <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">
+          <input type="checkbox" checked={f.robotsIndex} onChange={(e) => set('robotsIndex')(e.target.checked)} className="w-5 h-5 accent-accent" />
+          Allow search engines to list this site
+        </label>
+      </section>
 
-        <div className="bg-bg-card p-10 rounded-3xl border border-white/5 space-y-8">
-          <h3 className="text-2xl font-black flex items-center gap-3"><ImageIcon className="text-accent w-6 h-6" /> Social Media Sharing</h3>
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Site Name</label>
-                <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder="e.g. Walid Rahman Portfolio" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-accent outline-none transition-colors" />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Twitter Handle</label>
-                <input type="text" value={twitterHandle} onChange={(e) => setTwitterHandle(e.target.value)} placeholder="e.g. @yourhandle" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-accent outline-none transition-colors" />
-              </div>
-            </div>
-            <div className="pt-6 border-t border-white/5">
-              <SeoImageUpload label="Default Social Share Image (og:image)" value={ogImage} onChange={setOgImage} recommendation="Recommended size: 1200 x 630 pixels." />
-            </div>
+      <section className="bg-bg-card p-6 sm:p-10 rounded-3xl border border-white/5 space-y-6">
+        <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3"><ImageIcon className="text-accent w-6 h-6" aria-hidden="true" /> Social sharing</h2>
+        <div className="grid sm:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="seo-site" className={labelCls}>Site name</label>
+            <input id="seo-site" value={f.siteName} onChange={(e) => set('siteName')(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label htmlFor="seo-tw" className={labelCls}>Twitter / X handle (optional)</label>
+            <input id="seo-tw" value={f.twitterHandle} onChange={(e) => set('twitterHandle')(e.target.value)} placeholder="@yourhandle" className={inputCls} />
           </div>
         </div>
-      </div>
+        <ImageField label="Default share image (leave empty to use the built-in one)" value={f.ogImage} onChange={set('ogImage')} maxSide={1200} hint="Recommended size: 1200 × 630 pixels." />
+      </section>
     </form>
   );
 }

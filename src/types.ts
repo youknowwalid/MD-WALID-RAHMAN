@@ -1,6 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 
 export interface Project {
+  order?: number;
   id?: string;
   slug?: string;
   title: string;
@@ -20,11 +21,12 @@ export interface Project {
   socialTitle?: string;
   socialDescription?: string;
   socialImage?: string;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BlogPost {
+  order?: number;
   id?: string;
   slug?: string;
   title: string;
@@ -37,19 +39,20 @@ export interface BlogPost {
   socialTitle?: string;
   socialDescription?: string;
   socialImage?: string;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Service {
+  order?: number;
   id: string;
   displayId?: string;
   title: string;
   description: string;
   icon?: LucideIcon;
   iconName?: string;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface NavLink {
@@ -64,31 +67,36 @@ export interface Stat {
 }
 
 export interface Skill {
+  id?: string;
   name: string;
   level: number;
+  order?: number;
 }
 
 export interface Testimonial {
+  order?: number;
   name: string;
   role: string;
   content: string;
   avatar: string;
   id?: string;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ResumeItem {
+  order?: number;
   id: string;
   year: string;
   role: string;
   company: string;
   desc: string;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PricingPlan {
+  order?: number;
   id?: string;
   name: string;
   price: string;
@@ -97,11 +105,12 @@ export interface PricingPlan {
   showPriorityBox?: boolean;
   priorityTitle?: string;
   prioritySubtitle?: string;
+  period?: string;
   buttonText?: string;
   buttonUrl?: string;
   accent: boolean;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Product {
@@ -116,10 +125,20 @@ export interface Product {
   order?: number;
   featured?: boolean;
   published?: boolean;
-  createdAt?: any;
-  updatedAt?: any;
+  createdAt?: string;
+  updatedAt?: string;
   gallery1?: string;
   gallery2?: string;
   gallery3?: string;
   gallery4?: string;
+}
+
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
 }
