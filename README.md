@@ -19,6 +19,8 @@ content, and the contact form opens the visitor's e-mail app. Fill in the two va
 
 ## Connecting a Supabase project (one time)
 
+> **Status:** connected to the Supabase project `biaedbathslspnumcqrp` (see `public-config.json`); the schema from `supabase/migrations` is applied. The steps below are only needed to move to a different project.
+
 1. Create a project on supabase.com (free plan is fine).
 2. Open **SQL Editor**, paste the whole of `supabase/migrations/20261004000000_initial_schema.sql`
    (change the e-mail on the `insert into public.admin_emails` line first if needed) and press **Run**.

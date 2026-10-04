@@ -7,8 +7,11 @@ import publicConfig from '../../public-config.json';
  */
 const clean = (v: unknown) => (typeof v === 'string' ? v.trim().replace(/\/+$/, '') : '');
 
-export const SUPABASE_URL = clean(import.meta.env.VITE_SUPABASE_URL) || clean(publicConfig.supabaseUrl);
-export const SUPABASE_ANON_KEY = clean(import.meta.env.VITE_SUPABASE_ANON_KEY) || clean(publicConfig.supabaseAnonKey);
+// An environment variable that is set (even to an empty value) wins over public-config.json.
+const pick = (env: unknown, fallback: unknown) => (typeof env === 'string' ? clean(env) : clean(fallback));
+
+export const SUPABASE_URL = pick(import.meta.env.VITE_SUPABASE_URL, publicConfig.supabaseUrl);
+export const SUPABASE_ANON_KEY = pick(import.meta.env.VITE_SUPABASE_ANON_KEY, publicConfig.supabaseAnonKey);
 
 /** False until a Supabase project is connected; the site then runs on built-in content. */
 export const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
