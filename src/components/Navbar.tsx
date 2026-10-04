@@ -1,44 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useProducts } from '../lib/products';
-
-const THEME_KEY = 'theme';
-
-const ThemeToggle = () => {
-  const [isLight, setIsLight] = useState(() => document.documentElement.classList.contains('light-mode'));
-
-  const toggleTheme = () => {
-    const next = !isLight;
-    setIsLight(next);
-    document.documentElement.classList.toggle('light-mode', next);
-    try { localStorage.setItem(THEME_KEY, next ? 'light' : 'dark'); } catch { /* ignore */ }
-  };
-
-  return (
-    <button
-      onClick={toggleTheme}
-      className="relative w-11 h-11 flex items-center justify-center rounded-full transition-all duration-300 hover:bg-accent/10 overflow-hidden"
-      aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={isLight ? 'sun' : 'moon'}
-          initial={{ rotate: isLight ? -90 : 90, opacity: 0, scale: 0.5 }}
-          animate={{ rotate: 0, opacity: 1, scale: 1 }}
-          exit={{ rotate: isLight ? 90 : -90, opacity: 0, scale: 0.5 }}
-          transition={{ duration: 0.3, ease: 'circOut' }}
-          className="flex"
-        >
-          {isLight ? <Sun className="w-6 h-6 text-accent" aria-hidden="true" /> : <Moon className="w-6 h-6 text-accent" aria-hidden="true" />}
-        </motion.span>
-      </AnimatePresence>
-    </button>
-  );
-};
 
 /** In-site links use the router (no page reload); everything else is a normal link. */
 const NavItem = ({ url, className, onClick, children, ...rest }: { url: string; className?: string; onClick?: () => void; children: React.ReactNode } & React.AriaAttributes) =>
@@ -121,7 +87,6 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <button
             ref={menuButton}
             className="lg:hidden w-11 h-11 flex items-center justify-center text-text-main"
