@@ -36,6 +36,9 @@ beforeAll(async () => {
     grant select, insert, update, delete on storage.objects to authenticated;
   `);
   await db.exec(readFileSync('supabase/migrations/20261004000000_initial_schema.sql', 'utf8'));
+  // A project that exists before the case-study upgrade must survive it as published.
+  await db.exec(`insert into public.projects (title, slug) values ('Legacy', 'legacy')`);
+  await db.exec(readFileSync('supabase/migrations/20261005000000_project_case_study.sql', 'utf8'));
   await db.exec(`
     grant usage on schema public to anon, authenticated;
     grant select, insert, update, delete on all tables in schema public to anon, authenticated;
@@ -75,6 +78,47 @@ describe('public visitors', () => {
       const p = await db.query('select title from public.products');
       expect(p.rows).toEqual([{ title: 'Live' }]);
     });
+  });
+});
+
+describe('project drafts and case-study fields', () => {
+  it('keeps existing projects published and defaults new ones to published', async () => {
+    const legacy = await db.query(`select published from public.projects where slug = 'legacy'`);
+    expect(legacy.rows).toEqual([{ published: true }]);
+    await db.exec(`insert into public.projects (title, slug) values ('Fresh', 'fresh')`);
+    const fresh = await db.query(`select published, summary, feedback_quote, cta_button_url from public.projects where slug = 'fresh'`);
+    expect(fresh.rows).toEqual([{ published: true, summary: '', feedback_quote: '', cta_button_url: '' }]);
+  });
+
+  it('shows visitors only published projects, and the admin everything', async () => {
+    await db.exec(`insert into public.projects (title, slug, published) values ('Hidden draft', 'hidden-draft', false)`);
+    await as('anon', null, async () => {
+      const slugs = (await db.query('select slug from public.projects')).rows.map((r: any) => r.slug);
+      expect(slugs).toContain('legacy');
+      expect(slugs).not.toContain('hidden-draft');
+      expect((await db.query(`select 1 from public.projects where slug = 'hidden-draft'`)).rows.length).toBe(0);
+    });
+    await as('authenticated', adminClaims, async () => {
+      const slugs = (await db.query('select slug from public.projects')).rows.map((r: any) => r.slug);
+      expect(slugs).toContain('hidden-draft');
+    });
+    await as('authenticated', { sub: OTHER_ID, role: 'authenticated', email: 'stranger@example.com' }, async () => {
+      const slugs = (await db.query('select slug from public.projects')).rows.map((r: any) => r.slug);
+      expect(slugs).not.toContain('hidden-draft');
+    });
+    await db.exec(`delete from public.projects where slug in ('hidden-draft', 'fresh')`);
+  });
+
+  it('rejects oversized values', async () => {
+    const limits: Record<string, number> = {
+      summary: 500, industry: 200, services: 300, feedback_quote: 2000, feedback_name: 200,
+      feedback_role: 200, cta_title: 200, cta_button_text: 50, cta_button_url: 2000,
+    };
+    for (const [col, max] of Object.entries(limits)) {
+      await expect(db.query(`insert into public.projects (title, ${col}) values ('x', '${'a'.repeat(max + 1)}')`)).rejects.toThrow();
+      await db.query(`insert into public.projects (title, ${col}) values ('limit-ok', '${'a'.repeat(max)}')`);
+    }
+    await db.exec(`delete from public.projects where title = 'limit-ok'`);
   });
 });
 

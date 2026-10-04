@@ -17,6 +17,39 @@ describe('rows mapping', () => {
   });
 });
 
+describe('project case-study columns', () => {
+  const columns: Record<string, string> = {
+    summary: 'summary', industry: 'industry', services: 'services',
+    feedbackQuote: 'feedback_quote', feedbackName: 'feedback_name', feedbackRole: 'feedback_role',
+    ctaTitle: 'cta_title', ctaButtonText: 'cta_button_text', ctaButtonUrl: 'cta_button_url', published: 'published',
+  };
+  it('maps new database columns to camelCase and back', () => {
+    const row = Object.fromEntries(Object.values(columns).map((c) => [c, c === 'published' ? false : `v-${c}`]));
+    const item = fromRow('projects', row);
+    for (const [camel, col] of Object.entries(columns)) expect(item[camel]).toBe(row[col]);
+    const back = toRow('projects', item);
+    for (const col of Object.values(columns)) expect(back[col]).toBe(row[col]);
+  });
+  it('keeps projects saved before the upgrade visible', () => {
+    expect(normalizeProject({ title: 'Old' }).published).toBe(true);
+    expect(normalizeProject({ title: 'Draft', published: false }).published).toBe(false);
+    expect(toFormValues('projects', { title: 'Old' }).published).toBe(true);
+    expect(toFormValues('projects', null).published).toBe(true);
+    expect(toFormValues('projects', { title: 'D', published: false }).published).toBe(false);
+  });
+  it('defaults new text fields to empty strings', () => {
+    const p = normalizeProject({ title: 'A' }) as Record<string, any>;
+    for (const camel of Object.keys(columns).filter((c) => c !== 'published')) expect(p[camel]).toBe('');
+  });
+  it('round-trips every new field through the admin form', () => {
+    const item: Record<string, any> = { title: 'T', published: false };
+    for (const camel of Object.keys(columns).filter((c) => c !== 'published')) item[camel] = `value of ${camel}`;
+    const values = toFormValues('projects', item);
+    for (const camel of Object.keys(columns)) expect(values[camel]).toBe(camel === 'published' ? false : item[camel]);
+    expect(toPayload('projects', values)).toMatchObject(item);
+  });
+});
+
 describe('text helpers', () => {
   it('slugifies', () => {
     expect(slugify('  Hello, World! Ünïcode  ')).toBe('hello-world-unicode');

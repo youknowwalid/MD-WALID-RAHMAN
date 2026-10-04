@@ -13,7 +13,7 @@ const now = () => new Date().toISOString();
 const row = (o) => ({ id: `00000000-0000-4000-8000-${String(seq++).padStart(12, '0')}`, sort_order: 0, created_at: now(), updated_at: now(), ...o });
 
 const initial = () => ({
-  projects: [row({ slug: 'brand-one', title: 'Brand One', category: 'Branding', image: 'http://127.0.0.1:54321/storage/v1/object/public/site-media/images/a.png', content: 'First paragraph of the case study.\n\nSecond paragraph.', tags: ['Logo'], gallery: [], link: '', hero_image: '', client: 'Acme', designer: '', start_date: '', intro_title: '', details_title: '', details_content: '', social_title: '', social_description: '', social_image: '' })],
+  projects: [row({ slug: 'brand-one', title: 'Brand One', category: 'Branding', image: 'http://127.0.0.1:54321/storage/v1/object/public/site-media/images/a.png', content: 'First paragraph of the case study.\n\nSecond paragraph.', tags: ['Logo'], gallery: [], link: '', hero_image: '', client: 'Acme', designer: '', start_date: '', intro_title: '', details_title: '', details_content: '', social_title: '', social_description: '', social_image: '', summary: 'A short intro line for Brand One.', industry: 'Retail', services: 'Branding, Logo design', feedback_quote: 'Walid delivered beyond our expectations.', feedback_name: 'Jane Doe', feedback_role: 'CEO, Acme', cta_title: '', cta_button_text: '', cta_button_url: '', published: true })],
   blog_posts: [row({ slug: 'hello-world', title: 'Hello World', date: 'May 1, 2026', excerpt: 'A first post.', image: '', content: '### A heading\n\nBody text here.\n\n- one\n- two', author: 'Walid Rahman', tags: ['Intro'], social_title: '', social_description: '', social_image: '' })],
   services: [row({ display_id: '01', title: 'Brand Identity', description: 'Identity work.', icon_name: 'Palette' })],
   resume_items: [row({ year: '2024 - Present', role: 'Executive Director', company: 'De Jure Academy', description: '' })],
@@ -120,7 +120,7 @@ http.createServer(async (req, res) => {
   if (req.method === 'GET') {
     if (table === 'contact_submissions' && !isAdmin(req)) return reply(200, []);
     let out = filterRows(rows, url.searchParams);
-    if (table === 'products' && !isAdmin(req)) out = out.filter((r) => r.published);
+    if ((table === 'products' || table === 'projects') && !isAdmin(req)) out = out.filter((r) => r.published !== false);
     return reply(200, out);
   }
 

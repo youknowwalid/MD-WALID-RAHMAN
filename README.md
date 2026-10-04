@@ -9,7 +9,7 @@ Personal portfolio of Md. Walid Rahman — React + Vite + Tailwind, hosted on Ve
 | --- | --- |
 | Public site | `src/` (React). Deploys automatically on Vercel from `main`. |
 | Admin panel | `/admin` — sign in with the administrator e-mail. Edit projects, blog, services, resume, skills, feedback, pricing, products, SEO, social links, contact details, colours. Read contact-form messages. |
-| Database, security rules, storage | `supabase/migrations/20261004000000_initial_schema.sql` |
+| Database, security rules, storage | `supabase/migrations/20261004000000_initial_schema.sql`, then `20261005000000_project_case_study.sql` (project page fields + drafts) |
 | Connection settings (public values only) | `public-config.json` — Supabase project URL + public `anon` key |
 | Sitemap | `api/sitemap.js` → served at `/sitemap.xml` |
 | Security headers, routing | `vercel.json` |
