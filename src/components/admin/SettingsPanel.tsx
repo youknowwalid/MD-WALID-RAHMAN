@@ -9,7 +9,7 @@ import { friendlyError } from './forms';
 interface Props { onToast: (type: 'success' | 'error', message: string) => void }
 
 type Form = {
-  siteTitle: string; siteLogo: string; favicon: string;
+  siteTitle: string; siteLogo: string; footerLogo: string; favicon: string;
   heroImage: string; resumeImage: string; heroStatus: string; heroAvailability: string; cvUrl: string;
   brandTagline: string; globalCtaText: string; globalCtaUrl: string;
   heroStats: HeroStat[];
@@ -68,7 +68,7 @@ export default function SettingsPanel({ onToast }: Props) {
   useEffect(() => {
     refresh().then(({ config: c, hero: h }) =>
       setF({
-        siteTitle: c.siteTitle, siteLogo: c.siteLogo, favicon: c.favicon,
+        siteTitle: c.siteTitle, siteLogo: c.siteLogo, footerLogo: c.footerLogo, favicon: c.favicon,
         heroImage: h.heroImage, resumeImage: h.resumeImage, heroStatus: h.heroStatus, heroAvailability: h.heroAvailability, cvUrl: h.cvUrl,
         brandTagline: c.brandTagline, globalCtaText: c.globalCtaText, globalCtaUrl: c.globalCtaUrl,
         heroStats: c.heroStats,
@@ -94,7 +94,7 @@ export default function SettingsPanel({ onToast }: Props) {
         heroAvailability: f.heroAvailability.trim(), cvUrl: f.cvUrl.trim(),
       });
       await patchSettings('global', {
-        siteTitle: f.siteTitle.trim(), siteLogo: f.siteLogo, favicon: f.favicon,
+        siteTitle: f.siteTitle.trim(), siteLogo: f.siteLogo, footerLogo: f.footerLogo, favicon: f.favicon,
         brandTagline: f.brandTagline.trim(), globalCtaText: f.globalCtaText.trim(), globalCtaUrl: f.globalCtaUrl.trim(),
         heroStats: f.heroStats.filter((s) => s.value.trim() || s.label.trim()),
         aboutText: f.aboutText.trim(), aboutTags: f.aboutTags.split(',').map((t) => t.trim()).filter(Boolean), aboutVideoUrl: f.aboutVideoUrl.trim(),
@@ -132,10 +132,11 @@ export default function SettingsPanel({ onToast }: Props) {
           </button>
         </div>
 
-        <Card title="Site identity" hint="The logo replaces the text name in the menu when set.">
-          <Text id="s-title" label="Site name (shown in the menu and footer)" value={f.siteTitle} onChange={set('siteTitle')} />
-          <ImageField label="Logo (optional)" value={f.siteLogo} onChange={set('siteLogo')} maxSide={600} />
+        <Card title="Logos" hint="The website has exactly two logos: one in the header and one in the footer. No text name is shown next to them.">
+          <ImageField label="Header logo" value={f.siteLogo} onChange={set('siteLogo')} maxSide={600} />
+          <ImageField label="Footer logo" value={f.footerLogo} onChange={set('footerLogo')} maxSide={600} />
           <ImageField label="Browser tab icon (favicon)" value={f.favicon} onChange={set('favicon')} maxSide={256} compact />
+          <Text id="s-title" label="Site name (not shown on the page — only used by screen readers and as the logo's link description)" value={f.siteTitle} onChange={set('siteTitle')} />
         </Card>
 
         <Card title="Home page: hero">
@@ -162,7 +163,10 @@ export default function SettingsPanel({ onToast }: Props) {
             <textarea id="s-about" rows={5} value={f.aboutText} onChange={(e) => set('aboutText')(e.target.value)} className={inputCls} />
           </div>
           <Text id="s-tags" label="Skill pills (comma separated)" value={f.aboutTags} onChange={set('aboutTags')} />
-          <Text id="s-video" label="Intro video (YouTube link or direct .mp4 link — optional)" value={f.aboutVideoUrl} onChange={set('aboutVideoUrl')} placeholder="https://www.youtube.com/watch?v=…" />
+          <div>
+            <Text id="s-video" label="Intro video (YouTube link or direct .mp4 link — optional)" value={f.aboutVideoUrl} onChange={set('aboutVideoUrl')} placeholder="https://www.youtube.com/watch?v=…" />
+            <p className="text-xs text-amber-300 mt-2">For an .mp4 file, export it as H.264 video + AAC audio. Other formats (for example H.265/HEVC from some phones and screen recorders) may play only the sound in many browsers.</p>
+          </div>
           <ImageField label="Picture beside your resume (optional)" value={f.resumeImage} onChange={set('resumeImage')} maxSide={1200} />
         </Card>
 

@@ -7,7 +7,8 @@ export interface HeroStat { value: string; unit: string; label: string }
 /** Branding, contact details and page texts (stored under site_settings.global). */
 export interface SiteConfig {
   siteTitle: string;
-  siteLogo: string;
+  siteLogo: string; // header logo
+  footerLogo: string;
   favicon: string;
   headerLinks: HeaderLink[];
   socialLinks: SocialLink[];
@@ -83,6 +84,7 @@ export const DEFAULT_REFUND = 'The refund policy for digital products is being p
 export const DEFAULT_CONFIG: SiteConfig = {
   siteTitle: 'youknowwalid',
   siteLogo: '',
+  footerLogo: '',
   favicon: '',
   headerLinks: DEFAULT_HEADER_LINKS,
   socialLinks: [],

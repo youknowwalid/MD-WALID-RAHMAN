@@ -31,9 +31,11 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 relative">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-16 relative z-10">
           <div className="md:col-span-4">
-            <Link to="/" className="text-2xl font-black tracking-tighter text-text-main inline-block mb-4 hover:opacity-80 transition-opacity">
-              {config.siteLogo ? <img src={config.siteLogo} alt={config.siteTitle} className="h-8 w-auto" /> : <span>{config.siteTitle}</span>}
-            </Link>
+            {config.footerLogo && (
+              <Link to="/" className="inline-block mb-4 hover:opacity-80 transition-opacity" aria-label={`${config.siteTitle} – home`}>
+                <img src={config.footerLogo} alt="" className="h-8 w-auto" />
+              </Link>
+            )}
             <p className="text-text-muted text-sm max-w-sm mb-6 leading-relaxed">{config.brandTagline}</p>
 
             {socials.length > 0 && (

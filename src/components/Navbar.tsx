@@ -99,12 +99,8 @@ export default function Navbar() {
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 hover:text-accent transition-all" aria-label={`${config.siteTitle} – home`}>
-          {config.siteLogo ? (
-            <img src={config.siteLogo} alt="" className="h-10 w-auto" />
-          ) : (
-            <span className="font-black text-xl tracking-tighter text-text-main">{config.siteTitle}</span>
-          )}
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-h-10 min-w-10" aria-label={`${config.siteTitle} – home`}>
+          {config.siteLogo && <img src={config.siteLogo} alt="" className="h-10 w-auto" />}
         </Link>
 
         <div className="hidden lg:flex items-center gap-8">

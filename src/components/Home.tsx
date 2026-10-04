@@ -47,14 +47,32 @@ const VideoPlayer = ({ url }: { url: string }) => {
       </div>
     );
   }
+  return <FileVideo url={url} />;
+};
+
+/** Plays an uploaded video file and tells the visitor if the browser can only play its sound (unsupported video format). */
+const FileVideo = ({ url }: { url: string }) => {
   const src = safeUrl(url);
+  const [noPicture, setNoPicture] = useState(false);
   if (!src) return null;
   return (
-    <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-neutral-900">
-      <video className="w-full h-full object-cover" controls playsInline preload="metadata">
-        <source src={src} />
+    <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-neutral-900">
+      <video
+        className="w-full h-full object-contain bg-black"
+        src={src}
+        controls
+        playsInline
+        preload="metadata"
+        onLoadedMetadata={(e) => setNoPicture(e.currentTarget.videoWidth === 0)}
+        onError={() => setNoPicture(true)}
+      >
         Your browser does not support the video tag.
       </video>
+      {noPicture && (
+        <p role="alert" className="absolute inset-x-4 top-4 rounded-xl bg-black/80 p-3 text-center text-xs text-white">
+          This browser can&apos;t display this video&apos;s picture (unsupported video format).
+        </p>
+      )}
     </div>
   );
 };
