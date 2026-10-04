@@ -1,8 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { ArrowLeft, ArrowRight, LayoutGrid } from 'lucide-react';
+import { MotionConfig, motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight } from 'lucide-react';
 import { getRow, listRows } from '../lib/api';
 import { normalizeProject } from '../lib/schema-defaults';
 import { safeUrl } from '../lib/text';
@@ -11,6 +10,136 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import NotFound from './NotFound';
 import Seo from './Seo';
+import ScrollFillText from './ScrollFillText';
+
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const CONTAINER = 'mx-auto w-full max-w-[1500px] px-5 sm:px-8 lg:px-12';
+const SECTION_TITLE = 'text-[clamp(2.4rem,5.2vw,5rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-text-main';
+
+const fadeUp = {
+  initial: { opacity: 0, y: 32 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: '-60px' },
+  transition: { duration: 0.7, ease: EASE },
+};
+
+const paragraphs = (text?: string) => (text || '').split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean);
+
+/** Big title: every word slides up out of a mask. Only a transform is animated, so the text is painted at once. */
+const Title = ({ text }: { text: string }) => {
+  const words = text.split(/\s+/).filter(Boolean);
+  return (
+    <h1 className="text-[clamp(2.6rem,8.4vw,8rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-text-main break-words">
+      {words.map((word, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && ' '}
+          <span className="inline-block overflow-hidden align-bottom px-[0.05em] -mx-[0.05em] pb-[0.14em] -mb-[0.14em]">
+            <motion.span
+              className="inline-block"
+              initial={{ y: '110%' }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.9, ease: EASE, delay: 0.08 * i }}
+            >
+              {word}
+            </motion.span>
+          </span>
+        </React.Fragment>
+      ))}
+    </h1>
+  );
+};
+
+/** Cover image: paints at once, zooms in on load, then drifts slowly while scrolling. */
+const Cover = ({ src, alt }: { src: string; alt: string }) => {
+  const reduce = useReducedMotion();
+  const box = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: box, offset: ['start end', 'end start'] });
+  const y = useTransform(scrollYProgress, [0, 1], ['-7%', '7%']);
+  return (
+    <div ref={box} className="relative overflow-hidden rounded-[28px] md:rounded-[44px] aspect-[4/3] sm:aspect-[16/10] bg-bg-card">
+      <motion.div className="absolute inset-0" initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 1.4, ease: EASE }}>
+        <motion.img
+          src={src}
+          alt={alt}
+          fetchPriority="high"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          className="h-full w-full object-cover"
+          style={reduce ? undefined : { y, scale: 1.16 }}
+        />
+      </motion.div>
+    </div>
+  );
+};
+
+/** Big title on the left, text on the right (lead sentence first, then body copy). */
+const TextSection = ({ title, lead, body, titleClass }: { title: string; lead?: string; body: string[]; titleClass?: string }) => (
+  <motion.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
+    <h2 className={`${SECTION_TITLE} ${titleClass ?? ''}`}>{title}</h2>
+    <div className="max-w-3xl">
+      {lead && <p className="text-xl sm:text-2xl lg:text-[1.75rem] leading-[1.45] font-medium text-text-main">{lead}</p>}
+      {body.map((t, i) => (
+        <p key={i} className={`whitespace-pre-line text-lg leading-[1.75] text-text-muted ${lead || i > 0 ? 'mt-6' : ''}`}>{t}</p>
+      ))}
+    </div>
+  </motion.section>
+);
+
+/** Rows of two images, alternating wide/narrow; an odd last image spans the full width. */
+const ImageGrid = ({ images, title }: { images: string[]; title: string }) => {
+  const rows: string[][] = [];
+  for (let i = 0; i < images.length; i += 2) rows.push(images.slice(i, i + 2));
+  const cell = 'group relative overflow-hidden rounded-[24px] md:rounded-[32px] bg-bg-card';
+  const height = 'aspect-[4/5] md:aspect-auto md:h-[clamp(300px,36vw,620px)]';
+  return (
+    <div className="grid gap-5 md:gap-6">
+      {rows.map((row, r) =>
+        row.length === 1 ? (
+          <motion.div key={r} {...fadeUp} className={`${cell} aspect-[16/10]`}>
+            <img src={row[0]} alt={`${title} ${r * 2 + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+          </motion.div>
+        ) : (
+          <div key={r} className={`grid gap-5 md:gap-6 ${r % 2 === 0 ? 'md:grid-cols-[1fr_1.4fr]' : 'md:grid-cols-[1.4fr_1fr]'}`}>
+            {row.map((src, c) => (
+              <motion.div
+                key={c}
+                initial={fadeUp.initial}
+                whileInView={fadeUp.whileInView}
+                viewport={fadeUp.viewport}
+                transition={{ ...fadeUp.transition, delay: c * 0.12 }}
+                className={`${cell} ${height}`}
+              >
+                <img src={src} alt={`${title} ${r * 2 + c + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+              </motion.div>
+            ))}
+          </div>
+        ),
+      )}
+    </div>
+  );
+};
+
+const BackToTop = () => {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 700);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Back to top"
+      aria-hidden={!show}
+      tabIndex={show ? 0 : -1}
+      className={`fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-accent text-white shadow-lg shadow-black/40 transition-all duration-300 hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'}`}
+    >
+      <ArrowUp className="h-5 w-5" aria-hidden="true" />
+    </button>
+  );
+};
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
@@ -38,10 +167,10 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-dark flex items-center justify-center">
-        <motion.div 
+      <div className="min-h-screen bg-bg-dark flex items-center justify-center" role="status" aria-label="Loading">
+        <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full"
         />
       </div>
@@ -51,276 +180,174 @@ export default function ProjectDetail() {
   if (!project) return <NotFound />;
 
   const projectPath = (p: Project) => `/projects/${p.slug || p.id}`;
-  const paragraphs = (text?: string) => (text || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
 
-  // Section 01: first paragraph is the lead, the rest is body copy. Section 02: body copy only.
   const [lead, ...introRest] = paragraphs(project.content);
-  const detailsParagraphs = paragraphs(project.detailsContent);
-
-  // Image slots: hero banner, side-by-side pair (gallery 1-2), wide images (gallery 3+)
-  const heroImage = project.heroImage || project.image;
+  const solution = paragraphs(project.detailsContent);
+  const cover = project.heroImage || project.image;
   const gallery = (project.gallery || []).filter(Boolean);
-  const images = (gallery.length > 0 ? gallery : [project.image]).filter(Boolean);
-  const pair = images.length >= 2 ? images.slice(0, 2) : [];
-  const wide = images.length >= 2 ? images.slice(2) : images;
+  const tags = (project.tags || []).filter(Boolean);
+  const liveSite = safeUrl(project.link) && project.link !== '#' ? safeUrl(project.link) : '';
 
-  // Metadata row: only fields that have data, filled left to right
-  const meta = [
-    { label: 'Category', value: project.category },
+  const details = [
     { label: 'Client', value: project.client },
-    { label: 'Start Date', value: project.startDate },
+    { label: 'Industries', value: project.industry || project.category },
+    { label: 'Services', value: project.services },
+    { label: 'Date', value: project.startDate },
     { label: 'Designer', value: project.designer },
-    { label: 'Technologies', value: (project.tags || []).join(', ') },
-    { label: 'Live Site', value: safeUrl(project.link) && project.link !== '#' ? 'Visit Site' : '', href: safeUrl(project.link) },
-  ].filter(m => m.value);
+    { label: 'Live site', value: liveSite ? 'Visit website' : '', href: liveSite },
+  ].filter((d) => d.value);
 
-  const currentIndex = allProjects.findIndex(p => p.id === project.id || (!!p.slug && p.slug === project.slug));
+  const hasFeedback = Boolean(project.feedbackQuote?.trim());
+  const ctaUrl = safeUrl(project.ctaButtonUrl) || '/#contact';
+  const ctaText = project.ctaButtonText || 'Contact Us';
+  const ctaClass = 'group inline-flex items-center gap-3 rounded-full bg-accent px-8 py-4 text-lg font-semibold text-white transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
+  const ctaInner = (
+    <>
+      {ctaText}
+      <ArrowUpRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+    </>
+  );
+
+  const currentIndex = allProjects.findIndex((p) => p.id === project.id || (!!p.slug && p.slug === project.slug));
   const hasSiblings = currentIndex !== -1 && allProjects.length > 1;
   const prev = hasSiblings ? allProjects[(currentIndex - 1 + allProjects.length) % allProjects.length] : null;
   const next = hasSiblings ? allProjects[(currentIndex + 1) % allProjects.length] : null;
 
-  const fade = {
-    initial: { opacity: 0, y: 16 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, margin: '-40px' },
-    transition: { duration: 0.6, ease: 'easeOut' as const },
-  };
-
   return (
-    <div className="pd-root min-h-screen">
-      <style>{PROJECT_PAGE_CSS}</style>
-      <Seo
-        title={project.socialTitle || project.title}
-        description={project.socialDescription || (project.content || '').split(/\n\s*\n/)[0]}
-        image={project.socialImage || project.heroImage || project.image}
-      />
-      <Navbar />
+    <MotionConfig reducedMotion="user">
+      <div className="relative min-h-screen bg-bg-dark overflow-x-clip selection:bg-accent/30">
+        <Seo
+          title={project.socialTitle || project.title}
+          description={project.socialDescription || project.summary || lead}
+          image={project.socialImage || project.heroImage || project.image}
+        />
+        <Navbar />
 
-      <main>
-        {/* Hero: dimmed banner image, title inside it */}
-        <header className="pd-hero">
-          {heroImage && <img src={heroImage} alt="" aria-hidden="true" className="pd-hero-img" referrerPolicy="no-referrer" fetchPriority="high" />}
-          <div className="pd-wrap pd-hero-inner">
-            <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'easeOut' }} className="pd-title">
-              {project.title}
-            </motion.h1>
-          </div>
-        </header>
+        <main className="relative z-10">
+          <div className={`${CONTAINER} pt-28 sm:pt-32`}>
+            {/* 1. Back link */}
+            <Link to="/#projects" className="inline-flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+              All Projects <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
 
-        <div className="pd-wrap">
-          {/* Metadata row + divider */}
-          <dl className="pd-meta">
-            {meta.map(m => (
-              <div key={m.label} className="pd-meta-item">
-                <dt>{m.label} :</dt>
-                <dd>
-                  {m.href ? <a href={m.href} target="_blank" rel="noopener noreferrer">{m.value}</a> : m.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
+            {/* 2. Title */}
+            <div className="mt-6 sm:mt-8"><Title text={project.title} /></div>
 
-          {/* 01 . Section: label left, text right */}
-          <motion.section {...fade} className="pd-sec pd-sec-first">
-            <h2 className="pd-sec-label">01 . {project.introTitle || 'Overview'}</h2>
-            <div className="pd-sec-text">
-              <p className="pd-lead">{lead || 'A detailed description of this project is coming soon.'}</p>
-              {introRest.map((t, i) => <p key={i} className="pd-body">{t}</p>)}
-            </div>
-          </motion.section>
+            {/* Intro, details, tags and cover share one block so the tag column can stay in view beside them */}
+            <div className="relative mt-8 sm:mt-12">
+              {tags.length > 0 && (
+                <aside aria-label="Tags" className="pointer-events-none absolute right-0 top-0 z-10 hidden h-full lg:block">
+                  <ul className="sticky top-28 flex flex-col items-end gap-3">
+                    {tags.map((t) => (
+                      <li key={t} className="rounded-full border border-white/25 bg-bg-dark/70 px-4 py-1.5 text-sm text-text-main backdrop-blur-md">{t}</li>
+                    ))}
+                  </ul>
+                </aside>
+              )}
 
-          {/* Two images side by side */}
-          {pair.length === 2 && (
-            <motion.div {...fade} className="pd-pair">
-              {pair.map((img, i) => (
-                <div key={i} className="pd-pair-img">
-                  <img src={img} alt={`${project.title} ${i + 1}`} referrerPolicy="no-referrer" loading="lazy" />
+              {/* 3. Intro */}
+              {project.summary && <p className="max-w-xl text-lg leading-relaxed text-text-muted sm:text-xl">{project.summary}</p>}
+
+              {/* 4. Details */}
+              {details.length > 0 && (
+                <dl className="mt-10 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-7">
+                  {details.map((d) => (
+                    <div key={d.label}>
+                      <dt className="text-sm text-text-muted">{d.label}</dt>
+                      <dd className="mt-1 text-base font-medium text-text-main sm:text-lg [overflow-wrap:anywhere]">
+                        {d.href ? <a href={d.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 transition-colors hover:text-accent">{d.value}<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : d.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+
+              {/* 5. Tags on small screens */}
+              {tags.length > 0 && (
+                <ul className="mt-8 flex flex-wrap gap-2.5 lg:hidden" aria-label="Tags">
+                  {tags.map((t) => (
+                    <li key={t} className="rounded-full border border-white/25 px-4 py-1.5 text-sm text-text-main">{t}</li>
+                  ))}
+                </ul>
+              )}
+
+              {/* 6. Cover */}
+              {cover && (
+                <div className="mt-10 sm:mt-14">
+                  <Cover src={cover} alt={project.title} />
                 </div>
-              ))}
-            </motion.div>
+              )}
+            </div>
+          </div>
+
+          <div className={`${CONTAINER} mt-20 sm:mt-28 grid gap-20 sm:gap-28`}>
+            {/* 7. Challenge */}
+            {lead && <TextSection title={project.introTitle || 'Challenge'} lead={lead} body={introRest} />}
+
+            {/* 8. Image grid */}
+            {gallery.length > 0 && <ImageGrid images={gallery} title={project.title} />}
+
+            {/* 9. Solution */}
+            {solution.length > 0 && <TextSection title={project.detailsTitle || 'Solution'} body={solution} />}
+
+            {/* 10. Feedback */}
+            {hasFeedback && (
+              <motion.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
+                <h2 className={`${SECTION_TITLE} max-w-[9ch]`}>Client&apos;s feedback</h2>
+                <div className="max-w-3xl">
+                  <blockquote className="whitespace-pre-line text-xl leading-[1.5] text-text-main sm:text-2xl lg:text-[1.75rem]">{project.feedbackQuote}</blockquote>
+                  {(project.feedbackName || project.feedbackRole) && (
+                    <div className="mt-8">
+                      {project.feedbackName && <p className="text-xl font-semibold text-text-main">{project.feedbackName}</p>}
+                      {project.feedbackRole && <p className="mt-1 text-sm text-text-muted">{project.feedbackRole}</p>}
+                    </div>
+                  )}
+                </div>
+              </motion.section>
+            )}
+          </div>
+
+          {/* 11. Prev / next */}
+          {prev && next && (
+            <div className={`${CONTAINER} mt-20 sm:mt-28`}>
+              <nav aria-label="Project navigation" className="grid gap-10 border-t border-white/10 pt-10 sm:grid-cols-2 sm:gap-8">
+                <Link to={projectPath(prev)} className="group min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+                  <span className="flex items-center gap-2 text-sm text-text-muted"><ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />Prev</span>
+                  <span className="mt-3 block text-[clamp(1.5rem,3vw,2.75rem)] font-semibold leading-tight tracking-[-0.02em] text-text-main transition-colors group-hover:text-accent">{prev.title}</span>
+                </Link>
+                <Link to={projectPath(next)} className="group min-w-0 sm:text-right focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+                  <span className="flex items-center gap-2 text-sm text-text-muted sm:justify-end">Next<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" /></span>
+                  <span className="mt-3 block text-[clamp(1.5rem,3vw,2.75rem)] font-semibold leading-tight tracking-[-0.02em] text-text-main transition-colors group-hover:text-accent">{next.title}</span>
+                </Link>
+              </nav>
+            </div>
           )}
 
-          {/* 02 . Section */}
-          {detailsParagraphs.length > 0 && (
-            <motion.section {...fade} className="pd-sec pd-sec-second">
-              <h2 className="pd-sec-label">02 . {project.detailsTitle || 'Details'}</h2>
-              <div className="pd-sec-text">
-                {detailsParagraphs.map((t, i) => <p key={i} className="pd-body">{t}</p>)}
+          {/* 12. Closing call to action */}
+          <div className={`${CONTAINER} mt-20 sm:mt-28 pb-20 sm:pb-28`}>
+            <motion.section {...fadeUp} className="relative isolate overflow-hidden rounded-[32px] bg-bg-card px-6 py-16 sm:rounded-[44px] sm:px-14 sm:py-24 lg:py-28">
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[url('/bg-grid.svg')] bg-cover bg-center opacity-60" />
+              <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 -z-10 h-[420px] w-[420px] rounded-full bg-accent opacity-40 blur-[110px]" />
+              <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-20 -z-10 h-[360px] w-[360px] rounded-full bg-white opacity-[0.07] blur-[100px]" />
+              <ScrollFillText
+                as="h2"
+                text={project.ctaTitle || "Let's talk about your project!"}
+                className="max-w-4xl text-[clamp(2rem,5vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-text-main"
+              />
+              <div className="mt-10">
+                {ctaUrl.startsWith('/') ? (
+                  <Link to={ctaUrl} className={ctaClass}>{ctaInner}</Link>
+                ) : (
+                  <a href={ctaUrl} className={ctaClass}>{ctaInner}</a>
+                )}
               </div>
             </motion.section>
-          )}
+          </div>
+        </main>
 
-          {/* Wide image(s) */}
-          {wide.map((img, i) => (
-            <motion.div key={i} {...fade} className="pd-wide">
-              <img src={img} alt={`${project.title} ${pair.length + i + 1}`} referrerPolicy="no-referrer" loading="lazy" />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* All projects */}
-        <div className="pd-all">
-          <Link to="/#projects" className="pd-all-btn">
-            <LayoutGrid strokeWidth={1.25} />
-            <span>All Projects</span>
-          </Link>
-        </div>
-
-        {/* Prev / next project */}
-        {prev && next && (
-          <nav className="pd-nav" aria-label="Project navigation">
-            <Link to={projectPath(prev)} className="pd-nav-link pd-nav-prev">
-              <ArrowLeft strokeWidth={1} />
-              <span className="pd-nav-text">
-                <span className="pd-nav-label">Prev Project</span>
-                <span className="pd-nav-title">{prev.title}</span>
-              </span>
-            </Link>
-            <Link to={projectPath(next)} className="pd-nav-link pd-nav-next">
-              <span className="pd-nav-text">
-                <span className="pd-nav-label">Next Project</span>
-                <span className="pd-nav-title">{next.title}</span>
-              </span>
-              <ArrowRight strokeWidth={1} />
-            </Link>
-          </nav>
-        )}
-      </main>
-
-      <Footer />
-    </div>
+        <Footer />
+        <BackToTop />
+      </div>
+    </MotionConfig>
   );
 }
-
-/*
- * Project page styles, scoped to .pd-root.
- * Desktop is built from a 1440px-wide reference: 1u = 1px at 1440, scaling
- * proportionally below that (and capped above it). Below 1024px the same
- * composition is recomposed with fixed sizes.
- */
-const PROJECT_PAGE_CSS = `
-.pd-root{
-  --u:calc(min(100vw,1440px)/1440);
-  --pd-bg:#0f0f0f; --pd-hero-top:#030303; --pd-text:#fff; --pd-body:#b9bbba; --pd-label:#b3b3b3;
-  --pd-line:rgba(255,255,255,.09); --pd-fill:#3b3b3b; --pd-stroke:#8f8f8f; --pd-btn:rgba(255,255,255,.015);
-  background:var(--pd-bg); color:var(--pd-text); overflow-x:hidden;
-}
-.light-mode .pd-root{
-  --pd-bg:#f8f9fa; --pd-hero-top:#e9ecef; --pd-text:#1a1a1a; --pd-body:#4a4a4a; --pd-label:#6b6b6b;
-  --pd-line:rgba(0,0,0,.1); --pd-fill:#d6d6d6; --pd-stroke:#8a8a8a; --pd-btn:rgba(0,0,0,.03);
-}
-.light-mode .pd-hero-img{opacity:.3}
-.pd-root a{color:inherit;text-decoration:none}
-.pd-wrap{width:calc(972*var(--u));margin-inline:auto;position:relative}
-
-/* Hero */
-.pd-hero{position:relative;height:calc(408*var(--u));background:linear-gradient(to bottom,var(--pd-hero-top),var(--pd-bg))}
-.pd-hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;
-  -webkit-mask-image:linear-gradient(to bottom,transparent 12%,#000 34%,#000 52%,transparent 100%);
-  mask-image:linear-gradient(to bottom,transparent 12%,#000 34%,#000 52%,transparent 100%)}
-.pd-hero-inner{height:100%}
-.pd-title{position:absolute;left:0;right:0;top:calc(267*var(--u));margin:0;
-  font-size:calc(53*var(--u));line-height:1.12;font-weight:600;letter-spacing:-.03em}
-
-/* Metadata */
-.pd-meta{display:grid;grid-template-columns:repeat(4,1fr);column-gap:calc(18*var(--u));row-gap:calc(24*var(--u));
-  margin:calc(114*var(--u)) 0 0;padding-bottom:calc(34*var(--u));border-bottom:1px solid var(--pd-line)}
-.pd-meta-item{min-width:0}
-.pd-meta dt{font-size:max(11px,calc(12*var(--u)));line-height:1.5;color:var(--pd-label);font-weight:400}
-.pd-meta dd{margin:calc(4*var(--u)) 0 0;font-size:max(13px,calc(15.5*var(--u)));line-height:1.4;font-weight:500;overflow-wrap:anywhere}
-.pd-meta dd a:hover{color:#f45901}
-
-/* Sections */
-.pd-sec{display:grid;grid-template-columns:calc(422*var(--u)) minmax(0,1fr)}
-.pd-sec-first{padding-top:calc(63*var(--u))}
-.pd-sec-second{padding-top:calc(108*var(--u))}
-.pd-sec-label{margin:0;padding-left:calc(47*var(--u));font-size:max(17px,calc(22*var(--u)));line-height:1.3;font-weight:500;letter-spacing:-.01em}
-.pd-sec-text{max-width:calc(530*var(--u))}
-.pd-lead{margin:0;font-size:max(16px,calc(19.5*var(--u)));line-height:calc(30*var(--u));font-weight:400;letter-spacing:-.02em;white-space:pre-wrap}
-.pd-body{max-width:calc(500*var(--u));margin:calc(24*var(--u)) 0 0;font-size:max(12.5px,calc(14*var(--u)));line-height:1.73;color:var(--pd-body);white-space:pre-wrap}
-.pd-sec-second .pd-body{margin:0}
-.pd-sec-second .pd-body + .pd-body{margin-top:calc(14*var(--u))}
-
-/* Images */
-.pd-pair{display:grid;grid-template-columns:1fr 1fr;gap:calc(24*var(--u));margin:calc(104*var(--u)) calc(3*var(--u)) 0}
-.pd-pair-img,.pd-wide{overflow:hidden;background:#151515}
-.pd-pair-img{aspect-ratio:2/3}
-.pd-wide{aspect-ratio:643/381;margin-top:calc(110*var(--u))}
-.pd-sec + .pd-wide{margin-top:calc(104*var(--u))}
-.pd-wide + .pd-wide{margin-top:calc(24*var(--u))}
-.pd-pair-img img,.pd-wide img{display:block;width:100%;height:100%;object-fit:cover}
-
-/* All projects */
-.pd-all{display:flex;justify-content:center;margin-top:calc(103*var(--u))}
-.pd-all-btn{display:flex;flex-direction:column;align-items:center;gap:calc(2*var(--u));width:calc(109*var(--u));padding:calc(20*var(--u)) 0;
-  background:var(--pd-btn);border-radius:calc(4*var(--u));transition:color .2s}
-.pd-all-btn svg{width:calc(24*var(--u));height:calc(24*var(--u));min-width:18px;min-height:18px}
-.pd-all-btn span{font-size:max(9px,calc(10*var(--u)));letter-spacing:.04em;text-transform:uppercase;font-weight:500;color:var(--pd-label)}
-.pd-all-btn:hover{color:#f45901}
-.pd-all-btn:hover span{color:#f45901}
-
-/* Prev / next */
-.pd-nav{display:flex;justify-content:space-between;align-items:flex-end;gap:calc(24*var(--u));padding:calc(69*var(--u)) calc(44*var(--u)) calc(29*var(--u))}
-.pd-nav-link{display:flex;align-items:center;gap:calc(14*var(--u));min-width:0;color:var(--pd-text)}
-.pd-nav-next{text-align:right;justify-content:flex-end}
-.pd-nav-link svg{width:calc(36*var(--u));height:calc(36*var(--u));min-width:22px;min-height:22px;flex:none;transition:transform .25s}
-.pd-nav-prev:hover svg{transform:translateX(-4px)}
-.pd-nav-next:hover svg{transform:translateX(4px)}
-.pd-nav-text{display:flex;flex-direction:column;min-width:0}
-.pd-nav-label{font-size:max(9px,calc(11*var(--u)));letter-spacing:.1em;text-transform:uppercase;font-weight:600;line-height:1.4}
-.pd-nav-title{margin-top:calc(8*var(--u));font-size:max(16px,calc(32*var(--u)));line-height:1.2;font-weight:600;letter-spacing:-.025em;
-  color:var(--pd-fill);-webkit-text-stroke:.6px var(--pd-stroke);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .25s}
-.pd-nav-link:hover .pd-nav-title{color:var(--pd-text)}
-
-/* Tablet: same composition, fixed sizes */
-@media (max-width:1023px){
-  .pd-root{--u:1px}
-  .pd-wrap{width:calc(100% - 64px)}
-  .pd-hero{height:340px}
-  .pd-title{top:auto;bottom:56px;font-size:44px}
-  .pd-meta{margin-top:48px;padding-bottom:32px;column-gap:16px}
-  .pd-sec{grid-template-columns:34% minmax(0,1fr)}
-  .pd-sec-label{padding-left:0;font-size:20px}
-  .pd-sec-text{max-width:none}
-  .pd-lead{font-size:19px}
-  .pd-body{font-size:14px;margin-top:20px}
-  .pd-sec-first{padding-top:48px}
-  .pd-sec-second{padding-top:72px}
-  .pd-pair{gap:16px;margin:72px 0 0}
-  .pd-wide{margin-top:72px}
-  .pd-sec + .pd-wide{margin-top:72px}
-  .pd-all{margin-top:72px}
-  .pd-all-btn{width:109px}
-  .pd-all-btn svg{width:24px;height:24px}
-  .pd-nav-link svg{width:30px;height:30px}
-  .pd-nav{padding:56px 32px 28px}
-  .pd-nav-title{font-size:26px}
-  .pd-nav-label{font-size:10px}
-  .pd-nav-link{gap:16px}
-}
-
-/* Mobile: stacked sections, pair stays side by side */
-@media (max-width:639px){
-  .pd-wrap{width:calc(100% - 40px)}
-  .pd-hero{height:280px}
-  .pd-title{bottom:36px;font-size:32px;line-height:1.15}
-  .pd-meta{grid-template-columns:repeat(2,1fr);margin-top:32px;padding-bottom:26px;row-gap:20px}
-  .pd-meta dt{font-size:11px}
-  .pd-meta dd{font-size:14px}
-  .pd-sec{grid-template-columns:1fr}
-  .pd-sec-first{padding-top:36px}
-  .pd-sec-second{padding-top:56px}
-  .pd-sec-label{font-size:18px;margin-bottom:16px}
-  .pd-lead{font-size:17px;line-height:1.55}
-  .pd-body{font-size:13.5px;margin-top:18px}
-  .pd-pair{gap:10px;margin:48px 0 0}
-  .pd-wide,.pd-sec + .pd-wide{margin-top:56px}
-  .pd-wide + .pd-wide{margin-top:10px}
-  .pd-all{margin-top:56px}
-  .pd-nav{padding:40px 20px 24px;gap:12px}
-  .pd-nav-link{flex:1 1 0;gap:10px}
-  .pd-nav-link svg{width:24px;height:24px;min-width:0;min-height:0}
-  .pd-nav-title{font-size:16px;-webkit-text-stroke-width:.4px}
-  .pd-nav-label{font-size:9px}
-}
-`;

@@ -21,6 +21,18 @@ export interface Project {
   socialTitle?: string;
   socialDescription?: string;
   socialImage?: string;
+  // Case-study page fields
+  summary?: string;
+  industry?: string;
+  services?: string;
+  feedbackQuote?: string;
+  feedbackName?: string;
+  feedbackRole?: string;
+  ctaTitle?: string;
+  ctaButtonText?: string;
+  ctaButtonUrl?: string;
+  /** False keeps the project hidden from visitors (a draft). Missing means published. */
+  published?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

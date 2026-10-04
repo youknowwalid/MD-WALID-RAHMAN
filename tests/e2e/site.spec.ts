@@ -71,6 +71,32 @@ test.describe('public site (connected)', () => {
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   });
 
+  test('project page shows the case-study sections', async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto(CONNECTED + '/projects/brand-one');
+    await expect(page.locator('h1')).toHaveText('Brand One');
+    await expect(page.getByText('A short intro line for Brand One.')).toBeVisible();
+    await expect(page.getByText('Retail')).toBeVisible();
+    await expect(page.getByText('Branding, Logo design')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Challenge' })).toBeVisible();
+    await expect(page.getByText('First paragraph of the case study.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: "Client's feedback" })).toBeVisible();
+    await expect(page.getByText('Walid delivered beyond our expectations.')).toBeVisible();
+    await expect(page.getByText('Jane Doe')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Contact Us' })).toHaveAttribute('href', '/#contact');
+    // no solution text and no gallery in the sample project: those sections stay hidden
+    await expect(page.getByRole('heading', { name: 'Solution' })).toHaveCount(0);
+    await page.waitForTimeout(500);
+    expect(errors).toEqual([]);
+  });
+
+  test('project page does not scroll sideways', async ({ page }) => {
+    await page.goto(CONNECTED + '/projects/brand-one');
+    await page.waitForLoadState('networkidle');
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
   test('unknown pages show a 404 that is not indexed', async ({ page }) => {
     await page.goto(CONNECTED + '/projects/does-not-exist');
     await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
@@ -250,6 +276,66 @@ test.describe('admin panel', () => {
     await page.getByRole('button', { name: 'Delete Shiny New Project' }).click();
     await expect(page.getByText('Deleted.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Shiny New Project' })).toHaveCount(0);
+  });
+
+  test('every field of the project page can be edited, drafts are hidden and an empty quote hides the feedback', async ({ page }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'Edit Brand One' }).click();
+    await page.getByLabel('Intro line under the title').fill('Edited intro line.');
+    await page.getByLabel('Client', { exact: true }).fill('Globex');
+    await page.getByLabel('Industries').fill('Fintech');
+    await page.getByLabel('Services', { exact: true }).fill('Motion design');
+    await page.getByLabel('Date', { exact: true }).fill('3 March 2025');
+    await page.getByLabel('Designer').fill('Walid');
+    await page.getByLabel('Tags shown as pills (comma separated)').fill('Alpha, Beta');
+    await page.getByLabel('Challenge section title').fill('The brief');
+    await page.getByLabel(/^Challenge text/).fill('Lead sentence here.\n\nBody paragraph here.');
+    await page.getByLabel('Solution section title').fill('The answer');
+    await page.getByLabel(/^Solution text/).fill('Solution paragraph here.');
+    await page.getByLabel('Quote', { exact: true }).fill('A glowing review.');
+    await page.getByLabel('Name of the person').fill('John Smith');
+    await page.getByLabel('Their role / company').fill('CTO, Globex');
+    await page.getByLabel(/^Heading \(default/).fill('Start something new');
+    await page.getByLabel(/^Button text/).fill('Say hello');
+    await page.getByLabel(/^Button link/).fill('https://example.com/hi');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.getByText('Changes saved.')).toBeVisible();
+
+    await page.goto(CONNECTED + '/projects/brand-one');
+    await expect(page.getByText('Edited intro line.')).toBeVisible();
+    await expect(page.getByText('Globex', { exact: true })).toBeVisible();
+    await expect(page.getByText('Fintech')).toBeVisible();
+    await expect(page.getByText('Motion design')).toBeVisible();
+    await expect(page.getByText('3 March 2025')).toBeVisible();
+    await expect(page.getByText('Alpha').first()).toBeAttached();
+    await expect(page.getByRole('heading', { name: 'The brief' })).toBeVisible();
+    await expect(page.getByText('Lead sentence here.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The answer' })).toBeVisible();
+    await expect(page.getByText('A glowing review.')).toBeVisible();
+    await expect(page.getByText('John Smith')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Start something new' })).toBeAttached();
+    await expect(page.getByRole('link', { name: 'Say hello' })).toHaveAttribute('href', 'https://example.com/hi');
+
+    // empty quote: the feedback section disappears
+    await page.goto(CONNECTED + '/admin');
+    await page.getByRole('button', { name: 'Edit Brand One' }).click();
+    await page.getByLabel('Quote', { exact: true }).fill('');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.getByText('Changes saved.')).toBeVisible();
+    await page.goto(CONNECTED + '/projects/brand-one');
+    await expect(page.getByRole('heading', { name: "Client's feedback" })).toHaveCount(0);
+
+    // draft: hidden from the home page and from direct visits
+    await page.goto(CONNECTED + '/admin');
+    await page.getByRole('button', { name: 'Edit Brand One' }).click();
+    await page.getByLabel(/^Published/).uncheck();
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.getByText('Changes saved.')).toBeVisible();
+    await expect(page.getByText('Hidden (draft)')).toBeVisible();
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('a[href="/projects/brand-one"]')).toHaveCount(0);
+    await page.goto(CONNECTED + '/projects/brand-one');
+    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
   });
 
   test('duplicate page addresses give a clear message', async ({ page }) => {

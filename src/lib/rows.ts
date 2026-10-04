@@ -32,7 +32,7 @@ export const ORDER: Record<Collection, string> = {
 };
 
 const WRITABLE: Record<Collection, string[]> = {
-  projects: ['slug','title','category','image','link','content','tags','gallery','hero_image','client','designer','start_date','intro_title','details_title','details_content','social_title','social_description','social_image','sort_order'],
+  projects: ['slug','title','category','image','link','content','tags','gallery','hero_image','client','designer','start_date','intro_title','details_title','details_content','social_title','social_description','social_image','summary','industry','services','feedback_quote','feedback_name','feedback_role','cta_title','cta_button_text','cta_button_url','published','sort_order'],
   blogPosts: ['slug','title','date','excerpt','image','content','author','tags','social_title','social_description','social_image','sort_order'],
   services: ['display_id','title','description','icon_name','sort_order'],
   resume: ['year','role','company','description','sort_order'],

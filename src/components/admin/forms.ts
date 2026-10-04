@@ -28,21 +28,32 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
   projects: {
     singular: 'project',
     fields: [
-      { name: 'title', label: 'Project title', required: true },
+      // Fields follow the order of the public project page, top to bottom.
+      { section: 'Basics', name: 'title', label: 'Project title', required: true },
       { name: 'category', label: 'Category', half: true },
       { name: 'slug', label: 'Page address (leave blank to create from the title)', half: true, placeholder: 'my-project' },
-      { name: 'content', label: 'Description (separate paragraphs with a blank line)', type: 'textarea', rows: 6 },
-      { name: 'tags', label: 'Technologies / tags (comma separated)', type: 'tags' },
-      { name: 'link', label: 'Live website link (optional)', placeholder: 'https://…' },
+      { name: 'published', label: 'Published (untick to keep this project hidden as a draft)', type: 'checkbox' },
       { name: 'image', label: 'Main project image (shown on the home page)', type: 'image', hint: 'Recommended: landscape, about 1600 × 900 px.' },
-      { section: 'Project page details (all optional)', name: 'client', label: 'Client', half: true },
+      { name: 'link', label: 'Live website link (optional, shown as “Live site” on the page)', placeholder: 'https://…' },
+      { section: 'Top of the page: intro and details', name: 'summary', label: 'Intro line under the title', type: 'textarea', rows: 3, hint: 'One or two sentences, up to 500 characters.' },
+      { name: 'client', label: 'Client', half: true },
+      { name: 'industry', label: 'Industries', half: true, hint: 'Leave blank to show the category instead.' },
+      { name: 'services', label: 'Services', half: true, placeholder: 'e.g. Branding, UI design' },
+      { name: 'startDate', label: 'Date', placeholder: 'e.g. 7 August 2021', half: true },
       { name: 'designer', label: 'Designer', half: true },
-      { name: 'startDate', label: 'Start date', placeholder: 'e.g. 7 August 2021', half: true },
-      { name: 'introTitle', label: 'Section 01 title (default: Overview)', half: true },
-      { name: 'detailsTitle', label: 'Section 02 title (default: Details)', half: true },
-      { name: 'detailsContent', label: 'Section 02 text (shown after the first two gallery images)', type: 'textarea', rows: 4 },
-      { name: 'heroImage', label: 'Banner image at the top of the page (defaults to the main image)', type: 'image' },
-      { name: 'gallery', label: 'Gallery images (1st and 2nd sit side by side, the rest are shown wide)', type: 'gallery' },
+      { name: 'tags', label: 'Tags shown as pills (comma separated)', type: 'tags' },
+      { section: 'Cover image', name: 'heroImage', label: 'Large cover image at the top (defaults to the main image)', type: 'image', hint: 'Recommended: landscape, about 1920 × 1200 px.' },
+      { section: 'Challenge section', name: 'introTitle', label: 'Challenge section title (default: Challenge)' },
+      { name: 'content', label: 'Challenge text (the first paragraph becomes the large lead sentence; separate paragraphs with a blank line)', type: 'textarea', rows: 8 },
+      { section: 'Image grid', name: 'gallery', label: 'Grid images (shown two per row, alternating wide and narrow; an odd last image is shown full width)', type: 'gallery' },
+      { section: 'Solution section', name: 'detailsTitle', label: 'Solution section title (default: Solution)' },
+      { name: 'detailsContent', label: 'Solution text (separate paragraphs with a blank line)', type: 'textarea', rows: 6 },
+      { section: 'Client feedback (hidden when the quote is empty)', name: 'feedbackQuote', label: 'Quote', type: 'textarea', rows: 4 },
+      { name: 'feedbackName', label: 'Name of the person', half: true },
+      { name: 'feedbackRole', label: 'Their role / company', half: true },
+      { section: 'Closing call-to-action card (optional)', name: 'ctaTitle', label: "Heading (default: Let's talk about your project!)" },
+      { name: 'ctaButtonText', label: 'Button text (default: Contact Us)', half: true },
+      { name: 'ctaButtonUrl', label: 'Button link (blank = contact form)', half: true, placeholder: '/#contact or https://…' },
       { section: 'Social sharing (optional)', name: 'socialTitle', label: 'Title when shared' },
       { name: 'socialDescription', label: 'Description when shared', type: 'textarea', rows: 2 },
       { name: 'socialImage', label: 'Image when shared', type: 'image', hint: 'Recommended: 1200 × 630 px.' },
@@ -145,6 +156,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
 export type FormCollection = keyof typeof FORMS;
 
 const NEW_DEFAULTS: Partial<Record<FormCollection, Record<string, any>>> = {
+  projects: { published: true },
   skills: { level: 80 },
   products: { published: true, featured: true },
   pricingPlans: { period: '/month', buttonText: 'Get Started' },
@@ -157,7 +169,8 @@ export function toFormValues(tab: FormCollection, item: Record<string, any> | nu
   const src = item ?? NEW_DEFAULTS[tab] ?? {};
   for (const f of FORMS[tab].fields) {
     const v = src[f.name];
-    if (f.type === 'checkbox') out[f.name] = Boolean(v);
+    // "published" counts as ticked unless it is explicitly false (rows saved before the upgrade have no value)
+    if (f.type === 'checkbox') out[f.name] = f.name === 'published' ? v !== false : Boolean(v);
     else if (f.type === 'tags') out[f.name] = Array.isArray(v) ? v.join(', ') : '';
     else if (f.type === 'lines' || f.type === 'gallery') out[f.name] = Array.isArray(v) ? v.join('\n') : '';
     else out[f.name] = v === undefined || v === null ? '' : String(v);
