@@ -14,8 +14,6 @@ import {
   normalizeTestimonial, normalizeResumeItem,
 } from '../lib/schema-defaults';
 import { safeUrl } from '../lib/text';
-import { imageSrcSet, optimizeMedia, videoPoster } from '../lib/image';
-import { Play } from 'lucide-react';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { Project, BlogPost, Service, Skill, Testimonial, PricingPlan, ResumeItem } from '../types';
 import Navbar from './Navbar';
@@ -52,38 +50,24 @@ const VideoPlayer = ({ url }: { url: string }) => {
   return <FileVideo url={url} />;
 };
 
-/** Plays an uploaded video file and tells the visitor if the browser can only play its sound (unsupported video format).
- *  The file is only downloaded once the visitor presses play, so a large video never slows the page load. */
+/** Plays an uploaded video file and tells the visitor if the browser can only play its sound (unsupported video format). */
 const FileVideo = ({ url }: { url: string }) => {
   const src = safeUrl(url);
-  const [started, setStarted] = useState(false);
   const [noPicture, setNoPicture] = useState(false);
   if (!src) return null;
-  const poster = videoPoster(src);
   return (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-neutral-900">
-      {started ? (
-        <video
-          className="w-full h-full object-contain bg-black"
-          src={optimizeMedia(src, { width: 1280 })}
-          poster={poster || undefined}
-          controls
-          autoPlay
-          playsInline
-          preload="auto"
-          onLoadedMetadata={(e) => setNoPicture(e.currentTarget.videoWidth === 0)}
-          onError={() => setNoPicture(true)}
-        >
-          Your browser does not support the video tag.
-        </video>
-      ) : (
-        <button type="button" onClick={() => setStarted(true)} aria-label="Play introductory video" className="group absolute inset-0 w-full h-full flex items-center justify-center bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
-          {poster && <img src={poster} alt="" width={1280} height={720} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />}
-          <span className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-accent text-black flex items-center justify-center transition-transform group-hover:scale-110">
-            <Play className="w-7 h-7 md:w-8 md:h-8 ml-1" fill="currentColor" aria-hidden="true" />
-          </span>
-        </button>
-      )}
+      <video
+        className="w-full h-full object-contain bg-black"
+        src={src}
+        controls
+        playsInline
+        preload="metadata"
+        onLoadedMetadata={(e) => setNoPicture(e.currentTarget.videoWidth === 0)}
+        onError={() => setNoPicture(true)}
+      >
+        Your browser does not support the video tag.
+      </video>
       {noPicture && (
         <p role="alert" className="absolute inset-x-4 top-4 rounded-xl bg-black/80 p-3 text-center text-xs text-white">
           This browser can&apos;t display this video&apos;s picture (unsupported video format).
@@ -133,35 +117,33 @@ const EmptyNote = ({ children }: { children: React.ReactNode }) => (
 
 const Typewriter = ({ text }: { text: string }) => {
   const reduceMotion = useReducedMotion();
-  const [count, setCount] = useState(reduceMotion ? text.length : 0);
+  const [displayText, setDisplayText] = useState(reduceMotion ? text : '');
+  const [isComplete, setIsComplete] = useState(Boolean(reduceMotion));
 
   useEffect(() => {
-    if (reduceMotion) { setCount(text.length); return; }
+    if (reduceMotion) { setDisplayText(text); setIsComplete(true); return; }
     let i = 0;
-    setCount(0);
     const interval = setInterval(() => {
+      setDisplayText(text.slice(0, i + 1));
       i++;
-      setCount(i);
-      if (i >= text.length) clearInterval(interval);
+      if (i >= text.length) {
+        clearInterval(interval);
+        setIsComplete(true);
+      }
     }, 150);
     return () => clearInterval(interval);
   }, [text, reduceMotion]);
 
-  // Every letter is always laid out; typing only reveals it. The heading therefore keeps its
-  // final size and line breaks from the first paint, and nothing around it moves while it types.
-  const complete = count >= text.length;
   return (
     <>
       <span className="sr-only">{text}</span>
       <span aria-hidden="true">
-        {Array.from(text).map((ch, i) => (
-          <span
-            key={i}
-            className={cn(i >= count && 'opacity-0', !complete && i === Math.max(count - 1, 0) && (count === 0 ? 'tw-cursor tw-cursor-start' : 'tw-cursor'))}
-          >
-            {ch}
-          </span>
-        ))}
+        {displayText}
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.8, repeat: Infinity, ease: 'steps(2)' }}
+          className={cn('inline-block w-[3px] h-[0.9em] bg-accent ml-1 -mb-1', isComplete && 'hidden')}
+        />
       </span>
     </>
   );
@@ -169,7 +151,7 @@ const Typewriter = ({ text }: { text: string }) => {
 
 const Avatar = ({ src, name, className }: { src: string; name: string; className?: string }) =>
   src ? (
-    <img src={optimizeMedia(src, { width: 112 })} alt="" width={56} height={56} decoding="async" className={cn('rounded-full object-cover', className)} referrerPolicy="no-referrer" loading="lazy" />
+    <img src={src} alt="" className={cn('rounded-full object-cover', className)} referrerPolicy="no-referrer" loading="lazy" />
   ) : (
     <div className={cn('rounded-full bg-accent/15 text-accent font-black flex items-center justify-center', className)} aria-hidden="true">
       {name.trim().charAt(0).toUpperCase() || '?'}
@@ -330,9 +312,7 @@ export default function Home() {
                 <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40" />
                 <motion.div animate={{ y: [0, -10, 0], rotate: [1, 2, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="absolute inset-8 md:inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10">
                   <img
-                    src={optimizeMedia(heroImage, { width: 840 })}
-                    srcSet={imageSrcSet(heroImage) || undefined}
-                    sizes="(min-width: 768px) 420px, 320px"
+                    src={heroImage}
                     alt="Portrait of Walid Rahman"
                     width={420}
                     height={420}
@@ -385,7 +365,7 @@ export default function Home() {
               <div className="space-y-8 md:space-y-12">
                 {hero.resumeImage && (
                   <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="lg:hidden w-full aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-8">
-                    <img src={optimizeMedia(hero.resumeImage, { width: 800 })} alt="" width={800} height={1000} decoding="async" className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
+                    <img src={hero.resumeImage} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                   </motion.div>
                 )}
                 {resume.length === 0 && <EmptyNote>Experience will be listed here soon.</EmptyNote>}
@@ -407,7 +387,7 @@ export default function Home() {
                   <motion.div initial={{ opacity: 0, scale: 0.8, rotate: -5 }} whileInView={{ opacity: 1, scale: 1, rotate: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: 'easeOut' }} className="relative w-full max-w-[450px] aspect-[3/4]">
                     <div className="absolute -inset-4 border border-accent/20 rounded-[40px] -z-10 animate-pulse" />
                     <motion.div animate={{ y: [0, -15, 0], rotate: [0, 2, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} className="w-full h-full rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
-                      <img src={optimizeMedia(hero.resumeImage, { width: 800 })} alt="" width={800} height={1000} decoding="async" className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
+                      <img src={hero.resumeImage} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                       <div className="absolute bottom-8 left-8 right-8 p-4 bg-bg-card/40 backdrop-blur-md rounded-2xl border border-white/10">
                         <div className="text-xs text-accent font-bold uppercase tracking-widest mb-1">Current Focus</div>
                         <div className="text-lg font-black text-text-main">Strategic Brand Evolution</div>
@@ -484,7 +464,7 @@ export default function Home() {
                   <motion.div key={project.id || project.title} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: (i % 2) * 0.15 }} className="relative aspect-video rounded-3xl overflow-hidden group bg-bg-card">
                     <Link to={`/projects/${project.slug || project.id}`} className="block w-full h-full relative focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
                       {project.image && (
-                        <img src={optimizeMedia(project.image, { width: 800 })} srcSet={imageSrcSet(project.image, [480, 800]) || undefined} sizes="(min-width: 768px) 560px, 100vw" alt={project.title} width={800} height={450} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+                        <img src={project.image} alt={project.title} width={800} height={450} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
                       )}
                       <div className="absolute inset-0 bg-bg-dark/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 [@media(hover:none)]:bg-gradient-to-t [@media(hover:none)]:from-black/80 [@media(hover:none)]:to-transparent transition-opacity duration-300 flex flex-col justify-end p-8">
                         <span className="text-accent text-sm font-bold uppercase mb-2 tracking-widest">{project.category}</span>
@@ -603,7 +583,7 @@ export default function Home() {
                   <motion.div key={post.id || post.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: (i % 4) * 0.1 }} className="group">
                     <Link to={`/blog/${post.slug || post.id}`}>
                       <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all bg-bg-card">
-                        {post.image && <img src={optimizeMedia(post.image, { width: 640 })} srcSet={imageSrcSet(post.image, [320, 640]) || undefined} sizes="(min-width: 768px) 360px, 100vw" alt="" width={640} height={480} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" loading="lazy" decoding="async" />}
+                        {post.image && <img src={post.image} alt="" width={640} height={480} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" loading="lazy" decoding="async" />}
                       </div>
                       <div className="text-xs text-accent font-bold uppercase mb-2">{post.date}</div>
                       <h3 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h3>

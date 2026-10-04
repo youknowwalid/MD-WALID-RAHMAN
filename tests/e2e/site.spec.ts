@@ -145,7 +145,6 @@ test.describe('logos and intro video', () => {
   test('a video file with no playable picture shows a notice instead of a silent black box', async ({ page, request }) => {
     await seed(request, 'global', { aboutVideoUrl: `${API}/__audio.wav` });
     await page.goto(CONNECTED + '/#about');
-    await page.getByRole('button', { name: 'Play introductory video' }).click();
     await expect(page.getByRole('alert').filter({ hasText: "can't display this video" })).toBeVisible();
   });
 });

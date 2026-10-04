@@ -53,8 +53,7 @@ function readCache(): Raw {
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) return JSON.parse(cached);
   } catch { /* storage unavailable */ }
-  // First visit: use the settings baked into the page at build time (see vite.config.ts).
-  return (window as unknown as { __SITE_SETTINGS__?: Raw }).__SITE_SETTINGS__ ?? {};
+  return {};
 }
 
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
