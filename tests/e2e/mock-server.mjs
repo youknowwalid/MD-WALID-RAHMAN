@@ -69,6 +69,21 @@ http.createServer(async (req, res) => {
   if (p === '/__reset') { db = initial(); hits.clear(); buckets.clear(); return reply(200, { ok: true }); }
   if (p === '/__db') return reply(200, db);
 
+  if (p === '/__audio.wav') { // 0.1s of silence: a file with sound but no picture
+    const data = Buffer.alloc(1600), h = Buffer.alloc(44);
+    h.write('RIFF', 0); h.writeUInt32LE(36 + data.length, 4); h.write('WAVEfmt ', 8); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22);
+    h.writeUInt32LE(8000, 24); h.writeUInt32LE(16000, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write('data', 36); h.writeUInt32LE(data.length, 40);
+    res.writeHead(200, { ...cors, 'Content-Type': 'audio/wav' });
+    return res.end(Buffer.concat([h, data]));
+  }
+
+  if (p === '/__seed-settings') {
+    const { key, value } = JSON.parse((await readBody(req)).toString());
+    const existing = db.site_settings.find((r) => r.key === key);
+    if (existing) existing.value = { ...existing.value, ...value }; else db.site_settings.push({ key, value, updated_at: now() });
+    return reply(200, { ok: true });
+  }
+
   // ── auth ──
   if (p === '/auth/v1/token') {
     const body = JSON.parse((await readBody(req)).toString() || '{}');

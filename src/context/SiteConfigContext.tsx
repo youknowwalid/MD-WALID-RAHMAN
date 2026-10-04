@@ -35,7 +35,7 @@ function merge<T extends object>(defaults: T, saved: any, allowEmpty: (keyof T)[
 }
 
 const GLOBAL_ALLOW_EMPTY: (keyof SiteConfig)[] = [
-  'siteLogo', 'favicon', 'footerPortrait', 'copyrightText', 'aboutVideoUrl', 'globalCtaUrl',
+  'siteLogo', 'footerLogo', 'favicon', 'footerPortrait', 'copyrightText', 'aboutVideoUrl', 'globalCtaUrl',
   'officeAddress', 'contactEmail', 'officePhone', 'aboutText',
 ];
 const HERO_ALLOW_EMPTY: (keyof HeroConfig)[] = ['heroImage', 'cvUrl', 'resumeImage'];
