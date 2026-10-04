@@ -119,3 +119,17 @@
     animation: none !important;
   }
 }
+
+/* Gradient accent: when the admin picks "gradient", every solid accent background becomes the gradient */
+.bg-accent,
+.group:hover .group-hover\:bg-accent,
+.hover\:bg-accent:hover {
+  background-image: var(--accent-gradient, none);
+}
+[data-accent='gradient'] .text-glow {
+  background-image: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}

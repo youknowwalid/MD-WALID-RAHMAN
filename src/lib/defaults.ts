@@ -19,6 +19,11 @@ export interface SiteConfig {
   officePhone: string;
   primaryColor: string;
   secondaryColor: string;
+  accentMode: 'solid' | 'gradient';
+  gradientFrom: string;
+  gradientVia: string;
+  gradientTo: string;
+  gradientAngle: number;
   brandTagline: string;
   globalCtaText: string;
   globalCtaUrl: string;
@@ -95,6 +100,11 @@ export const DEFAULT_CONFIG: SiteConfig = {
   officePhone: '+880 1744 588 644',
   primaryColor: '#f45901',
   secondaryColor: '#00c6ff',
+  accentMode: 'solid',
+  gradientFrom: '#f45901',
+  gradientVia: '',
+  gradientTo: '#ff9a3c',
+  gradientAngle: 135,
   brandTagline: 'A Brand Developer crafting premium digital experiences.',
   globalCtaText: "Let's Discuss",
   globalCtaUrl: '',

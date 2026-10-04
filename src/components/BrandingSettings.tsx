@@ -1,312 +1,155 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Loader2, Save, Sparkles } from 'lucide-react';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { patchSettings } from '../lib/admin';
-import { 
-  ArrowLeft, 
-  Save, 
-  RefreshCw, 
-  AlertTriangle, 
-  CheckCircle, 
-  Palette, 
-  Loader2,
-  Sparkles
-} from 'lucide-react';
+import { AccentSettings, applyAccent, buildGradient, validHex } from '../lib/gradient';
+import { friendlyError } from './admin/forms';
+import { inputCls, labelCls } from './admin/fields';
 
-interface Toast {
-  type: 'success' | 'error' | 'info';
-  message: string;
-}
+type Form = AccentSettings & { secondaryColor: string };
 
-export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 'success' | 'error', message: string) => void }> = ({ onBack }) => {
+const PRESETS: { name: string; from: string; via: string; to: string; angle: number }[] = [
+  { name: 'Sunrise', from: '#f45901', via: '', to: '#ffb347', angle: 135 },
+  { name: 'Ember', from: '#f45901', via: '#ff2e63', to: '#8e2de2', angle: 135 },
+  { name: 'Ocean', from: '#00c6ff', via: '', to: '#0072ff', angle: 135 },
+  { name: 'Aurora', from: '#00e5a0', via: '#00c6ff', to: '#7b61ff', angle: 120 },
+  { name: 'Violet', from: '#a855f7', via: '', to: '#ec4899', angle: 135 },
+  { name: 'Gold', from: '#f7971e', via: '', to: '#ffd200', angle: 90 },
+];
+
+const ColorInput = ({ label, value, onChange, optional, onClear }: { label: string; value: string; onChange: (v: string) => void; optional?: boolean; onClear?: () => void }) => (
+  <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
+    <span className="block text-[11px] font-black uppercase text-slate-300 tracking-wider">{label}{optional && ' (optional)'}</span>
+    <div className="flex items-center gap-3">
+      <label className="relative w-14 h-11 rounded-lg border border-white/10 overflow-hidden cursor-pointer shrink-0 focus-within:outline focus-within:outline-2 focus-within:outline-white" style={{ backgroundColor: value || 'transparent' }}>
+        <input type="color" value={validHex(value, '#000000')} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" aria-label={`${label} picker`} />
+      </label>
+      <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={optional ? 'None' : '#f45901'} maxLength={7} className={`${inputCls} font-mono`} aria-label={`${label} (hex code)`} />
+      {optional && value && <button type="button" onClick={onClear} className="text-xs text-gray-300 underline shrink-0">Remove</button>}
+    </div>
+  </div>
+);
+
+export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 'success' | 'error', message: string) => void }> = ({ onToast }) => {
   const { config, refresh } = useSiteConfig();
+  const [f, setF] = useState<Form>(() => ({ ...config }));
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Local state for color customizer only
-  const [primaryColor, setPrimaryColor] = useState('#f45901');
-  const [secondaryColor, setSecondaryColor] = useState('#00c6ff');
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
-  const [isDirty, setIsDirty] = useState(false);
-
-  // Sync state when database loads the central config record
+  // Start from the saved values (and show them live on the page).
   useEffect(() => {
-    if (config) {
-      setPrimaryColor(config.primaryColor || '#f45901');
-      setSecondaryColor(config.secondaryColor || '#00c6ff');
-      setIsDirty(false);
-    }
-  }, [config]);
+    refresh().then(({ config: c }) => { setF({ ...c }); setDirty(false); });
+  }, [refresh]);
 
-  // Handle toast timeout
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => {
-        setToast(null);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  // Handle color change and update document style in real-time
-  const handleColorChange = (type: 'primary' | 'secondary', value: string) => {
-    if (type === 'primary') {
-      setPrimaryColor(value);
-      document.documentElement.style.setProperty('--color-accent', value);
-    } else {
-      setSecondaryColor(value);
-      document.documentElement.style.setProperty('--color-accent-secondary', value);
-    }
-    setIsDirty(true);
+  const update = (patch: Partial<Form>) => {
+    const next = { ...f, ...patch };
+    setF(next);
+    setDirty(true);
+    applyAccent(next, next.secondaryColor); // live preview across the whole page
   };
 
-  // Save colors
-  const handleSave = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setIsSaving(true);
+  const discard = () => {
+    setF({ ...config });
+    applyAccent(config, config.secondaryColor);
+    setDirty(false);
+  };
+
+  const save = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setSaving(true);
     try {
-      await patchSettings('global', { primaryColor, secondaryColor });
+      await patchSettings('global', {
+        accentMode: f.accentMode,
+        primaryColor: validHex(f.primaryColor, '#f45901'),
+        secondaryColor: validHex(f.secondaryColor, '#00c6ff'),
+        gradientFrom: validHex(f.gradientFrom, '#f45901'),
+        gradientVia: f.gradientVia ? validHex(f.gradientVia, '') : '',
+        gradientTo: validHex(f.gradientTo, '#ff9a3c'),
+        gradientAngle: Math.min(360, Math.max(0, Math.round(Number(f.gradientAngle) || 0))),
+      });
       await refresh();
-      
-      setIsDirty(false);
-      setToast({
-        type: 'success',
-        message: 'Brand theme colors successfully loaded and synchronized globally across the frontend!',
-      });
+      setDirty(false);
+      onToast?.('success', 'Brand colors published.');
     } catch (err: any) {
-      console.error(err);
-      setToast({
-        type: 'error',
-        message: err.message || 'Could not save the brand colors.',
-      });
+      onToast?.('error', `Could not save: ${friendlyError(err.message)}`);
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  // Reset colors to brand baseline values
-  const handleResetColors = () => {
-    setPrimaryColor('#f45901');
-    setSecondaryColor('#00c6ff');
-    setIsDirty(true);
-    
-    // Preview dynamically in real-time
-    document.documentElement.style.setProperty('--color-accent', '#f45901');
-    document.documentElement.style.setProperty('--color-accent-secondary', '#00c6ff');
-    
-    setToast({
-      type: 'info',
-      message: 'Color palette reset to original brand presets. Click "Save & Publish" to update globally.'
-    });
-  };
-
-  // Discard local unsaved draft changes
-  const handleDiscard = () => {
-    if (window.confirm("Are you sure you want to discard your unsaved modifications?")) {
-      if (config) {
-        setPrimaryColor(config.primaryColor || '#f45901');
-        setSecondaryColor(config.secondaryColor || '#00c6ff');
-        
-        // Restore document element overrides
-        document.documentElement.style.setProperty('--color-accent', config.primaryColor || '#f45901');
-        document.documentElement.style.setProperty('--color-accent-secondary', config.secondaryColor || '#00c6ff');
-        
-        setIsDirty(false);
-      }
-    }
-  };
+  const gradient = buildGradient(f);
+  const isGradient = f.accentMode === 'gradient';
 
   return (
-    <div className="space-y-8 font-sans bg-neutral-950/20 p-4 md:p-8 rounded-3xl border border-white/5 transition-all duration-300">
-      
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-sm font-bold transition-all duration-300 animate-slide-in ${
-          toast.type === 'success' ? 'bg-emerald-950 text-emerald-200 border-emerald-800' :
-          toast.type === 'error' ? 'bg-rose-950 text-rose-200 border-rose-800' :
-          'bg-blue-950 text-blue-200 border-blue-800'
-        }`}>
-          {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-400" />}
-          {toast.type === 'error' && <AlertTriangle className="w-5 h-5 text-rose-400" />}
-          {toast.type === 'info' && <RefreshCw className="w-5 h-5 text-blue-400 animate-spin" />}
-          <span>{toast.message}</span>
-        </div>
-      )}
-
-      {/* Editor Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <button 
-            type="button"
-            onClick={onBack}
-            className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white cursor-pointer shadow-sm transition-all"
-            aria-label="Back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-black text-white tracking-tight leading-none mb-1">
-              Branding Settings Editor
-            </h1>
-            <p className="text-[10px] font-extrabold tracking-widest text-[#00c6ff]/85 uppercase">
-              CMS / FRAMEWORK CONTROLS / STATIC AND LIVE UPDATES
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 self-end md:self-auto">
-          {isDirty && (
-            <button
-              type="button"
-              onClick={handleDiscard}
-              className="px-5 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-gray-300 hover:bg-white/5 transition shadow-sm"
-            >
-              Discard Changes
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => handleSave()}
-            disabled={isSaving}
-            className={`px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 text-xs transition duration-200 shadow-md ${
-              isDirty 
-                ? 'bg-accent text-white hover:opacity-90' 
-                : 'bg-white/10 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save & Publish Branding
+    <form onSubmit={save} className="space-y-8 max-w-5xl">
+      <div className="flex justify-between items-center gap-4 bg-bg-card p-4 sm:p-6 rounded-2xl border border-white/5 flex-wrap">
+        <p className="text-sm text-gray-300">Choose a solid color or a gradient. Changes preview live on this page; click Save to publish.</p>
+        <div className="flex gap-3">
+          {dirty && <button type="button" onClick={discard} className="px-5 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-300 hover:bg-white/5">Discard</button>}
+          <button type="submit" disabled={saving || !dirty} className="bg-accent text-white font-black px-6 py-2.5 rounded-xl flex items-center gap-2 disabled:opacity-50">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Save className="w-4 h-4" aria-hidden="true" />}Save &amp; Publish
           </button>
         </div>
       </div>
 
-      {/* Unsaved changes alert banner */}
-      {isDirty && (
-        <div className="bg-amber-500/10 rounded-2xl border border-amber-500/20 px-5 py-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between text-amber-200 max-w-7xl">
-          <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-            <span className="text-xs font-medium">
-              You have unsaved color scheme modifications. Protect your work by synchronizing.
-            </span>
-          </div>
-          <button 
-            type="button" 
-            onClick={() => handleSave()}
-            className="text-xs font-black underline hover:no-underline text-accent self-end sm:self-auto shrink-0"
-          >
-            Publish Now
-          </button>
+      <section className="bg-bg-card border border-white/5 rounded-3xl p-6 md:p-8 space-y-8">
+        <h2 className="text-xl font-black flex items-center gap-2.5"><Sparkles className="text-accent w-5 h-5" aria-hidden="true" /> Accent style</h2>
+
+        <div role="radiogroup" aria-label="Accent style" className="grid grid-cols-2 gap-3 max-w-md">
+          {(['solid', 'gradient'] as const).map((mode) => (
+            <button key={mode} type="button" role="radio" aria-checked={f.accentMode === mode} onClick={() => update({ accentMode: mode })}
+              className={`py-3 rounded-xl border font-bold capitalize ${f.accentMode === mode ? 'border-accent text-white bg-white/10' : 'border-white/10 text-gray-300 hover:bg-white/5'}`}>
+              {mode}
+            </button>
+          ))}
         </div>
-      )}
 
-      {/* Core Edit Panel */}
-      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-7xl">
-        
-        {/* Main section: Accent & Theme Colors (Width expanded to span more of the grid beautifully) */}
-        <div className="lg:col-span-8 bg-bg-card border border-white/5 rounded-3xl p-6 md:p-8 space-y-8">
-          
-          <div>
-            <h2 className="text-xl font-black text-white mb-2 flex items-center gap-2.5">
-              <Sparkles className="text-accent w-5 h-5" /> Global Accent & Theme Settings
-            </h2>
-            <p className="text-xs text-text-muted">Centrally customize and dynamically preview brand palette overrides. Changes apply instantly across all accents, buttons, glowing backgrounds, and states!</p>
+        {!isGradient ? (
+          <div className="max-w-md">
+            <ColorInput label="Accent color" value={f.primaryColor} onChange={(v) => update({ primaryColor: v })} />
           </div>
-
+        ) : (
           <div className="space-y-6">
-            
-            {/* Colors System (As highlighted in the reference screenshot) */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                {/* Primary Color Picker */}
-                <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-between gap-3">
-                  <div>
-                    <span className="block text-[11px] font-black uppercase text-slate-400 tracking-wider">FCCA Sovereign Color</span>
-                    <span className="text-[10px] text-text-muted">Primary accent buttons, solid glow elements</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <div 
-                      className="w-full h-11 rounded-lg border border-white/10 shadow flex items-center justify-center font-mono text-xs text-white bg-cover font-bold relative overflow-hidden transition-all duration-300 hover:scale-[1.02]" 
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <span className="bg-black/50 px-2.5 py-1 rounded text-[10px] tracking-tight text-white border border-white/5">
-                        {primaryColor}
-                      </span>
-                      <input 
-                        type="color" 
-                        value={primaryColor} 
-                        onChange={(e) => handleColorChange('primary', e.target.value)}
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
-                        aria-label="FCCA Sovereign Color"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Secondary Color Picker */}
-                <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-between gap-3">
-                  <div>
-                    <span className="block text-[11px] font-black uppercase text-slate-400 tracking-wider">Tactical Accent Color</span>
-                    <span className="text-[10px] text-text-muted">Secondary glow elements, hover borders</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <div 
-                      className="w-full h-11 rounded-lg border border-white/10 shadow flex items-center justify-center font-mono text-xs text-white bg-cover font-bold relative overflow-hidden transition-all duration-300 hover:scale-[1.02]" 
-                      style={{ backgroundColor: secondaryColor }}
-                    >
-                      <span className="bg-black/50 px-2.5 py-1 rounded text-[10px] tracking-tight text-white border border-white/5">
-                        {secondaryColor}
-                      </span>
-                      <input 
-                        type="color" 
-                        value={secondaryColor} 
-                        onChange={(e) => handleColorChange('secondary', e.target.value)}
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
-                        aria-label="Tactical Accent Color"
-                      />
-                    </div>
-                  </div>
-                </div>
-
+            <div>
+              <span className={labelCls}>Quick presets</span>
+              <div className="flex flex-wrap gap-3">
+                {PRESETS.map((p) => (
+                  <button key={p.name} type="button" onClick={() => update({ gradientFrom: p.from, gradientVia: p.via, gradientTo: p.to, gradientAngle: p.angle })}
+                    className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border border-white/10 hover:border-white/30 text-sm text-gray-200">
+                    <span className="w-6 h-6 rounded-full" style={{ backgroundImage: buildGradient({ gradientFrom: p.from, gradientVia: p.via, gradientTo: p.to, gradientAngle: p.angle }) }} aria-hidden="true" />{p.name}
+                  </button>
+                ))}
               </div>
-
-              {/* Reset trigger */}
-              <div className="flex justify-between items-center bg-white/5 px-4.5 py-3 rounded-xl border border-white/5 text-xs text-text-muted">
-                <span>Wish to discard palette adjustments?</span>
-                <button
-                  type="button"
-                  onClick={handleResetColors}
-                  className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-extrabold text-xs px-4 py-2 rounded-lg transition-all"
-                >
-                  Reset Colors
-                </button>
-              </div>
-
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <ColorInput label="Start color" value={f.gradientFrom} onChange={(v) => update({ gradientFrom: v })} />
+              <ColorInput label="Middle color" optional value={f.gradientVia} onChange={(v) => update({ gradientVia: v })} onClear={() => update({ gradientVia: '' })} />
+              <ColorInput label="End color" value={f.gradientTo} onChange={(v) => update({ gradientTo: v })} />
+            </div>
+
+            <div className="max-w-md">
+              <label htmlFor="g-angle" className={labelCls}>Direction: {Math.round(f.gradientAngle)}°</label>
+              <input id="g-angle" type="range" min={0} max={360} step={5} value={f.gradientAngle} onChange={(e) => update({ gradientAngle: Number(e.target.value) })} className="w-full accent-[var(--color-accent)]" />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Right Section: Informational State Panel */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-neutral-900 border border-white/5 rounded-3xl p-6 space-y-3.5 shadow-xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition duration-500">
-              <Palette className="w-24 h-24 text-white" />
-            </div>
-            
-            <div className="flex items-center gap-2.5 text-accent">
-              <CheckCircle className="w-5 h-5" />
-              <h4 className="text-xs font-black tracking-widest uppercase font-sans">
-                LIVE INTERACTIVE SYNC
-              </h4>
-            </div>
-            
-            <p className="text-xs text-slate-400 font-sans leading-relaxed">
-              Applying changes updates CSS variables <code>--color-accent</code> and <code>--color-accent-secondary</code> globally. Buttons, glows, hover borders, and links will paint instantly across the home section, resume, and footer without code rebuilding or full page reloads!
-            </p>
+        <div>
+          <span className={labelCls}>Preview</span>
+          <div className="rounded-2xl border border-white/10 p-6 flex flex-wrap items-center gap-6 bg-bg-dark">
+            <span className="px-8 py-3 rounded-lg text-white font-black" style={isGradient ? { backgroundImage: gradient } : { backgroundColor: validHex(f.primaryColor, '#f45901') }}>Button</span>
+            <span className="text-4xl font-black uppercase" style={isGradient ? { backgroundImage: gradient, WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' } : { color: validHex(f.primaryColor, '#f45901') }}>Walid Rahman.</span>
+            <span className="h-1.5 w-40 rounded-full" style={isGradient ? { backgroundImage: gradient } : { backgroundColor: validHex(f.primaryColor, '#f45901') }} />
           </div>
+          {isGradient && <p className="text-xs text-gray-400 mt-3">Gradients are used on buttons, bars, badges, underlines and the big name in the hero. Small text, icons and thin borders use the start color so they stay readable.</p>}
         </div>
+      </section>
 
-      </form>
-    </div>
+      <section className="bg-bg-card border border-white/5 rounded-3xl p-6 md:p-8 space-y-4 max-w-md">
+        <h2 className="text-xl font-black">Secondary color</h2>
+        <ColorInput label="Secondary accent" value={f.secondaryColor} onChange={(v) => update({ secondaryColor: v })} />
+      </section>
+    </form>
   );
 };

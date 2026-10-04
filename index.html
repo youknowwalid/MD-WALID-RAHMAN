@@ -51,6 +51,7 @@
           var c = JSON.parse(localStorage.getItem('brand_colors') || 'null');
           if (c && c.p) document.documentElement.style.setProperty('--color-accent', c.p);
           if (c && c.s) document.documentElement.style.setProperty('--color-accent-secondary', c.s);
+          if (c && c.g) { document.documentElement.style.setProperty('--accent-gradient', c.g); document.documentElement.setAttribute('data-accent', 'gradient'); }
         } catch (e) {}
       })();
     </script>
