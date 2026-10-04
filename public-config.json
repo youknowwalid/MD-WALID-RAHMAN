@@ -1,5 +1,5 @@
 {
   "_note": "Public values only (safe to commit). Fill these in with the URL and the public 'anon' key of the Supabase project for this site. Never put a secret / service_role key here.",
-  "supabaseUrl": "",
-  "supabaseAnonKey": ""
+  "supabaseUrl": "https://biaedbathslspnumcqrp.supabase.co",
+  "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpYWVkYmF0aHNsc3BudW1jcXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjYzMzksImV4cCI6MjEwNjcwMjMzOX0.K_Z3eLctj8sgTL1hy-Ztu-kMUYaHV0rmLR6BskYJ7YY"
 }

@@ -25,6 +25,6 @@ export default defineConfig({
     // Site connected to the fake backend
     { command: `${mockEnv} npx vite build --outDir dist-e2e --emptyOutDir && npx vite preview --outDir dist-e2e --host 127.0.0.1 --port 4174 --strictPort`, url: 'http://127.0.0.1:4174', timeout: 120_000, reuseExistingServer: true },
     // Site with no backend connected (zero-configuration mode)
-    { command: 'npx vite build --outDir dist-e2e-plain --emptyOutDir && npx vite preview --outDir dist-e2e-plain --host 127.0.0.1 --port 4175 --strictPort', url: 'http://127.0.0.1:4175', timeout: 120_000, reuseExistingServer: true },
+    { command: 'VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= npx vite build --outDir dist-e2e-plain --emptyOutDir && npx vite preview --outDir dist-e2e-plain --host 127.0.0.1 --port 4175 --strictPort', url: 'http://127.0.0.1:4175', timeout: 120_000, reuseExistingServer: true },
   ],
 });

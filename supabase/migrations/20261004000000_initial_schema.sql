@@ -41,6 +41,7 @@ begin
   return new;
 end;
 $$;
+revoke all on function public.restrict_signups() from public, anon, authenticated; -- trigger-only, not for the public API
 create trigger restrict_signups before insert on auth.users
   for each row execute function public.restrict_signups();
 
@@ -195,6 +196,7 @@ create table public.contact_submissions (
 );
 create index contact_submissions_created_idx on public.contact_submissions (created_at desc);
 
+revoke all on function public.touch_updated_at() from public, anon, authenticated; -- trigger-only
 -- updated_at triggers
 do $$
 declare t text;
@@ -242,6 +244,7 @@ begin
   return new;
 end;
 $$;
+revoke all on function public.limit_contact_submissions() from public, anon, authenticated; -- trigger-only
 create trigger limit_contact_submissions before insert on public.contact_submissions
   for each row execute function public.limit_contact_submissions();
 
