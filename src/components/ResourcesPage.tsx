@@ -1,105 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, LayoutGrid, Search, Eye, Filter, ShieldCheck, HelpCircle } from 'lucide-react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { useProducts } from '../lib/products';
+import Seo from './Seo';
 import { Product } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ProductModal from './ProductModal';
 
-// Static fallbacks in case Firestore collection is not yet populated
-const DEFAULT_PRODUCTS: Product[] = [
-  {
-    id: 'design-system-kit',
-    title: 'The Ultimate Design System Kit',
-    shortTitle: 'Design System Kit',
-    description: 'A comprehensive toolkit containing everything you need to kickstart, design, and style premium digital brands with high-performance layouts, UI assets, typography presets, and a consistent modular grid structure. Optimized for modern branding projects.',
-    price: '$29.00',
-    thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
-    paddleUrl: '#',
-    published: true,
-    featured: true,
-    order: 1
-  },
-  {
-    id: 'brand-playbook',
-    title: 'Master Brand Identity Playbook',
-    shortTitle: 'Brand Identity Playbook',
-    description: 'An editorial-quality PDF guide outlining the step-by-step branding strategy, positioning frameworks, style rules, client collaboration systems, and dynamic launch workflows used for building premium digital presences.',
-    price: '$19.00',
-    thumbnail: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=800&auto=format&fit=crop&q=80',
-    image: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?w=1200&auto=format&fit=crop&q=80',
-    paddleUrl: '#',
-    published: true,
-    featured: true,
-    order: 2
-  },
-  {
-    id: 'minimal-portfolio-figma',
-    title: 'Premium Minimal Portfolio Template',
-    shortTitle: 'Minimal Portfolio Template',
-    description: 'A pristine interactive portfolio design template configured with highly organized Figma variables, responsive spacing scales, custom layout grids, and visual style directions. Ideal for developers and designers.',
-    price: '$15.00',
-    thumbnail: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80',
-    image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&auto=format&fit=crop&q=80',
-    paddleUrl: '#',
-    published: true,
-    featured: true,
-    order: 3
-  }
-];
-
 export default function ResourcesPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    // Listen to firestore products in real-time
-    const q = query(
-      collection(db, 'products'),
-      where('published', '==', true),
-      orderBy('order', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const dbProducts: Product[] = [];
-      snapshot.forEach((doc) => {
-        dbProducts.push({ ...doc.data(), id: doc.id } as Product);
-      });
-      
-      // If none found in DB, use our premium defaults as starting point
-      if (dbProducts.length === 0) {
-        setProducts(DEFAULT_PRODUCTS);
-      } else {
-        setProducts(dbProducts);
-      }
-      setLoading(false);
-    }, (error) => {
-      console.warn("Firestore products fetch failed or empty (falling back to default resources):", error);
-      setProducts(DEFAULT_PRODUCTS);
-      setLoading(false);
-    });
-
-    window.scrollTo(0, 0);
-    return () => unsubscribe();
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   // Filter based on search query
   const filteredProducts = products.filter(product => {
-    const titleMatch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const descMatch = product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const shortTitleMatch = product.shortTitle && product.shortTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    return titleMatch || descMatch || shortTitleMatch;
+    const q = searchQuery.toLowerCase();
+    return product.title.toLowerCase().includes(q) || product.description.toLowerCase().includes(q) || (product.shortTitle || '').toLowerCase().includes(q);
   });
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white relative z-10 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-bg-dark text-text-main relative z-10 font-sans transition-colors duration-300">
       
-      {/* Top Navbar */}
+      <Seo title="Digital Resources" description="Digital products, templates and PDF guides by Walid Rahman." noindex={!loading && products.length === 0} />
       <Navbar />
 
       {/* Decorative Top Accent Glow */}
@@ -146,12 +71,13 @@ export default function ResourcesPage() {
             
             {/* Search inputs */}
             <div className="relative w-full lg:max-w-sm">
-              <span className="absolute inset-y-0 left-4 flex items-center text-neutral-500">
-                <Search className="w-4 h-4" />
+              <span className="absolute inset-y-0 left-4 flex items-center text-neutral-400">
+                <Search className="w-4 h-4" aria-hidden="true" />
               </span>
               <input
                 id="resources-search-input"
-                type="text"
+                type="search"
+                aria-label="Search products"
                 placeholder="Search products or guides..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -166,13 +92,18 @@ export default function ResourcesPage() {
           <div className="flex justify-center items-center py-32">
             <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
           </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-24 bg-neutral-950/30 rounded-3xl border border-white/5 p-8">
+            <h2 className="text-lg font-bold text-white mb-2">New resources are on their way</h2>
+            <p className="text-sm text-neutral-400 max-w-md mx-auto">Nothing is published here yet. Please check back soon.</p>
+          </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-24 bg-neutral-950/30 rounded-3xl border border-white/5 p-8">
-            <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center mx-auto mb-4 text-neutral-500">
+            <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center mx-auto mb-4 text-neutral-400">
               <Filter className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">No products found</h3>
-            <p className="text-sm text-neutral-500 max-w-md mx-auto">
+            <h2 className="text-lg font-bold text-white mb-2">No products found</h2>
+            <p className="text-sm text-neutral-400 max-w-md mx-auto">
               We couldn't find any digital resources matching "{searchQuery}". Try revising your search details or clear filter terms.
             </p>
             <button
@@ -197,11 +128,16 @@ export default function ResourcesPage() {
                   transition={{ duration: 0.3 }}
                   className="bg-neutral-950 rounded-3xl border border-white/5 hover:border-white/10 overflow-hidden group cursor-pointer flex flex-col justify-between shadow-2xl transition-all"
                   onClick={() => setActiveProduct(product)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View ${product.title}`}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveProduct(product); } }}
                 >
                   <div className="aspect-[4/3] w-full bg-neutral-900 overflow-hidden relative">
                     <img
                       src={product.thumbnail}
-                      alt={product.title}
+                      alt=""
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                     />
@@ -224,16 +160,16 @@ export default function ResourcesPage() {
                   {/* Info details blocks */}
                   <div className="p-6 md:p-8 flex-grow flex flex-col justify-between">
                     <div>
-                      <h3 className="text-lg md:text-xl font-sans font-black tracking-tight text-white mb-3 group-hover:text-[#f45901] transition-colors duration-300 leading-tight">
+                      <h2 className="text-lg md:text-xl font-sans font-black tracking-tight text-white mb-3 group-hover:text-[#f45901] transition-colors duration-300 leading-tight">
                         {product.title}
-                      </h3>
+                      </h2>
                       <p className="text-gray-400 text-xs md:text-sm line-clamp-3 leading-relaxed mb-6">
                         {product.description}
                       </p>
                     </div>
 
                     <div className="border-t border-white/5 pt-4 flex items-center justify-between">
-                      <span className="text-[10px] text-neutral-500 uppercase font-semibold tracking-wider flex items-center gap-1">
+                      <span className="text-[10px] text-neutral-400 uppercase font-semibold tracking-wider flex items-center gap-1">
                         <ShieldCheck className="w-3.5 h-3.5 text-[#f45901]" /> Secure Delivery
                       </span>
                       <span className="text-xs font-bold text-[#f45901] flex items-center gap-1 group-hover:underline">

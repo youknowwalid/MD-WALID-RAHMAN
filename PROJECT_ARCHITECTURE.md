@@ -1,61 +1,35 @@
 # Project Architecture: Walid Rahman Portfolio
 
-This document outlines the stabilized architecture and permanent development rules for the Walid Rahman Portfolio. This project is built for high stability, predictability, and maintainability.
+Dark, premium, single-page portfolio (Poppins, accent `#f45901`). **The look and feel is fixed — see `AGENTS.md`.**
 
-## 1. Core Architecture Values
-- **Deterministic Rendering**: UI must render from explicit fields, never from inferred logic or keyword matching.
-- **Strict Schema Enforcement**: All data must adhere to TypeScript interfaces and Firestore blueprints.
-- **Sanitized Persistence**: No `undefined` values are ever written to Firestore. All payloads are normalized before save.
-- **Graceful Fallbacks**: The frontend must handle missing or partial data without crashing.
+## Principles
+- **Deterministic rendering**: the UI renders from explicit fields; no keyword/regex logic on content.
+- **Schema first**: change `supabase/migrations/*.sql` (add a *new* migration file), `src/types.ts`,
+  `src/lib/schema-defaults.ts`, `src/lib/rows.ts` and the form definition in `src/components/admin/forms.ts` together.
+- **Graceful fallbacks**: the site must render with no database (`backendConfigured === false`) or when it is unreachable.
+- **No invented content**: defaults are limited to text that already existed on the site; empty sections are hidden or show a neutral note.
+- **Minimal change**: prefer the smallest diff.
 
-## 2. Rendering Flow
-1. **Fetch**: Data is pulled from Firestore using `getCollection`.
-2. **Normalize (Frontend)**: In `App.tsx`, raw Firestore data is mapped to typed objects with safe fallbacks (empty strings for nulls, empty arrays for missing lists).
-3. **Render**: Components consume the normalized data. They do NOT contain logic to "search" for features in text.
+## Data flow
+1. `src/lib/api.ts` — visitors read via the Supabase REST API with the public key (small, no SDK).
+2. `src/lib/rows.ts` — maps database `snake_case` rows ⇄ app `camelCase` objects and whitelists writable columns.
+3. `src/lib/schema-defaults.ts` — normalizers fill missing fields with neutral values.
+4. `src/context/SiteConfigContext.tsx` — loads `site_settings` (`global`, `hero`, `seo`), merged over `src/lib/defaults.ts`, cached in localStorage for instant first paint.
+5. `src/lib/admin.ts` — the only file that uses `@supabase/supabase-js` (sign-in, saving, uploads); loaded only on `/admin`.
 
-## 3. Admin & Data Pipeline
-1. **Form Input**: Raw data is captured from the Admin Management Panel.
-2. **Normalization Layer**: In `AdminDashboard.tsx`, the `normalizePayload` function converts form inputs into deterministic typed objects.
-3. **Database Sanitization**: In `src/services/firebase.ts`, the `sanitizeForFirestore` utility recursively removes `undefined` values and normalizes object structures.
-4. **Validation**: Critical fields (like names/titles) are validated before the write operation proceeds.
+## Security model (enforced in the database, not in the browser)
+- Row Level Security on every table; public can only `select` (products: published only).
+- Writes need a signed-in user whose **confirmed** e-mail is in `admin_emails` (`public.is_admin()`).
+- Sign-ups are closed for any other e-mail (trigger on `auth.users`).
+- Contact form: anyone may insert; length/format checks, honeypot + timer in the form, and a per-visitor rate limit trigger.
+- Storage bucket `site-media`: public read; admin-only write; 5 MB limit; images + PDF only (no SVG).
+- Headers (CSP, HSTS, frame-ancestors none…) in `vercel.json`. If a Supabase custom domain is ever used, add it to `connect-src`.
 
-## 4. Pricing Section Structure
-The pricing system is specifically hardened against stability drift:
-- **Explicit Fields**: Uses `showPriorityBox`, `priorityTitle`, and `prioritySubtitle` for the highlight box.
-- **Explicit Arrays**: `features` (Included) and `unavailableFeatures` (Excluded) are separate database fields.
-- **No Keywords**: Component visibility is controlled by boolean toggles, never by checking for words like "Consultation".
+## SEO
+Static tags + JSON-LD in `index.html`; `src/components/Seo.tsx` sets per-page title/description/canonical/Open Graph/structured data;
+`/sitemap.xml` is generated live from the database (`api/sitemap.js`); `robots.txt` blocks `/admin`.
 
-## 5. Permanent Development Rules
-- **No Keyword Logic**: Forbidden. Do not use `.includes()` or regex on content strings to determine UI behavior.
-- **Schema First**: Update `types.ts` and `firebase-blueprint.json` before adding new features.
-- **Sanitize Before Save**: Always pass payloads through the normalization helpers.
-- **Component Isolation**: Keep admin logic, schema definitions, and presentation code separated.
-- **Minimal Change**: Bias towards the smallest possible diff that achieves a goal.
-
-## 7. Deployment & Safety Workflow (Permanent)
-To protect the stable baseline, all future changes must follow this checklist:
-
-1. **Local Validation**: Run `npm run lint` and `npm run build` to ensure zero compilation errors.
-2. **Schema Audit**: If adding a new field, ensure it is added to `types.ts`, `firebase-blueprint.json`, and `src/lib/schema-defaults.ts`.
-3. **Environment Isolation**: Testing should be performed in the Preview environment before merging into the production branch.
-4. **CRUD Integrity**: Verify that creating, editing, and deleting an item in the Admin Dashboard works for the affected section.
-5. **Responsive Check**: Verify UI rendering on both mobile and desktop (especially pricing boxes).
-
-## 8. Rollback & Recovery Procedures
-If a deployment or admin update corrupts the production state:
-
-1. **Admin Recovery**: Use the Admin Dashboard to re-edit the corrupted document. The `normalizePayload` layer will automatically strip `undefined` values and re-apply defaults on the next save.
-2. **Firestore Rollback**: If data is deleted, restore from the manual backup (exported via Firebase Console).
-3. **Code Rollback**: Revert the last Git commit to the `baseline-approved` tag.
-4. **State Reset**: Clearing `localStorage` or browser cache may be required if hydration errors persist.
-
-## 9. Future Development Constraints
-- **Isolation**: New features must stay within their component boundaries. Do not leak logic from `Projects` into `Services`.
-- **Minimal Abstraction**: Keep code readable. Prefer explicit fields over complex generic factories.
-## 10. Technical Stack
-- **Framework**: React 18+ with Vite
-- **Styling**: Tailwind CSS
-- **Database**: Firebase Firestore
-- **Authentication**: Firebase Auth (Google)
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
+## Workflow
+1. `npm run check` and `npm run test:e2e` must pass.
+2. Verify create/edit/delete in the admin for the section you touched, on desktop and mobile.
+3. Open a PR; Vercel builds a preview automatically.

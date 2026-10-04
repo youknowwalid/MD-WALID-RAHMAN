@@ -1,0 +1,5 @@
+{
+  "_note": "Public values only (safe to commit). Fill these in with the URL and the public 'anon' key of the Supabase project for this site. Never put a secret / service_role key here.",
+  "supabaseUrl": "",
+  "supabaseAnonKey": ""
+}

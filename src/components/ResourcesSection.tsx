@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight, Eye, Sparkles } from 'lucide-react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { useProducts } from '../lib/products';
 import { Product } from '../types';
 import ProductModal from './ProductModal';
 
 export default function ResourcesSection() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading } = useProducts();
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   
   // Carousel scroll ref and state
@@ -20,28 +18,6 @@ export default function ResourcesSection() {
   // Touch Swipe state
   const touchStartRef = useRef<number | null>(null);
   const scrollLeftStartRef = useRef<number>(0);
-
-  useEffect(() => {
-    const q = query(
-      collection(db, 'products'),
-      where('published', '==', true),
-      orderBy('order', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items: Product[] = [];
-      snapshot.forEach((doc) => {
-        items.push({ ...doc.data(), id: doc.id } as Product);
-      });
-      setProducts(items);
-      setLoading(false);
-    }, (error) => {
-      console.error("Failed to fetch products for home view:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   // Update arrows based on scroll position
   const updateScrollArrows = () => {
@@ -102,20 +78,8 @@ export default function ResourcesSection() {
     touchStartRef.current = null;
   };
 
-  if (loading) {
-    return (
-      <section id="resources" className="py-20 bg-bg-dark border-t border-white/5 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="flex justify-center items-center py-20">
-            <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (products.length === 0) {
-    return null; // Don't show anything on homepage if no products are published
+  if (loading || products.length === 0) {
+    return null; // Nothing is shown on the homepage until a product is published
   }
 
   return (
@@ -195,12 +159,16 @@ export default function ResourcesSection() {
                 whileHover={{ y: -6 }}
                 className="w-[280px] sm:w-[320px] md:w-[360px] flex-shrink-0 snap-start bg-neutral-950 rounded-2xl border border-white/5 overflow-hidden group cursor-pointer flex flex-col justify-between"
                 onClick={() => setActiveProduct(product)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View ${product.title}`}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveProduct(product); } }}
               >
                 {/* Image aspect ratio container to prevent layout shift */}
                 <div className="aspect-[4/3] w-full bg-neutral-900 overflow-hidden relative">
                   <img
                     src={product.thumbnail}
-                    alt={product.title}
+                    alt=""
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
@@ -227,7 +195,7 @@ export default function ResourcesSection() {
                   <h3 className="text-base font-bold text-white group-hover:text-[#f45901] transition-colors duration-300 line-clamp-1 mb-2">
                     {product.shortTitle || product.title}
                   </h3>
-                  <p className="text-gray-500 text-xs line-clamp-2 leading-relaxed">
+                  <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
                     {product.description}
                   </p>
                 </div>

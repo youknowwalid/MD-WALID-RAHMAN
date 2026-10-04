@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { X, CheckCircle, Shield } from 'lucide-react';
 import { Product } from '../types';
+import { safeUrl } from '../lib/text';
 
 interface ProductModalProps {
   product: Product;
@@ -29,10 +30,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   }, [onClose]);
 
   // Helper to safely serialize the Paddle Checkout Link
-  const getCheckoutHref = (url?: string) => {
-    if (!url) return '#';
-    return url.trim();
-  };
+  const checkoutHref = /^https?:/i.test(product.paddleUrl || '') ? safeUrl(product.paddleUrl) : '';
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    return () => previous?.focus?.();
+  }, []);
 
   // Compile valid truthy gallery images
   const images = [
@@ -97,7 +101,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto" role="dialog" aria-modal="true" aria-label={product.title}>
       {/* Backdrop with Blur */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -119,6 +123,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         
         {/* Close Button */}
         <button
+          ref={closeRef}
           onClick={onClose}
           className="absolute top-5 right-5 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-neutral-900 border border-white/10 flex items-center justify-center transition-all hover:scale-110 hover:text-accent"
           aria-label="Close Modal"
@@ -196,6 +201,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   key={idx}
                   type="button"
                   onClick={() => setActiveIndex(idx)}
+                  aria-label={`Show image ${idx + 1} of ${images.length}`}
+                  aria-current={idx === activeIndex}
                   className={`relative w-11 h-11 rounded-lg overflow-hidden border-2 transition-all duration-200 shrink-0 ${
                     idx === activeIndex
                       ? 'border-accent scale-105 shadow-[0_0_10px_var(--color-accent)]/30'
@@ -204,7 +211,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 >
                   <img
                     src={img}
-                    alt={`Thumbnail ${idx + 1}`}
+                    alt=""
+                    aria-hidden="true"
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
@@ -223,7 +231,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               <span className="text-[10px] font-bold text-accent uppercase tracking-widest px-2.5 py-1 bg-accent/10 rounded border border-accent/20">
                 Digital Resource
               </span>
-              <span className="text-xs text-neutral-500 font-mono">
+              <span className="text-xs text-neutral-400 font-mono">
                 Instant Access
               </span>
             </div>
@@ -235,7 +243,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
             {/* Price Box */}
             <div className="flex items-baseline gap-2 mb-6 bg-neutral-900/40 p-3 rounded-xl border border-white/5 w-fit">
-              <span className="text-xs text-neutral-500 font-medium">INVESTMENT:</span>
+              <span className="text-xs text-neutral-400 font-medium">INVESTMENT:</span>
               <span className="text-2xl font-black text-accent font-mono">{product.price}</span>
             </div>
 
@@ -273,18 +281,22 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <div className="space-y-4">
             
             {/* Paddle Checkout Button */}
-            <a
-              id={`buy-now-btn-${product.id}`}
-              href={getCheckoutHref(product.paddleUrl)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
-            >
-              Buy Now
-            </a>
+            {checkoutHref ? (
+              <a
+                id={`buy-now-btn-${product.id}`}
+                href={checkoutHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
+              >
+                Buy Now
+              </a>
+            ) : (
+              <p className="text-center text-sm text-neutral-300 border border-white/10 rounded-2xl py-4 px-6">Checkout link coming soon.</p>
+            )}
 
             {/* Dynamic Checkout note */}
-            <p className="text-[10px] text-center text-neutral-500 uppercase tracking-widest leading-relaxed">
+            <p className="text-[10px] text-center text-neutral-400 uppercase tracking-widest leading-relaxed">
               Processed securely via Paddle • Instant email delivery
             </p>
 

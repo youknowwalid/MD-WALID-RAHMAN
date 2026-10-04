@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSiteConfig } from '../context/SiteConfigContext';
+import { patchSettings } from '../lib/admin';
 import { 
   ArrowLeft, 
   Save, 
@@ -16,8 +17,8 @@ interface Toast {
   message: string;
 }
 
-export const BrandingSettings: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
-  const { config, updateConfig } = useSiteConfig();
+export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 'success' | 'error', message: string) => void }> = ({ onBack }) => {
+  const { config, refresh } = useSiteConfig();
 
   // Local state for color customizer only
   const [primaryColor, setPrimaryColor] = useState('#f45901');
@@ -58,15 +59,13 @@ export const BrandingSettings: React.FC<{ onBack?: () => void }> = ({ onBack }) 
     setIsDirty(true);
   };
 
-  // Save colors atomically to Firestore
+  // Save colors
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSaving(true);
     try {
-      await updateConfig({
-        primaryColor,
-        secondaryColor
-      });
+      await patchSettings('global', { primaryColor, secondaryColor });
+      await refresh();
       
       setIsDirty(false);
       setToast({
@@ -77,7 +76,7 @@ export const BrandingSettings: React.FC<{ onBack?: () => void }> = ({ onBack }) 
       console.error(err);
       setToast({
         type: 'error',
-        message: err.message || 'Fatal error overwriting brand colors in Firestore.',
+        message: err.message || 'Could not save the brand colors.',
       });
     } finally {
       setIsSaving(false);
