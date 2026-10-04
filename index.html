@@ -44,10 +44,6 @@
     <script>
       (function () {
         try {
-          if (localStorage.getItem('theme') === 'light') {
-            document.documentElement.classList.add('light-mode');
-            document.documentElement.style.background = '#f8f9fa';
-          }
           var c = JSON.parse(localStorage.getItem('brand_colors') || 'null');
           if (c && c.p) document.documentElement.style.setProperty('--color-accent', c.p);
           if (c && c.s) document.documentElement.style.setProperty('--color-accent-secondary', c.s);
