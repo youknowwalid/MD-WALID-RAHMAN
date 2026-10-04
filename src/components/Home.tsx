@@ -137,7 +137,7 @@ const Typewriter = ({ text }: { text: string }) => {
   return (
     <>
       <span className="sr-only">{text}</span>
-      <span className="relative" aria-hidden="true">
+      <span aria-hidden="true">
         {displayText}
         <motion.span
           animate={{ opacity: [1, 0] }}

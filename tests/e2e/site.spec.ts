@@ -149,6 +149,36 @@ test.describe('logos and intro video', () => {
   });
 });
 
+test.describe('brand colors', () => {
+  test('gradient accent can be chosen in the admin and is used across the site', async ({ page }) => {
+    await page.goto(CONNECTED + '/admin');
+    await page.getByLabel('E-mail').fill(ADMIN.email);
+    await page.getByLabel('Password').fill(ADMIN.password);
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByRole('button', { name: 'Branding Colors' }).click();
+    await page.getByRole('radio', { name: 'gradient' }).click();
+    await page.getByRole('button', { name: 'Ocean' }).click();
+    await page.getByLabel('Middle color (hex code)').fill('#7b61ff');
+    await page.getByRole('button', { name: 'Save & Publish' }).click();
+    await expect(page.getByText('Brand colors published.')).toBeVisible();
+
+    await page.goto(CONNECTED + '/');
+    const root = page.locator('html');
+    await expect(root).toHaveAttribute('data-accent', 'gradient');
+    const grad = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent-gradient'));
+    expect(grad).toContain('linear-gradient(135deg, #00c6ff, #7b61ff, #0072ff)');
+    const bg = await page.getByRole('link', { name: "Let's Discuss" }).evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(bg).toContain('linear-gradient');
+  });
+
+  test('solid mode still works (default look unchanged)', async ({ page }) => {
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('html')).not.toHaveAttribute('data-accent', 'gradient');
+    const bg = await page.getByRole('link', { name: "Let's Discuss" }).evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(bg).toBe('none');
+  });
+});
+
 test.describe('zero-configuration mode (no database connected)', () => {
   test('site works with built-in content and no errors', async ({ page }) => {
     const errors = watchErrors(page);

@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { fetchSettings } from '../lib/api';
+import { applyAccent } from '../lib/gradient';
 import {
   DEFAULT_CONFIG, DEFAULT_HERO, DEFAULT_SEO, HeroConfig, SeoConfig, SiteConfig,
 } from '../lib/defaults';
@@ -36,7 +37,7 @@ function merge<T extends object>(defaults: T, saved: any, allowEmpty: (keyof T)[
 
 const GLOBAL_ALLOW_EMPTY: (keyof SiteConfig)[] = [
   'siteLogo', 'footerLogo', 'favicon', 'footerPortrait', 'copyrightText', 'aboutVideoUrl', 'globalCtaUrl',
-  'officeAddress', 'contactEmail', 'officePhone', 'aboutText',
+  'officeAddress', 'contactEmail', 'officePhone', 'aboutText', 'gradientVia',
 ];
 const HERO_ALLOW_EMPTY: (keyof HeroConfig)[] = ['heroImage', 'cvUrl', 'resumeImage'];
 const SEO_ALLOW_EMPTY: (keyof SeoConfig)[] = ['ogImage', 'twitterHandle', 'titleTemplate'];
@@ -75,13 +76,10 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const { config, hero, seoConfig } = useMemo(() => build(raw), [raw]);
 
-  // Brand colours + favicon
+  // Brand colours (solid or gradient) + favicon
   useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty('--color-accent', config.primaryColor);
-    root.style.setProperty('--color-accent-secondary', config.secondaryColor);
-    try { localStorage.setItem('brand_colors', JSON.stringify({ p: config.primaryColor, s: config.secondaryColor })); } catch { /* ignore */ }
-  }, [config.primaryColor, config.secondaryColor]);
+    applyAccent(config, config.secondaryColor);
+  }, [config.accentMode, config.primaryColor, config.secondaryColor, config.gradientFrom, config.gradientVia, config.gradientTo, config.gradientAngle]);
 
   useEffect(() => {
     if (!config.favicon) return;
