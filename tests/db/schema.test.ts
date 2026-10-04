@@ -39,7 +39,6 @@ beforeAll(async () => {
   await db.exec(`
     grant usage on schema public to anon, authenticated;
     grant select, insert, update, delete on all tables in schema public to anon, authenticated;
-    grant execute on all functions in schema public to anon, authenticated;
     alter table auth.users disable trigger restrict_signups;
     insert into auth.users values
       ('${ADMIN_ID}', 'WalidXdXdXd@gmail.com', now()),

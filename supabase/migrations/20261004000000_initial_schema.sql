@@ -26,8 +26,9 @@ language sql stable security definer set search_path = '' as $$
     where u.id = auth.uid() and u.email_confirmed_at is not null
   );
 $$;
-revoke all on function public.is_admin() from public, anon;
-grant execute on function public.is_admin() to authenticated;
+-- Visitors' policies (e.g. "published or admin") also call it, so anon needs execute too; it simply returns false for them.
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
 
 -- Close public sign-ups: only allow-listed e-mails may create an account.
 create function public.restrict_signups() returns trigger
