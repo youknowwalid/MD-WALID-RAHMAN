@@ -125,3 +125,38 @@
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
+
+/* Section backgrounds: faint perspective grid in two corners + soft glowing shapes */
+main > section {
+  position: relative;
+  isolation: isolate;
+}
+main > section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url('/bg-grid.svg') center / cover no-repeat;
+}
+main > section:nth-of-type(even)::before {
+  transform: scaleX(-1);
+}
+main > section::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  width: 760px;
+  height: 760px;
+  max-width: 90vw;
+  max-height: 90vw;
+  top: 8%;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.55;
+  background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+}
+main > section:nth-of-type(odd)::after { --glow: #7b3cff; right: -12%; }
+main > section:nth-of-type(even)::after { --glow: #00a8ff; left: -12%; }
+main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto; }
