@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { optimizeMedia } from '../lib/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight, Eye, Sparkles } from 'lucide-react';
@@ -167,8 +168,11 @@ export default function ResourcesSection() {
                 {/* Image aspect ratio container to prevent layout shift */}
                 <div className="aspect-[4/3] w-full bg-neutral-900 overflow-hidden relative">
                   <img
-                    src={product.thumbnail}
+                    src={optimizeMedia(product.thumbnail, { width: 640 })}
                     alt=""
+                    width={640}
+                    height={480}
+                    decoding="async"
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"

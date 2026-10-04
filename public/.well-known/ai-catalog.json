@@ -1,0 +1,21 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Walid Rahman",
+    "identifier": "did:web:walidrahman.com"
+  },
+  "entries": [
+    {
+      "identifier": "urn:walidrahman.com:knowledge:site-overview",
+      "displayName": "Walid Rahman: site overview for AI agents",
+      "mediaType": "text/markdown",
+      "url": "https://walidrahman.com/llms.txt"
+    },
+    {
+      "identifier": "urn:walidrahman.com:knowledge:sitemap",
+      "displayName": "Sitemap",
+      "mediaType": "application/xml",
+      "url": "https://walidrahman.com/sitemap.xml"
+    }
+  ]
+}

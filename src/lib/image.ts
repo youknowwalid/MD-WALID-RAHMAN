@@ -15,3 +15,30 @@ export async function prepareImage(file: File, maxSide = 1600): Promise<Blob> {
   if (!blob) throw new Error('Could not process this image.');
   return blob;
 }
+
+const CLOUDINARY = /^(https:\/\/res\.cloudinary\.com\/[^/]+\/(image|video)\/upload\/)(.+)$/i;
+
+/**
+ * Asks Cloudinary for a smaller, modern-format copy of an image or video
+ * (automatic format + quality, optional max width). Any other host is returned unchanged.
+ */
+export function optimizeMedia(url: string, opts: { width?: number; extra?: string } = {}): string {
+  const m = CLOUDINARY.exec(url);
+  if (!m || /(^|\/)(f_auto|q_auto)/.test(m[3])) return url;
+  const parts = [opts.extra, 'f_auto', 'q_auto', opts.width ? `w_${opts.width}` : '', opts.width ? 'c_limit' : ''].filter(Boolean);
+  return `${m[1]}${parts.join(',')}/${m[3]}`;
+}
+
+/** Width-based srcset (480w / 840w) for a Cloudinary image; empty string for other hosts. */
+export function imageSrcSet(url: string, widths: number[] = [480, 840]): string {
+  if (!CLOUDINARY.test(url)) return '';
+  return widths.map((w) => `${optimizeMedia(url, { width: w })} ${w}w`).join(', ');
+}
+
+/** A still frame (JPEG) taken from a Cloudinary video, to show before the visitor presses play. */
+export function videoPoster(url: string, width = 1280): string {
+  const m = CLOUDINARY.exec(url);
+  if (!m || m[2].toLowerCase() !== 'video') return '';
+  const frame = `${m[1]}so_0,f_jpg,q_auto,w_${width},c_limit/${m[3]}`;
+  return frame.replace(/\.[a-z0-9]{2,4}(\?.*)?$/i, '.jpg$1');
+}

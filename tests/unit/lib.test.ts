@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fromRow, toRow } from '../../src/lib/rows';
 import { isUuid, parseContent, readingMinutes, safeUrl, slugify } from '../../src/lib/text';
+import { imageSrcSet, optimizeMedia, videoPoster } from '../../src/lib/image';
 import { normalizePricingPlan, normalizeProject } from '../../src/lib/schema-defaults';
 import { toFormValues, toPayload } from '../../src/components/admin/forms';
 import { buildSitemap } from '../../api/sitemap.js';
@@ -78,5 +79,29 @@ describe('sitemap', () => {
     const xml = buildSitemap([{ path: '/blog/a&b', lastmod: '2026-01-02T00:00:00Z', priority: '0.6' }]);
     expect(xml).toContain('<loc>https://walidrahman.com/blog/a&amp;b</loc>');
     expect(xml).toContain('<lastmod>2026-01-02</lastmod>');
+  });
+});
+
+describe('Cloudinary media helpers', () => {
+  const img = 'https://res.cloudinary.com/demo/image/upload/v123/me.png';
+  const vid = 'https://res.cloudinary.com/demo/video/upload/v123/intro.mp4';
+
+  it('asks Cloudinary for auto format/quality and a max width', () => {
+    expect(optimizeMedia(img, { width: 480 })).toBe('https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_480,c_limit/v123/me.png');
+  });
+  it('leaves other hosts and already-optimized links alone', () => {
+    expect(optimizeMedia('https://example.com/a.png', { width: 480 })).toBe('https://example.com/a.png');
+    const done = optimizeMedia(img, { width: 480 });
+    expect(optimizeMedia(done, { width: 480 })).toBe(done);
+  });
+  it('builds a srcset only for Cloudinary images', () => {
+    expect(imageSrcSet(img)).toContain('480w');
+    expect(imageSrcSet(img)).toContain('840w');
+    expect(imageSrcSet('https://example.com/a.png')).toBe('');
+  });
+  it('makes a JPEG poster from a Cloudinary video only', () => {
+    expect(videoPoster(vid)).toBe('https://res.cloudinary.com/demo/video/upload/so_0,f_jpg,q_auto,w_1280,c_limit/v123/intro.jpg');
+    expect(videoPoster(img)).toBe('');
+    expect(videoPoster('https://example.com/a.mp4')).toBe('');
   });
 });

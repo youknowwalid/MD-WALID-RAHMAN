@@ -1,4 +1,5 @@
 import React from 'react';
+import { optimizeMedia } from '../lib/image';
 import { Link } from 'react-router-dom';
 import { Mail, MapPin, Phone, Github, Twitter, Linkedin, Facebook, Instagram, Youtube, ArrowUpRight } from 'lucide-react';
 import { useSiteConfig } from '../context/SiteConfigContext';
@@ -104,7 +105,7 @@ export default function Footer() {
           {config.footerPortrait && (
             <div className="hidden md:flex md:col-span-3 justify-end items-end relative">
               <div className="absolute bottom-0 right-0 w-48 h-48 bg-accent/10 blur-[60px] rounded-full pointer-events-none" />
-              <img src={config.footerPortrait} alt="" className="w-full max-w-[260px] h-auto object-contain object-bottom drop-shadow-2xl relative z-10" style={{ maxHeight: '280px' }} loading="lazy" referrerPolicy="no-referrer" />
+              <img src={optimizeMedia(config.footerPortrait, { width: 520 })} alt="" width={260} height={280} decoding="async" className="w-full max-w-[260px] h-auto object-contain object-bottom drop-shadow-2xl relative z-10" style={{ maxHeight: '280px' }} loading="lazy" referrerPolicy="no-referrer" />
             </div>
           )}
         </div>

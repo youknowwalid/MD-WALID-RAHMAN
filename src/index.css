@@ -1,7 +1,23 @@
 @import "tailwindcss";
+@import "@fontsource/poppins/latin-400.css";
+@import "@fontsource/poppins/latin-500.css";
+@import "@fontsource/poppins/latin-600.css";
+@import "@fontsource/poppins/latin-700.css";
+@import "@fontsource/poppins/latin-800.css";
+@import "@fontsource/poppins/latin-900.css";
+
+/* Metric-matched fallback so the text doesn't jump when Poppins finishes loading. */
+@font-face {
+  font-family: "Poppins Fallback";
+  src: local("Arial");
+  size-adjust: 112.45%;
+  ascent-override: 93.6%;
+  descent-override: 31.2%;
+  line-gap-override: 8.9%;
+}
 
 @theme {
-  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Poppins", "Poppins Fallback", ui-sans-serif, system-ui, sans-serif;
   --color-accent: #f45901;
   --color-bg-dark: #0a0a0a;
   --color-bg-card: #111111;
@@ -78,6 +94,25 @@
   @keyframes shimmer {
     from { background-position: -200% 0; }
     to { background-position: 200% 0; }
+  }
+
+  /* Blinking cursor of the hero typewriter. It is drawn on the last typed letter, so it never affects layout. */
+  .tw-cursor { position: relative; }
+  .tw-cursor::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    margin-left: 4px;
+    bottom: 0.32em;
+    width: 3px;
+    height: 0.9em;
+    background: var(--color-accent);
+    animation: tw-blink 0.8s steps(2) infinite;
+  }
+  .tw-cursor-start::after { left: 0; margin-left: -7px; }
+  @keyframes tw-blink {
+    from { opacity: 1; }
+    to { opacity: 0; }
   }
 
   @keyframes marquee {
