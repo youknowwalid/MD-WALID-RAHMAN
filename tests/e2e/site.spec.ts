@@ -205,6 +205,55 @@ test.describe('brand colors', () => {
   });
 });
 
+test.describe('first visit on a new device (no flash of old content)', () => {
+  const seed = (request: any, key: string, value: object) =>
+    request.post(`${API}/__seed-settings`, { data: { key, value } });
+
+  // A brand-new browser has no saved copy of the settings. The page must wait for the real ones instead of
+  // painting the built-in colours/texts first and swapping them a moment later.
+  test('the first painted frame already has the saved colour and tagline', async ({ page, request }) => {
+    await seed(request, 'global', { primaryColor: '#12a4ff', brandTagline: 'Saved tagline from the database.' });
+    await page.addInitScript(() => {
+      const w = window as any;
+      w.__looks = [];
+      const look = () => {
+        if (document.querySelector('h1')) {
+          const tag = document.querySelector('#home p.text-text-muted')?.textContent ?? '';
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
+          const key = `${accent}|${tag}`;
+          if (w.__looks[w.__looks.length - 1] !== key) w.__looks.push(key);
+        }
+        requestAnimationFrame(look);
+      };
+      requestAnimationFrame(look);
+    });
+    // Slow the settings request down so a premature paint would be easy to catch.
+    await page.route('**/rest/v1/site_settings*', async (route) => { await new Promise((r) => setTimeout(r, 400)); await route.continue(); });
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('h1')).toBeVisible();
+    await page.waitForTimeout(300);
+    const looks = await page.evaluate(() => (window as any).__looks as string[]);
+    expect(looks).toEqual(['#12a4ff|Saved tagline from the database.']);
+  });
+
+  test('the site still appears when the database cannot be reached', async ({ page }) => {
+    await page.route('**/rest/v1/**', (route) => route.abort());
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('h1')).toContainText('Walid Rahman.');
+    await expect(page.locator('#home').getByText('A Brand Developer crafting premium digital experiences.')).toBeVisible();
+  });
+
+  test('the hero heading keeps its size while it is typed (no layout jump)', async ({ page }) => {
+    await page.goto(CONNECTED + '/');
+    const heading = page.locator('#home h1');
+    await expect(heading).toBeVisible();
+    const early = (await heading.boundingBox())!.height;
+    await page.waitForTimeout(2600);
+    const later = (await heading.boundingBox())!.height;
+    expect(later).toBe(early);
+  });
+});
+
 test.describe('zero-configuration mode (no database connected)', () => {
   test('site works with built-in content and no errors', async ({ page }) => {
     const errors = watchErrors(page);

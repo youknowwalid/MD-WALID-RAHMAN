@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MotionConfig, motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { MotionConfig, m, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight } from 'lucide-react';
 import { getRow, listRows } from '../lib/api';
 import { normalizeProject } from '../lib/schema-defaults';
@@ -34,14 +34,14 @@ const Title = ({ text }: { text: string }) => {
         <React.Fragment key={i}>
           {i > 0 && ' '}
           <span className="inline-block overflow-hidden align-bottom px-[0.05em] -mx-[0.05em] pb-[0.14em] -mb-[0.14em]">
-            <motion.span
+            <m.span
               className="inline-block"
               initial={{ y: '110%' }}
               animate={{ y: 0 }}
               transition={{ duration: 0.9, ease: EASE, delay: 0.08 * i }}
             >
               {word}
-            </motion.span>
+            </m.span>
           </span>
         </React.Fragment>
       ))}
@@ -57,8 +57,8 @@ const Cover = ({ src, alt }: { src: string; alt: string }) => {
   const y = useTransform(scrollYProgress, [0, 1], ['-7%', '7%']);
   return (
     <div ref={box} className="relative overflow-hidden rounded-[28px] md:rounded-[44px] aspect-[4/3] sm:aspect-[16/10] bg-bg-card">
-      <motion.div className="absolute inset-0" initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 1.4, ease: EASE }}>
-        <motion.img
+      <m.div className="absolute inset-0" initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 1.4, ease: EASE }}>
+        <m.img
           src={src}
           alt={alt}
           fetchPriority="high"
@@ -67,14 +67,14 @@ const Cover = ({ src, alt }: { src: string; alt: string }) => {
           className="h-full w-full object-cover"
           style={reduce ? undefined : { y, scale: 1.16 }}
         />
-      </motion.div>
+      </m.div>
     </div>
   );
 };
 
 /** Big title on the left, text on the right (lead sentence first, then body copy). */
 const TextSection = ({ title, lead, body, titleClass }: { title: string; lead?: string; body: string[]; titleClass?: string }) => (
-  <motion.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
+  <m.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
     <h2 className={`${SECTION_TITLE} ${titleClass ?? ''}`}>{title}</h2>
     <div className="max-w-3xl">
       {lead && <p className="text-xl sm:text-2xl lg:text-[1.75rem] leading-[1.45] font-medium text-text-main">{lead}</p>}
@@ -82,7 +82,7 @@ const TextSection = ({ title, lead, body, titleClass }: { title: string; lead?: 
         <p key={i} className={`whitespace-pre-line text-lg leading-[1.75] text-text-muted ${lead || i > 0 ? 'mt-6' : ''}`}>{t}</p>
       ))}
     </div>
-  </motion.section>
+  </m.section>
 );
 
 /** Rows of two images, alternating wide/narrow; an odd last image spans the full width. */
@@ -95,13 +95,13 @@ const ImageGrid = ({ images, title }: { images: string[]; title: string }) => {
     <div className="grid gap-5 md:gap-6">
       {rows.map((row, r) =>
         row.length === 1 ? (
-          <motion.div key={r} {...fadeUp} className={`${cell} aspect-[16/10]`}>
+          <m.div key={r} {...fadeUp} className={`${cell} aspect-[16/10]`}>
             <img src={row[0]} alt={`${title} ${r * 2 + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
-          </motion.div>
+          </m.div>
         ) : (
           <div key={r} className={`grid gap-5 md:gap-6 ${r % 2 === 0 ? 'md:grid-cols-[1fr_1.4fr]' : 'md:grid-cols-[1.4fr_1fr]'}`}>
             {row.map((src, c) => (
-              <motion.div
+              <m.div
                 key={c}
                 initial={fadeUp.initial}
                 whileInView={fadeUp.whileInView}
@@ -110,7 +110,7 @@ const ImageGrid = ({ images, title }: { images: string[]; title: string }) => {
                 className={`${cell} ${height}`}
               >
                 <img src={src} alt={`${title} ${r * 2 + c + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
-              </motion.div>
+              </m.div>
             ))}
           </div>
         ),
@@ -168,7 +168,7 @@ export default function ProjectDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-bg-dark flex items-center justify-center" role="status" aria-label="Loading">
-        <motion.div
+        <m.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full"
@@ -292,7 +292,7 @@ export default function ProjectDetail() {
 
             {/* 10. Feedback */}
             {hasFeedback && (
-              <motion.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
+              <m.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
                 <h2 className={`${SECTION_TITLE} max-w-[9ch]`}>Client&apos;s feedback</h2>
                 <div className="max-w-3xl">
                   <blockquote className="whitespace-pre-line text-xl leading-[1.5] text-text-main sm:text-2xl lg:text-[1.75rem]">{project.feedbackQuote}</blockquote>
@@ -303,7 +303,7 @@ export default function ProjectDetail() {
                     </div>
                   )}
                 </div>
-              </motion.section>
+              </m.section>
             )}
           </div>
 
@@ -325,7 +325,7 @@ export default function ProjectDetail() {
 
           {/* 12. Closing call to action */}
           <div className={`${CONTAINER} mt-20 sm:mt-28 pb-20 sm:pb-28`}>
-            <motion.section {...fadeUp} className="relative isolate overflow-hidden rounded-[32px] bg-bg-card px-6 py-16 sm:rounded-[44px] sm:px-14 sm:py-24 lg:py-28">
+            <m.section {...fadeUp} className="relative isolate overflow-hidden rounded-[32px] bg-bg-card px-6 py-16 sm:rounded-[44px] sm:px-14 sm:py-24 lg:py-28">
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[url('/bg-grid.svg')] bg-cover bg-center opacity-60" />
               <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 -z-10 h-[420px] w-[420px] rounded-full bg-accent opacity-40 blur-[110px]" />
               <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-20 -z-10 h-[360px] w-[360px] rounded-full bg-white opacity-[0.07] blur-[100px]" />
@@ -341,7 +341,7 @@ export default function ProjectDetail() {
                   <a href={ctaUrl} className={ctaClass}>{ctaInner}</a>
                 )}
               </div>
-            </motion.section>
+            </m.section>
           </div>
         </main>
 

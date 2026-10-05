@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { motion, MotionValue, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { m, MotionValue, useReducedMotion, useScroll, useTransform } from 'motion/react';
 
 /** Letters never fade below this, so unrevealed text stays readable. */
 const MIN_OPACITY = 0.4;
@@ -10,7 +10,7 @@ const Letter: React.FC<{ char: string; index: number; total: number; progress: M
   // Letters light up one after another, each over a window that overlaps its neighbours.
   const start = (index / total) * 0.8;
   const opacity = useTransform(progress, [start, start + 0.2], [MIN_OPACITY, 1]);
-  return <motion.span aria-hidden="true" style={{ opacity }}>{char}</motion.span>;
+  return <m.span aria-hidden="true" style={{ opacity }}>{char}</m.span>;
 };
 
 const Animated = ({ text, as: Heading, className }: { text: string; as: Tag; className?: string }) => {

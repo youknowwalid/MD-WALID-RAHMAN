@@ -3,11 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-M3BGD5B6');</script>
+    <script>
+      // Google Tag Manager starts once the page has loaded and the browser is idle, so it never competes with the first paint.
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        function load() {
+          var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
+          j.async = true;
+          j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i;
+          f.parentNode.insertBefore(j, f);
+        }
+        function later() { (w.requestIdleCallback || function (cb) { setTimeout(cb, 1); })(load, { timeout: 4000 }); }
+        if (d.readyState === 'complete') later(); else w.addEventListener('load', later);
+      })(window, document, 'script', 'dataLayer', 'GTM-M3BGD5B6');
+    </script>
 
     <title>Walid Rahman | Brand Developer</title>
     <meta name="description" content="Walid Rahman is a Dhaka-based Brand Developer and team leader with expertise in digital marketing, ed-tech, e-commerce and brand management." />
@@ -33,10 +43,6 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" />
 
     <script type="application/ld+json" id="seo-jsonld-schema">{"@context":"https://schema.org","@type":"Person","name":"Walid Rahman","jobTitle":"Brand Developer","url":"https://walidrahman.com/","image":"https://walidrahman.com/og-image.png"}</script>
 

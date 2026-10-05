@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import { X, CheckCircle, Shield } from 'lucide-react';
 import { Product } from '../types';
 import { safeUrl } from '../lib/text';
@@ -103,7 +103,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto" role="dialog" aria-modal="true" aria-label={product.title}>
       {/* Backdrop with Blur */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -112,7 +112,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       />
 
       {/* Modal Main Content Container */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -142,7 +142,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           >
             {/* Main Image */}
             <div className="absolute inset-0 flex items-center justify-center p-4">
-              <motion.img
+              <m.img
                 key={activeIndex}
                 src={images[activeIndex]}
                 alt={`${product.title} - Preview ${activeIndex + 1}`}
@@ -304,7 +304,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
         </div>
 
-      </motion.div>
+      </m.div>
     </div>
   );
 }

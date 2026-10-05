@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -80,7 +80,7 @@ export default function Navbar() {
                 className={cn('text-sm font-medium transition-all hover:text-accent relative py-1', isActive ? 'text-accent' : 'text-text-muted')}
               >
                 {link.label}
-                {isActive && <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />}
+                {isActive && <m.div layoutId="nav-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />}
               </NavItem>
             );
           })}
@@ -102,7 +102,7 @@ export default function Navbar() {
 
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
+          <m.div
             id="mobile-menu"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -119,7 +119,7 @@ export default function Navbar() {
                 {link.label}
               </NavItem>
             ))}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </nav>

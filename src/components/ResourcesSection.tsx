@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight, Eye, Sparkles } from 'lucide-react';
 import { useProducts } from '../lib/products';
@@ -153,7 +153,7 @@ export default function ResourcesSection() {
             onTouchEnd={handleTouchEnd}
           >
             {products.map((product) => (
-              <motion.div
+              <m.div
                 key={product.id}
                 id={`home-product-card-${product.id}`}
                 whileHover={{ y: -6 }}
@@ -199,7 +199,7 @@ export default function ResourcesSection() {
                     {product.description}
                   </p>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </div>
           

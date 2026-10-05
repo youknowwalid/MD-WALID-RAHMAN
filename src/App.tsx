@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { LazyMotion, domAnimation } from 'motion/react';
 
 import Home from './components/Home';
 
@@ -38,22 +39,25 @@ const Loading = () => (
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ScrollManager />
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/projects/:projectId" element={<ProjectDetail />} />
-          <Route path="/blog/:blogId" element={<BlogDetail />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/resources" element={<ResourcesPage />} />
-          <Route path="/products" element={<ResourcesPage />} />
-          <Route path="/terms-of-service" element={<PolicyPage kind="termsOfService" />} />
-          <Route path="/privacy-policy" element={<PolicyPage kind="privacyPolicy" />} />
-          <Route path="/refund-policy" element={<PolicyPage kind="refundPolicy" />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    // Animations use the light "m" component with the standard feature set (about a third of the full library's size).
+    <LazyMotion features={domAnimation} strict>
+      <BrowserRouter>
+        <ScrollManager />
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/projects/:projectId" element={<ProjectDetail />} />
+            <Route path="/blog/:blogId" element={<BlogDetail />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/products" element={<ResourcesPage />} />
+            <Route path="/terms-of-service" element={<PolicyPage kind="termsOfService" />} />
+            <Route path="/privacy-policy" element={<PolicyPage kind="privacyPolicy" />} />
+            <Route path="/refund-policy" element={<PolicyPage kind="refundPolicy" />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </LazyMotion>
   );
 }

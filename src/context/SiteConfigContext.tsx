@@ -1,5 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { fetchSettings } from '../lib/api';
+import { backendConfigured } from '../lib/config';
 import { applyAccent } from '../lib/gradient';
 import {
   DEFAULT_CONFIG, DEFAULT_HERO, DEFAULT_SEO, HeroConfig, SeoConfig, SiteConfig,
@@ -56,11 +57,18 @@ function readCache(): Raw {
   return {};
 }
 
+/** How long a first-time visitor waits for the saved settings before the page shows the built-in ones. */
+const FIRST_VISIT_WAIT_MS = 2500;
+
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
 
 export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [raw, setRaw] = useState<Raw>(readCache);
   const [loading, setLoading] = useState(true);
+  // A returning visitor paints from the saved copy straight away. A first-time visitor has nothing saved,
+  // so the page waits (a blank dark screen, matching the site background) for the real settings instead of
+  // flashing the built-in defaults (old colours/texts) and then swapping them.
+  const [ready, setReady] = useState(() => !backendConfigured || Object.keys(raw).length > 0);
 
   const refresh = useCallback(async () => {
     const fresh = await fetchSettings();
@@ -69,15 +77,22 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(fresh)); } catch { /* ignore */ }
     }
     setLoading(false);
+    setReady(true);
     return build(fresh ?? readCache());
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  useEffect(() => {
+    if (ready) return;
+    const timer = window.setTimeout(() => setReady(true), FIRST_VISIT_WAIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [ready]);
+
   const { config, hero, seoConfig } = useMemo(() => build(raw), [raw]);
 
-  // Brand colours (solid or gradient) + favicon
-  useEffect(() => {
+  // Brand colours (solid or gradient) + favicon. A layout effect, so the colours are set before the browser paints.
+  useLayoutEffect(() => {
     applyAccent(config, config.secondaryColor);
   }, [config.accentMode, config.primaryColor, config.secondaryColor, config.gradientFrom, config.gradientVia, config.gradientTo, config.gradientAngle]);
 
@@ -92,7 +107,7 @@ export const SiteConfigProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   return (
     <SiteConfigContext.Provider value={{ config, hero, seoConfig, loading, refresh }}>
-      {children}
+      {ready ? children : null}
     </SiteConfigContext.Provider>
   );
 };

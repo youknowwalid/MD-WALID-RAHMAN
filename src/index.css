@@ -1,7 +1,23 @@
 @import "tailwindcss";
+@import "@fontsource/poppins/latin-400.css";
+@import "@fontsource/poppins/latin-500.css";
+@import "@fontsource/poppins/latin-600.css";
+@import "@fontsource/poppins/latin-700.css";
+@import "@fontsource/poppins/latin-800.css";
+@import "@fontsource/poppins/latin-900.css";
+
+/* Metric-matched fallback so text does not jump when Poppins finishes loading. */
+@font-face {
+  font-family: "Poppins Fallback";
+  src: local("Arial");
+  size-adjust: 112.45%;
+  ascent-override: 93.6%;
+  descent-override: 31.2%;
+  line-gap-override: 8.9%;
+}
 
 @theme {
-  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Poppins", "Poppins Fallback", ui-sans-serif, system-ui, sans-serif;
   --color-accent: #f45901;
   --color-bg-dark: #0a0a0a;
   --color-bg-card: #111111;
@@ -37,47 +53,8 @@
     text-shadow: none;
   }
   
-  .bg-glass {
-    @apply bg-black/40 backdrop-blur-xl border-b border-white/5;
-  }
-
   .accent-shadow {
     box-shadow: none;
-  }
-
-  .text-gradient {
-    @apply text-accent;
-  }
-
-  .reveal-clip {
-    clip-path: inset(0 100% 0 0);
-  }
-
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    background-size: 200% 100%;
-  }
-
-  .accent-glow-hover:hover {
-    box-shadow: none;
-  }
-
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  @keyframes shimmer {
-    from { background-position: -200% 0; }
-    to { background-position: 200% 0; }
   }
 
   @keyframes marquee {

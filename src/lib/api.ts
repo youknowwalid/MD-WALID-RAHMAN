@@ -22,11 +22,15 @@ async function request(path: string, init: RequestInit = {}, timeoutMs = 8000): 
   }
 }
 
-/** Returns null when no backend is connected or it can't be reached (callers then show built-in content). */
-export async function listRows<T = any>(collection: Collection): Promise<T[] | null> {
+/**
+ * Returns null when no backend is connected or it can't be reached (callers then show built-in content).
+ * `columns` limits what is downloaded (e.g. list cards don't need the long article text).
+ */
+export async function listRows<T = any>(collection: Collection, columns?: string[]): Promise<T[] | null> {
   if (!backendConfigured) return null;
   try {
-    const res = await request(`${TABLES[collection]}?select=*&order=${ORDER[collection]}`, { headers: headers() });
+    const select = columns ? columns.join(',') : '*';
+    const res = await request(`${TABLES[collection]}?select=${select}&order=${ORDER[collection]}`, { headers: headers() });
     if (!res.ok) return null;
     const rows = (await res.json()) as Record<string, any>[];
     return rows.map((r) => fromRow<T>(collection, r));
@@ -54,12 +58,26 @@ export async function getRow<T = any>(collection: Collection, key: string): Prom
 
 export type SettingsKey = 'global' | 'hero' | 'seo';
 
+type SettingsRows = { key: SettingsKey; value: any }[] | null;
+declare global { interface Window { __settings?: Promise<SettingsRows> } }
+
+/** The request index.html started before this script loaded; usable once (later calls fetch fresh data). */
+const takeEarlySettings = (): Promise<SettingsRows> | undefined => {
+  const early = typeof window === 'undefined' ? undefined : window.__settings;
+  if (early) delete window.__settings;
+  return early;
+};
+
 export async function fetchSettings(): Promise<Partial<Record<SettingsKey, any>> | null> {
   if (!backendConfigured) return null;
   try {
-    const res = await request('site_settings?select=key,value', { headers: headers() });
-    if (!res.ok) return null;
-    const rows = (await res.json()) as { key: SettingsKey; value: any }[];
+    let rows = await takeEarlySettings();
+    if (!rows) {
+      const res = await request('site_settings?select=key,value', { headers: headers() });
+      if (!res.ok) return null;
+      rows = (await res.json()) as SettingsRows;
+    }
+    if (!rows) return null;
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   } catch {
     return null;

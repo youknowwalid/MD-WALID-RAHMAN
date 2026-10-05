@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, useInView, useReducedMotion } from 'motion/react';
+import { m, useInView, useReducedMotion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import {
   Laptop, Braces, Palette, Megaphone, Check, X, ExternalLink,
@@ -8,6 +8,7 @@ import {
 
 import { cn } from '../lib/utils';
 import { listRows, submitContact } from '../lib/api';
+import { backendConfigured } from '../lib/config';
 import { FALLBACK_RESUME, FALLBACK_SERVICES } from '../lib/defaults';
 import {
   normalizePricingPlan, normalizeProject, normalizeBlogPost, normalizeService,
@@ -83,24 +84,24 @@ const SectionHeader = ({ label, title }: { label: string; title: string }) => {
 
   return (
     <div ref={containerRef} className="mb-16">
-      <motion.span
+      <m.span
         initial={{ opacity: 0, y: 10 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.5 }}
         className="text-accent text-xs font-bold uppercase tracking-widest mb-2 block"
       >
         {label}
-      </motion.span>
+      </m.span>
       <div className="relative inline-block">
-        <motion.h2
+        <m.h2
           initial={{ clipPath: 'inset(0 100% 0 0)' }}
           animate={isInView ? { clipPath: 'inset(0 0 0 0)' } : {}}
           transition={{ duration: 0.8, ease: 'circOut' }}
           className="text-3xl md:text-5xl font-black text-text-main"
         >
           {title}
-        </motion.h2>
-        <motion.div
+        </m.h2>
+        <m.div
           initial={{ scaleX: 0 }}
           animate={isInView ? { scaleX: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.2, ease: 'circOut' }}
@@ -139,11 +140,14 @@ const Typewriter = ({ text }: { text: string }) => {
       <span className="sr-only">{text}</span>
       <span aria-hidden="true">
         {displayText}
-        <motion.span
+        {/* The cursor takes no net width (-mr cancels ml + w), and the not-yet-typed letters are laid out but invisible,
+            so the heading has its final size and line breaks from the first paint and nothing below it jumps. */}
+        <m.span
           animate={{ opacity: [1, 0] }}
           transition={{ duration: 0.8, repeat: Infinity, ease: 'steps(2)' }}
-          className={cn('inline-block w-[3px] h-[0.9em] bg-accent ml-1 -mb-1', isComplete && 'hidden')}
+          className={cn('inline-block w-[3px] h-[0.9em] bg-accent ml-1 -mr-[7px] -mb-1', isComplete && 'hidden')}
         />
+        <span className="invisible">{text.slice(displayText.length)}</span>
       </span>
     </>
   );
@@ -160,15 +164,34 @@ const Avatar = ({ src, name, className }: { src: string; name: string; className
 
 const MIN_FILL_MS = 3000;
 
+/** Home-page lists. Cards only need a few columns, so the long article/case-study text is not downloaded here. */
+const loadHomeData = () => Promise.all([
+  listRows('projects', ['id', 'slug', 'title', 'category', 'image', 'published']),
+  listRows('services'),
+  listRows('blogPosts', ['id', 'slug', 'title', 'date', 'excerpt', 'image']),
+  listRows('resume'),
+  listRows('testimonials'),
+  listRows('pricingPlans'),
+  listRows('skills'),
+]);
+
+// Started as soon as the script loads (when the visit begins on the home page), in parallel with the settings
+// request, instead of waiting for the page to render first.
+const prefetched: { at: number; data: ReturnType<typeof loadHomeData> } | null =
+  typeof window !== 'undefined' && window.location.pathname === '/' ? { at: Date.now(), data: loadHomeData() } : null;
+const takeHomeData = () => (prefetched && Date.now() - prefetched.at < 10_000 ? prefetched.data : loadHomeData());
+
 export default function Home() {
   const { config, hero, seoConfig } = useSiteConfig();
 
   const [projects, setProjects] = useState<Project[]>([]);
-  const [services, setServices] = useState<Service[]>(FALLBACK_SERVICES);
+  // Built-in content is only for sites with no database; with one, nothing is shown until the real content arrives.
+  const [loaded, setLoaded] = useState(!backendConfigured);
+  const [services, setServices] = useState<Service[]>(backendConfigured ? [] : FALLBACK_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
-  const [resume, setResume] = useState<ResumeItem[]>(FALLBACK_RESUME);
+  const [resume, setResume] = useState<ResumeItem[]>(backendConfigured ? [] : FALLBACK_RESUME);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,19 +201,17 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [proj, serv, blog, res, test, pric, skill] = await Promise.all([
-        listRows('projects'), listRows('services'), listRows('blogPosts'), listRows('resume'),
-        listRows('testimonials'), listRows('pricingPlans'), listRows('skills'),
-      ]);
+      const [proj, serv, blog, res, test, pric, skill] = await takeHomeData();
       if (cancelled) return;
-      // null = no backend / unreachable: keep built-in content. [] = the owner removed everything on purpose.
+      // null = no backend / unreachable: show built-in content. [] = the owner removed everything on purpose.
       if (proj) setProjects(proj.map(normalizeProject));
-      if (serv) setServices(serv.map(normalizeService));
+      setServices(serv ? serv.map(normalizeService) : FALLBACK_SERVICES);
       if (blog) setBlogPosts(blog.map(normalizeBlogPost));
-      if (res) setResume(res.map(normalizeResumeItem));
+      setResume(res ? res.map(normalizeResumeItem) : FALLBACK_RESUME);
       if (test) setTestimonials(test.map(normalizeTestimonial));
       if (pric) setPricingPlans(pric.map(normalizePricingPlan));
       if (skill) setSkills(skill as Skill[]);
+      setLoaded(true);
     })();
     return () => { cancelled = true; };
   }, []);
@@ -256,30 +277,30 @@ export default function Home() {
           />
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="z-10 text-center lg:text-left">
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-accent text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-4">
+              <m.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-accent text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase mb-4">
                 Brand Developer
-              </motion.p>
+              </m.p>
               <h1 className="text-3xl md:text-8xl font-black mb-4 md:mb-6 leading-tight tracking-tighter uppercase">
                 Hello, I&apos;m <br />
                 <span className="text-accent text-glow">
                   <Typewriter text="Walid Rahman." />
                 </span>
               </h1>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-sm md:text-2xl text-text-muted mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0">
+              <m.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-sm md:text-2xl text-text-muted mb-8 md:mb-10 max-w-lg mx-auto lg:mx-0">
                 {config.brandTagline}
-              </motion.p>
+              </m.p>
 
               <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6">
-                <motion.a
+                <m.a
                   href={ctaHref}
                   {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   whileHover={{ scale: 1.05 }}
                   className="bg-accent px-6 md:px-10 py-3 md:py-4 rounded-lg text-white font-black flex items-center gap-2 accent-shadow transition-all text-xs md:text-base border border-accent"
                 >
                   {config.globalCtaText}
-                </motion.a>
+                </m.a>
                 {hero.cvUrl && (
-                  <motion.a
+                  <m.a
                     href={hero.cvUrl}
                     download="Walid_Rahman_CV.pdf"
                     target="_blank"
@@ -288,7 +309,7 @@ export default function Home() {
                     className="border border-border-subtle px-6 md:px-10 py-3 md:py-4 rounded-lg font-black flex items-center gap-2 hover:bg-white/5 transition-all text-text-main text-xs md:text-base"
                   >
                     Download CV
-                  </motion.a>
+                  </m.a>
                 )}
               </div>
 
@@ -310,7 +331,7 @@ export default function Home() {
               <div className="relative w-full max-w-[320px] md:max-w-[420px] aspect-square">
                 <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
                 <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40" />
-                <motion.div animate={{ y: [0, -10, 0], rotate: [1, 2, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="absolute inset-8 md:inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10">
+                <m.div animate={{ y: [0, -10, 0], rotate: [1, 2, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="absolute inset-8 md:inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10">
                   <img
                     src={heroImage}
                     alt="Portrait of Walid Rahman"
@@ -325,7 +346,7 @@ export default function Home() {
                     <div className="text-[10px] text-accent font-bold uppercase tracking-wider mb-1">{hero.heroStatus}</div>
                     <div className="text-xs text-text-main/80">{hero.heroAvailability}</div>
                   </div>
-                </motion.div>
+                </m.div>
               </div>
             </div>
           </div>
@@ -336,21 +357,21 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="About Me" title="Crafting Digital Excellence" />
             <div className={cn('grid gap-10 md:gap-16 items-center', aboutVideo && 'lg:grid-cols-2')}>
-              <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className={cn(!aboutVideo && 'max-w-3xl')}>
+              <m.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className={cn(!aboutVideo && 'max-w-3xl')}>
                 <p className="text-lg md:text-xl text-text-muted leading-relaxed mb-8">{config.aboutText}</p>
                 <ul className="flex flex-wrap gap-4">
                   {config.aboutTags.map((tag, i) => (
-                    <motion.li key={tag} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-accent text-sm font-bold">
+                    <m.li key={tag} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-accent text-sm font-bold">
                       {tag}
-                    </motion.li>
+                    </m.li>
                   ))}
                 </ul>
-              </motion.div>
+              </m.div>
 
               {aboutVideo && (
-                <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="flex items-center justify-center w-full h-full">
+                <m.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="flex items-center justify-center w-full h-full">
                   <VideoPlayer url={aboutVideo} />
-                </motion.div>
+                </m.div>
               )}
             </div>
           </div>
@@ -364,13 +385,13 @@ export default function Home() {
             <div className="grid lg:grid-cols-2 gap-12 md:gap-16 items-start">
               <div className="space-y-8 md:space-y-12">
                 {hero.resumeImage && (
-                  <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="lg:hidden w-full aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-8">
+                  <m.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="lg:hidden w-full aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-8">
                     <img src={hero.resumeImage} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
-                  </motion.div>
+                  </m.div>
                 )}
-                {resume.length === 0 && <EmptyNote>Experience will be listed here soon.</EmptyNote>}
+                {loaded && resume.length === 0 && <EmptyNote>Experience will be listed here soon.</EmptyNote>}
                 {resume.map((item, i) => (
-                  <motion.div key={item.id || i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors">
+                  <m.div key={item.id || i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="group relative pl-8 border-l border-white/10 hover:border-accent transition-colors">
                     <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-accent transition-all" />
                     <div className="mb-2">
                       <span className="text-xs font-bold text-accent uppercase tracking-tighter">{item.year}</span>
@@ -378,22 +399,22 @@ export default function Home() {
                       <div className="text-text-muted font-bold mb-4">{item.company}</div>
                       {item.desc && <p className="text-text-muted/80 max-w-2xl">{item.desc}</p>}
                     </div>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
 
               {hero.resumeImage && (
                 <div className="relative sticky top-32 hidden lg:flex justify-center">
-                  <motion.div initial={{ opacity: 0, scale: 0.8, rotate: -5 }} whileInView={{ opacity: 1, scale: 1, rotate: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: 'easeOut' }} className="relative w-full max-w-[450px] aspect-[3/4]">
+                  <m.div initial={{ opacity: 0, scale: 0.8, rotate: -5 }} whileInView={{ opacity: 1, scale: 1, rotate: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: 'easeOut' }} className="relative w-full max-w-[450px] aspect-[3/4]">
                     <div className="absolute -inset-4 border border-accent/20 rounded-[40px] -z-10 animate-pulse" />
-                    <motion.div animate={{ y: [0, -15, 0], rotate: [0, 2, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} className="w-full h-full rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
+                    <m.div animate={{ y: [0, -15, 0], rotate: [0, 2, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} className="w-full h-full rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
                       <img src={hero.resumeImage} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
                       <div className="absolute bottom-8 left-8 right-8 p-4 bg-bg-card/40 backdrop-blur-md rounded-2xl border border-white/10">
                         <div className="text-xs text-accent font-bold uppercase tracking-widest mb-1">Current Focus</div>
                         <div className="text-lg font-black text-text-main">Strategic Brand Evolution</div>
                       </div>
-                    </motion.div>
-                  </motion.div>
+                    </m.div>
+                  </m.div>
                 </div>
               )}
             </div>
@@ -409,14 +430,14 @@ export default function Home() {
                 {services.map((service, i) => {
                   const Icon = ICON_MAP[service.iconName || 'Palette'] || Palette;
                   return (
-                    <motion.div key={service.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} whileHover={{ y: -10 }} className="p-8 bg-bg-card rounded-3xl border border-white/5 hover:border-accent/30 transition-all relative overflow-hidden group">
+                    <m.div key={service.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} whileHover={{ y: -10 }} className="p-8 bg-bg-card rounded-3xl border border-white/5 hover:border-accent/30 transition-all relative overflow-hidden group">
                       <div className="absolute -top-4 -right-4 text-6xl font-black text-text-main/5 group-hover:text-accent/10 transition-colors" aria-hidden="true">{service.displayId || String(i + 1).padStart(2, '0')}</div>
                       <div className="mb-6 w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-black transition-all">
                         <Icon className="w-6 h-6" />
                       </div>
                       <h3 className="text-2xl font-bold mb-4">{service.title}</h3>
                       <p className="text-text-muted">{service.description}</p>
-                    </motion.div>
+                    </m.div>
                   );
                 })}
               </div>
@@ -429,10 +450,10 @@ export default function Home() {
           <section id="skills" className="py-16 md:py-32 px-6 relative overflow-hidden">
             <div className="absolute rounded-full pointer-events-none -z-10 w-[300px] h-[300px] md:w-[650px] md:h-[650px] top-[15%] left-[-15%]" style={{ background: 'radial-gradient(circle, #f45901 0%, transparent 70%)', opacity: 0.15, filter: 'blur(150px)' }} />
             <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
-              <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <m.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
                 <SectionHeader label="Excellence" title="Technical Arsenal" />
                 <p className="text-text-muted text-base md:text-lg mb-10">My skills are refined through years of practical application in demanding environments. I focus on technologies that deliver performance and scalability.</p>
-              </motion.div>
+              </m.div>
               <div className="space-y-8">
                 {skills.map((skill, i) => (
                   <div key={skill.id || skill.name}>
@@ -441,9 +462,9 @@ export default function Home() {
                       <span className="text-accent">{skill.level}%</span>
                     </div>
                     <div className="h-2 w-full bg-border-subtle rounded-full overflow-hidden" role="progressbar" aria-label={skill.name} aria-valuenow={skill.level} aria-valuemin={0} aria-valuemax={100}>
-                      <motion.div initial={{ width: 0 }} whileInView={{ width: `${skill.level}%` }} viewport={{ once: true }} transition={{ duration: 1.5, delay: i * 0.1 }} className="h-full bg-accent relative">
+                      <m.div initial={{ width: 0 }} whileInView={{ width: `${skill.level}%` }} viewport={{ once: true }} transition={{ duration: 1.5, delay: i * 0.1 }} className="h-full bg-accent relative">
                         <div className="absolute right-0 top-0 h-full w-2 bg-text-main blur-sm opacity-50" />
-                      </motion.div>
+                      </m.div>
                     </div>
                   </div>
                 ))}
@@ -457,11 +478,11 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Portfolio" title="Featured Work" />
             {projects.length === 0 ? (
-              <EmptyNote>Selected projects will be shown here soon.</EmptyNote>
+              loaded && <EmptyNote>Selected projects will be shown here soon.</EmptyNote>
             ) : (
               <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                 {projects.map((project, i) => (
-                  <motion.div key={project.id || project.title} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: (i % 2) * 0.15 }} className="relative aspect-video rounded-3xl overflow-hidden group bg-bg-card">
+                  <m.div key={project.id || project.title} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: (i % 2) * 0.15 }} className="relative aspect-video rounded-3xl overflow-hidden group bg-bg-card">
                     <Link to={`/projects/${project.slug || project.id}`} className="block w-full h-full relative focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
                       {project.image && (
                         <img src={project.image} alt={project.title} width={800} height={450} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
@@ -476,7 +497,7 @@ export default function Home() {
                         </div>
                       </div>
                     </Link>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
             )}
@@ -518,7 +539,7 @@ export default function Home() {
               <SectionHeader label="Investment" title="Pricing Plans" />
               <div className="grid lg:grid-cols-3 gap-8 md:gap-10">
                 {pricingPlans.map((plan, i) => (
-                  <motion.div key={plan.id || plan.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className={cn('p-10 bg-bg-card rounded-3xl border border-border-subtle relative transition-all duration-300 hover:border-accent/30 group', plan.accent && 'scale-105 z-10 shadow-[0_0_50px_rgba(244,89,1,0.1)] border-accent/40')}>
+                  <m.div key={plan.id || plan.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className={cn('p-10 bg-bg-card rounded-3xl border border-border-subtle relative transition-all duration-300 hover:border-accent/30 group', plan.accent && 'scale-105 z-10 shadow-[0_0_50px_rgba(244,89,1,0.1)] border-accent/40')}>
                     {plan.accent && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-white text-[10px] font-black uppercase px-6 py-1.5 rounded-full tracking-widest shadow-lg z-20">Most Popular</div>}
                     <div className="mb-8">
                       <h3 className="text-sm font-black uppercase tracking-[0.3em] text-accent mb-2">{plan.name}</h3>
@@ -564,7 +585,7 @@ export default function Home() {
                     >
                       <span className="relative z-10">{plan.buttonText || 'Get Started'}</span>
                     </a>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
             </div>
@@ -576,11 +597,11 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader label="Journal" title="Latest Insights" />
             {blogPosts.length === 0 ? (
-              <EmptyNote>New articles are on their way.</EmptyNote>
+              loaded && <EmptyNote>New articles are on their way.</EmptyNote>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {blogPosts.map((post, i) => (
-                  <motion.div key={post.id || post.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: (i % 4) * 0.1 }} className="group">
+                  <m.div key={post.id || post.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: (i % 4) * 0.1 }} className="group">
                     <Link to={`/blog/${post.slug || post.id}`}>
                       <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all bg-bg-card">
                         {post.image && <img src={post.image} alt="" width={640} height={480} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" loading="lazy" decoding="async" />}
@@ -589,7 +610,7 @@ export default function Home() {
                       <h3 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h3>
                       <p className="text-text-muted text-sm line-clamp-2">{post.excerpt}</p>
                     </Link>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
             )}
@@ -602,7 +623,7 @@ export default function Home() {
         {/* CONTACT SECTION */}
         <section id="contact" className="py-16 md:py-32 px-6">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 md:gap-16">
-            <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <m.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <SectionHeader label="Contact" title="Let's Build Something" />
               <p className="text-text-muted text-base md:text-lg mb-12">Have a project in mind or just want to say hi? I&apos;m always open to discussing new opportunities and creative ideas.</p>
 
@@ -612,7 +633,7 @@ export default function Home() {
                   config.officePhone && { icon: Phone, label: 'Phone', value: config.officePhone, href: `tel:${phoneDigits}` },
                   config.officeAddress && { icon: MapPin, label: 'Office', value: config.officeAddress, href: '' },
                 ].filter(Boolean).map((item: any, i) => (
-                  <motion.div key={item.label} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="flex items-center gap-6">
+                  <m.div key={item.label} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="flex items-center gap-6">
                     <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent shrink-0" aria-hidden="true"><item.icon className="w-5 h-5" /></div>
                     <div className="min-w-0">
                       <div className="text-sm text-text-muted uppercase font-black tracking-widest">{item.label}</div>
@@ -622,12 +643,12 @@ export default function Home() {
                         <span className="text-lg font-bold">{item.value}</span>
                       )}
                     </div>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
-            </motion.div>
+            </m.div>
 
-            <motion.form initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} onSubmit={handleContactSubmit} className="p-6 sm:p-10 bg-bg-card rounded-3xl border border-white/5" aria-label="Contact form">
+            <m.form initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} onSubmit={handleContactSubmit} className="p-6 sm:p-10 bg-bg-card rounded-3xl border border-white/5" aria-label="Contact form">
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div><label htmlFor="contact-name" className="block text-sm font-bold mb-2">Name</label><input id="contact-name" name="name" type="text" required maxLength={120} autoComplete="name" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="John Doe" /></div>
                 <div><label htmlFor="contact-email" className="block text-sm font-bold mb-2">Email</label><input id="contact-email" name="email" type="email" required maxLength={254} autoComplete="email" className="w-full bg-white/5 border-b-2 border-white/10 p-3 focus:outline-none focus:border-accent transition-all" placeholder="john@example.com" /></div>
@@ -645,7 +666,7 @@ export default function Home() {
               <p role="status" aria-live="polite" className={cn('mt-4 text-center font-bold', statusMessages[formStatus]?.cls)}>
                 {statusMessages[formStatus]?.text}
               </p>
-            </motion.form>
+            </m.form>
           </div>
         </section>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { Sparkles, LayoutGrid, Search, Eye, Filter, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useProducts } from '../lib/products';
 import Seo from './Seo';
@@ -40,7 +40,7 @@ export default function ResourcesPage() {
         
         {/* Breadcrumb back navigation link */}
         <div className="mb-8">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
           >
@@ -50,7 +50,7 @@ export default function ResourcesPage() {
             >
               <span>← Back to Portfolio</span>
             </a>
-          </motion.div>
+          </m.div>
         </div>
 
         {/* Page Title Header block */}
@@ -118,7 +118,7 @@ export default function ResourcesPage() {
             {/* Grid Layout of products */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredProducts.map((product) => (
-                <motion.div
+                <m.div
                   key={product.id}
                   id={`resource-grid-item-${product.id}`}
                   initial={{ opacity: 0, y: 15 }}
@@ -177,7 +177,7 @@ export default function ResourcesPage() {
                       </span>
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               ))}
             </div>
 

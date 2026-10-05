@@ -67,17 +67,6 @@ export interface Service {
   updatedAt?: string;
 }
 
-export interface NavLink {
-  name: string;
-  href: string;
-}
-
-export interface Stat {
-  label: string;
-  value: string;
-  number: number;
-}
-
 export interface Skill {
   id?: string;
   name: string;

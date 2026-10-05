@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, Briefcase, FileText,
@@ -229,8 +229,8 @@ function Dashboard({ email }: { email: string }) {
 
       <AnimatePresence>
         {editing && form && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={`${editing.id ? 'Edit' : 'Add'} ${form.singular}`}>
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-bg-card w-full max-w-3xl rounded-3xl border border-white/10 p-5 sm:p-8 relative overflow-y-auto max-h-[94vh]">
+          <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={`${editing.id ? 'Edit' : 'Add'} ${form.singular}`}>
+            <m.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-bg-card w-full max-w-3xl rounded-3xl border border-white/10 p-5 sm:p-8 relative overflow-y-auto max-h-[94vh]">
               <button type="button" onClick={() => setEditing(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 text-gray-400 hover:text-white p-2" aria-label="Close"><X className="w-6 h-6" aria-hidden="true" /></button>
               <h2 className="text-2xl font-black mb-8 pr-10">{editing.id ? 'Edit' : 'Add'} {form.singular}</h2>
 
@@ -276,8 +276,8 @@ function Dashboard({ email }: { email: string }) {
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

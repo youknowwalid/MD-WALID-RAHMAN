@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import { ArrowLeft, Calendar, User, Clock, Share2, Facebook, Linkedin, Twitter } from 'lucide-react';
 import { getRow } from '../lib/api';
 import { normalizeBlogPost } from '../lib/schema-defaults';
@@ -53,7 +53,7 @@ export default function BlogDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-bg-dark flex items-center justify-center">
-        <motion.div 
+        <m.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full"
