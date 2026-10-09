@@ -10,6 +10,7 @@ const BlogDetail = lazy(() => import('./components/BlogDetail'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const ResourcesPage = lazy(() => import('./components/ResourcesPage'));
 const PolicyPage = lazy(() => import('./components/PolicyPage'));
+const ThankYou = lazy(() => import('./components/ThankYou'));
 const NotFound = lazy(() => import('./components/NotFound'));
 
 /** Scrolls to the top on page changes, or to the section named in the URL (e.g. /#contact). */
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/products" element={<ResourcesPage />} />
+            <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/terms-of-service" element={<PolicyPage kind="termsOfService" />} />
             <Route path="/privacy-policy" element={<PolicyPage kind="privacyPolicy" />} />
             <Route path="/refund-policy" element={<PolicyPage kind="refundPolicy" />} />

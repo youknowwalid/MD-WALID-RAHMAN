@@ -3,6 +3,7 @@ import { m } from 'motion/react';
 import { X, CheckCircle, Shield } from 'lucide-react';
 import { Product } from '../types';
 import { safeUrl } from '../lib/text';
+import { isPaddlePriceId, openCheckout } from '../lib/paddle';
 
 interface ProductModalProps {
   product: Product;
@@ -31,6 +32,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   // Helper to safely serialize the Paddle Checkout Link
   const checkoutHref = /^https?:/i.test(product.paddleUrl || '') ? safeUrl(product.paddleUrl) : '';
+  // A price ID (pri_…) opens Paddle's on-site checkout; a normal link keeps working as before.
+  const priceId = isPaddlePriceId(product.paddleUrl) ? product.paddleUrl.trim() : '';
+  const [checkoutError, setCheckoutError] = useState(false);
+  const startCheckout = () => {
+    setCheckoutError(false);
+    openCheckout(priceId).catch(() => setCheckoutError(true));
+  };
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -281,7 +289,21 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <div className="space-y-4">
             
             {/* Paddle Checkout Button */}
-            {checkoutHref ? (
+            {priceId ? (
+              <>
+                <button
+                  type="button"
+                  id={`buy-now-btn-${product.id}`}
+                  onClick={startCheckout}
+                  className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
+                >
+                  Buy Now
+                </button>
+                {checkoutError && (
+                  <p role="alert" className="text-center text-xs text-neutral-300">Checkout couldn't open. Please try again in a moment.</p>
+                )}
+              </>
+            ) : checkoutHref ? (
               <a
                 id={`buy-now-btn-${product.id}`}
                 href={checkoutHref}
