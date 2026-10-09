@@ -280,7 +280,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
                 <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span>Instant access sent directly to your email inbox</span>
+                <span>Instant download on the confirmation page after payment; receipt emailed by Paddle</span>
               </div>
             </div>
           </div>
@@ -319,7 +319,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
             {/* Dynamic Checkout note */}
             <p className="text-[10px] text-center text-neutral-400 uppercase tracking-widest leading-relaxed">
-              Processed securely via Paddle • Instant email delivery
+              Processed securely via Paddle • Instant download
             </p>
 
           </div>

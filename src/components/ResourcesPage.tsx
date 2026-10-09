@@ -187,7 +187,7 @@ export default function ResourcesPage() {
                 <HelpCircle className="w-6 h-6 text-[#f45901] mb-3" />
                 <h4 className="text-sm font-bold text-white mb-2">How do I access/receive files?</h4>
                 <p className="text-xs leading-relaxed">
-                  Upon purchase completion, Paddle will securely process the payment and instantly direct you to high-quality PDF downloads. Backups are also emailed immediately to your inbox.
+                  Upon purchase completion, Paddle will securely process the payment and instantly direct you to a confirmation page with your PDF download button. Paddle also emails you a receipt. If you ever lose your download, contact us with your receipt and we will resend it.
                 </p>
               </div>
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
