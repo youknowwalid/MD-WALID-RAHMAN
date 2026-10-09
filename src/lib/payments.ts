@@ -48,7 +48,7 @@ export interface OrderInput {
   website?: string; // hidden spam trap, always empty for real visitors
 }
 
-export type SubmitResult = { ok: true; order: OrderState } | { ok: false; error: string; field?: string };
+export interface SubmitResult { ok: boolean; order?: OrderState; error?: string; field?: string }
 
 export async function submitOrder(input: OrderInput): Promise<SubmitResult> {
   try {

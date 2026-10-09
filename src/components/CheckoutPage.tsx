@@ -83,11 +83,11 @@ export default function CheckoutPage() {
     setBusy(true);
     setError('');
     const result = await submitOrder({ edition, email, wallet, trxId, sender, website: spamTrap });
-    if (result.ok) {
+    if (result.ok && result.order) {
       navigate(`/thank-you?order=${encodeURIComponent(result.order.id)}&t=${encodeURIComponent(result.order.token || '')}`, { replace: true });
       return;
     }
-    setError(submitErrorMessage(result.error, result.field));
+    setError(submitErrorMessage(result.error || 'server', result.field));
     setBusy(false);
   };
 
