@@ -143,3 +143,32 @@ export interface ContactSubmission {
   isRead: boolean;
   createdAt: string;
 }
+
+/** One order paid by bKash / Nagad "send money" (admin view, snake_case straight from the database). */
+export interface OrderRow {
+  id: string;
+  edition: 'english' | 'bangla';
+  email: string;
+  wallet: 'bkash' | 'nagad' | 'rocket';
+  trx_id: string;
+  sender: string;
+  amount_due: number;
+  status: 'pending' | 'paid' | 'rejected';
+  paid_how: 'auto' | 'manual' | null;
+  emailed_at: string | null;
+  email_error: string | null;
+  created_at: string;
+  paid_at: string | null;
+}
+
+/** A "money received" SMS forwarded from the owner's phone (admin view). */
+export interface PaymentSmsRow {
+  id: string;
+  wallet: 'bkash' | 'nagad' | 'rocket' | 'unknown';
+  trx_id: string | null;
+  amount: number | null;
+  sender: string | null;
+  raw: string;
+  claimed_by: string | null;
+  received_at: string;
+}

@@ -137,8 +137,8 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
     fields: [
       { name: 'title', label: 'Title', required: true },
       { name: 'shortTitle', label: 'Short title', half: true },
-      { name: 'price', label: 'Price', half: true, placeholder: '$29.00' },
-      { name: 'paddleUrl', label: 'Checkout link (Paddle)', required: true, placeholder: 'https://…' },
+      { name: 'price', label: 'Price', half: true, placeholder: '৳2,999' },
+      { name: 'paddleUrl', label: 'Checkout link, or edition (english / bangla)', required: true, placeholder: 'english, bangla, or https://…', hint: 'Type english or bangla to use the bKash / Nagad checkout, or paste a payment link.' },
       { name: 'description', label: 'Description', type: 'textarea', rows: 4 },
       { name: 'thumbnail', label: 'Thumbnail (square / list view)', type: 'image', maxSide: 900 },
       { name: 'image', label: 'Main product image', type: 'image' },

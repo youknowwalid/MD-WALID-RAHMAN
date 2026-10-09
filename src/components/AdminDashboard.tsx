@@ -3,13 +3,14 @@ import { AnimatePresence, m } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, Briefcase, FileText,
-  Loader2, ChevronLeft, Users, Settings, DollarSign, MessageSquare, Cpu, ShoppingCart, Palette, Globe,
+  Loader2, ChevronLeft, Users, Settings, DollarSign, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt,
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
 import AdminLogin from './admin/AdminLogin';
 import SettingsPanel from './admin/SettingsPanel';
 import Inquiries from './admin/Inquiries';
+import Orders from './admin/Orders';
 import { GalleryField, ImageField, Toast, inputCls, labelCls, useToast } from './admin/fields';
 import { FORMS, FormCollection, friendlyError, toFormValues, toPayload } from './admin/forms';
 import { backendConfigured } from '../lib/config';
@@ -27,6 +28,7 @@ const TABS = [
   { id: 'testimonials', label: 'Feedback', icon: Users },
   { id: 'pricingPlans', label: 'Pricing', icon: DollarSign },
   { id: 'products', label: 'Products', icon: ShoppingCart },
+  { id: 'orders', label: 'Orders', icon: Receipt },
   { id: 'contactSubmissions', label: 'Inquiries', icon: MessageSquare },
   { id: 'seoSettings', label: 'SEO Settings', icon: Globe },
   { id: 'branding', label: 'Branding Colors', icon: Palette },
@@ -189,6 +191,7 @@ function Dashboard({ email }: { email: string }) {
           )}
         </div>
 
+        {activeTab === 'orders' && <Orders onToast={show} />}
         {activeTab === 'settings' && <SettingsPanel onToast={show} />}
         {activeTab === 'seoSettings' && <SEOSettings onToast={show} />}
         {activeTab === 'branding' && <BrandingSettings onToast={show} />}

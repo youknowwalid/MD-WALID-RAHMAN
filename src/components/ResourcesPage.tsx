@@ -187,21 +187,21 @@ export default function ResourcesPage() {
                 <HelpCircle className="w-6 h-6 text-[#f45901] mb-3" />
                 <h4 className="text-sm font-bold text-white mb-2">How do I access/receive files?</h4>
                 <p className="text-xs leading-relaxed">
-                  Upon purchase completion, Paddle will securely process the payment and instantly direct you to high-quality PDF downloads. Backups are also emailed immediately to your inbox.
+                  Pay with bKash or Nagad (Send Money) and enter your transaction ID. Once your payment is verified, usually within a minute, you get a confirmation page with your PDF download button, and the link is emailed to you too. If you ever lose it, write to us and we will resend it.
                 </p>
               </div>
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
                 <LayoutGrid className="w-6 h-6 text-[#f45901] mb-3" />
                 <h4 className="text-sm font-bold text-white mb-2">Can these be updated?</h4>
                 <p className="text-xs leading-relaxed">
-                  Absolutely! All active templates, manuals, or kits are continuously refined. Free lifetime revisions are synced directly to your email via Paddle as they go live.
+                  Absolutely! All active templates, manuals, or kits are continuously refined. Updated versions are sent to the email you used at checkout as they go live.
                 </p>
               </div>
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
                 <ShieldCheck className="w-6 h-6 text-[#f45901] mb-3" />
                 <h4 className="text-sm font-bold text-white mb-2">Secured Payments?</h4>
                 <p className="text-xs leading-relaxed">
-                  Yes, fully. Checkout processing systems are completely operated through safe 256-bit encrypted Paddle gateways, handling secure transaction safety globally.
+                  Yes. You pay from your own bKash or Nagad app using their PIN-protected Send Money, so we never see your PIN or card details. The file is only released after your payment is matched.
                 </p>
               </div>
             </div>

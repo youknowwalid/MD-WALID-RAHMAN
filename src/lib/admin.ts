@@ -7,6 +7,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, backendConfigured } from './config';
 import { Collection, ORDER, TABLES, fromRow, toRow } from './rows';
 import { prepareImage } from './image';
 import type { SettingsKey } from './api';
+import type { OrderRow, PaymentSmsRow } from '../types';
 
 export type { User };
 
@@ -85,6 +86,32 @@ export const removeRow = async (collection: Collection, id: string) => {
   if (!data?.length) throw new Error('Nothing was deleted. Your session may have expired — please sign in again.');
 };
 export const markRead = (id: string, isRead: boolean) => updateRow('contactSubmissions', id, { isRead });
+
+// ── Orders (bKash / Nagad payments) ──
+export const listOrders = async (): Promise<OrderRow[]> => {
+  const { data, error } = await getClient().from('orders').select('id,edition,email,wallet,trx_id,sender,amount_due,status,paid_how,emailed_at,email_error,created_at,paid_at').order('created_at', { ascending: false }).limit(300);
+  fail(error);
+  return (data ?? []) as OrderRow[];
+};
+export const listPaymentSms = async (): Promise<PaymentSmsRow[]> => {
+  const { data, error } = await getClient().from('payment_sms').select('*').order('received_at', { ascending: false }).limit(100);
+  fail(error);
+  return (data ?? []) as PaymentSmsRow[];
+};
+/** Approve / reject / resend e-mail. Goes through the website's server because approving also sends the e-mail. */
+export const orderAction = async (action: 'approve' | 'reject' | 'resend', orderId: string): Promise<{ email: { sent: boolean; reason?: string } | null }> => {
+  const { data } = await getClient().auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Your session has expired. Please sign in again.');
+  const res = await fetch('/api/admin-orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ action, orderId }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body?.error === 'conflict' ? 'This order has already changed. Refresh the list.' : body?.error === 'unauthorized' ? 'Not allowed. Please sign in again.' : 'The server could not do that. Please try again.');
+  return { email: body.email ?? null };
+};
 
 // ── Settings ──
 export const loadSettings = async (): Promise<Partial<Record<SettingsKey, any>>> => {

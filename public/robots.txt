@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /thank-you
+Disallow: /api/
 
 Sitemap: https://walidrahman.com/sitemap.xml

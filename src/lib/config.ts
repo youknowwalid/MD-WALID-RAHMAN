@@ -15,3 +15,4 @@ export const SUPABASE_ANON_KEY = pick(import.meta.env.VITE_SUPABASE_ANON_KEY, pu
 
 /** False until a Supabase project is connected; the site then runs on built-in content. */
 export const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+

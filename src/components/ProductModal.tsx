@@ -3,6 +3,8 @@ import { m } from 'motion/react';
 import { X, CheckCircle, Shield } from 'lucide-react';
 import { Product } from '../types';
 import { safeUrl } from '../lib/text';
+import { Link } from 'react-router-dom';
+import { editionOf } from '../lib/payments';
 
 interface ProductModalProps {
   product: Product;
@@ -29,7 +31,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  // Helper to safely serialize the Paddle Checkout Link
+  // "english" / "bangla" in the checkout field opens our own bKash / Nagad checkout page; a normal link keeps working as before.
+  const edition = editionOf(product.paddleUrl);
   const checkoutHref = /^https?:/i.test(product.paddleUrl || '') ? safeUrl(product.paddleUrl) : '';
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -268,11 +271,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               </div>
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
                 <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span>Secured 256-bit SSL Checkout via Paddle</span>
+                <span>Pay with bKash or Nagad (Send Money)</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-neutral-400">
                 <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span>Instant access sent directly to your email inbox</span>
+                <span>Download starts on the confirmation page as soon as your payment is verified; the link is also emailed to you</span>
               </div>
             </div>
           </div>
@@ -280,8 +283,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           {/* Call-to-Action & Terms Footer */}
           <div className="space-y-4">
             
-            {/* Paddle Checkout Button */}
-            {checkoutHref ? (
+            {/* Checkout button */}
+            {edition ? (
+              <Link
+                id={`buy-now-btn-${product.id}`}
+                to={`/checkout/${edition}`}
+                className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
+              >
+                Buy Now
+              </Link>
+            ) : checkoutHref ? (
               <a
                 id={`buy-now-btn-${product.id}`}
                 href={checkoutHref}
@@ -297,7 +308,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
             {/* Dynamic Checkout note */}
             <p className="text-[10px] text-center text-neutral-400 uppercase tracking-widest leading-relaxed">
-              Processed securely via Paddle • Instant email delivery
+              bKash • Nagad • Verified in minutes
             </p>
 
           </div>

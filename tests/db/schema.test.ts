@@ -39,6 +39,8 @@ beforeAll(async () => {
   // A project that exists before the case-study upgrade must survive it as published.
   await db.exec(`insert into public.projects (title, slug) values ('Legacy', 'legacy')`);
   await db.exec(readFileSync('supabase/migrations/20261005000000_project_case_study.sql', 'utf8'));
+  await db.exec(readFileSync('supabase/migrations/20261010000000_mfs_orders.sql', 'utf8'));
+  await db.exec(readFileSync('supabase/migrations/20261010000000_mfs_orders.sql', 'utf8')); // safe to run twice
   await db.exec(`
     grant usage on schema public to anon, authenticated;
     grant select, insert, update, delete on all tables in schema public to anon, authenticated;
@@ -204,4 +206,52 @@ it('limits uploads to 5 MB images and PDFs in a public bucket', async () => {
   expect(b.public).toBe(true);
   expect(Number(b.file_size_limit)).toBe(5242880);
   expect(b.allowed_mime_types).not.toContain('image/svg+xml');
+});
+
+describe('bKash / Nagad orders', () => {
+  const order = (trx: string, extra = '') =>
+    `insert into public.orders (edition, email, wallet, trx_id, sender, amount_due, access_token ${extra ? ', status' : ''})
+     values ('english', 'buyer@example.com', 'bkash', '${trx}', '01712345678', 2999, '${'a'.repeat(48)}' ${extra ? `, '${extra}'` : ''})`;
+
+  it('are invisible and untouchable for visitors and other signed-in users', async () => {
+    await db.exec(order('ABC123XYZ'));
+    await db.exec(`insert into public.payment_sms (wallet, trx_id, amount, sender, raw) values ('bkash', 'ABC123XYZ', 2999, '01712345678', 'You have received Tk 2,999.00')`);
+    await as('anon', null, async () => {
+      expect((await db.query('select * from public.orders')).rows.length).toBe(0);
+      expect((await db.query('select * from public.payment_sms')).rows.length).toBe(0);
+      await expect(db.query(order('HACK000001'))).rejects.toThrow();
+    });
+    await as('authenticated', { sub: OTHER_ID, role: 'authenticated', email: 'stranger@example.com' }, async () => {
+      expect((await db.query('select * from public.orders')).rows.length).toBe(0);
+      expect((await db.query('select * from public.payment_sms')).rows.length).toBe(0);
+      await expect(db.query(order('HACK000002'))).rejects.toThrow();
+      const upd = await db.query(`update public.orders set status = 'paid' returning id`);
+      expect(upd.rows.length).toBe(0);
+    });
+  });
+
+  it('can be read, but not edited from the browser, by the admin', async () => {
+    await as('authenticated', adminClaims, async () => {
+      expect((await db.query('select * from public.orders')).rows.length).toBe(1);
+      expect((await db.query('select * from public.payment_sms')).rows.length).toBe(1);
+      expect((await db.query(`update public.orders set status = 'paid' returning id`)).rows.length).toBe(0);
+      expect((await db.query(`delete from public.orders returning id`)).rows.length).toBe(0);
+      await expect(db.query(order('HACK000003'))).rejects.toThrow();
+    });
+  });
+
+  it('allow one live order per transaction id and reject malformed values', async () => {
+    await expect(db.exec(order('ABC123XYZ'))).rejects.toThrow();
+    await db.exec(`update public.orders set status = 'rejected' where trx_id = 'ABC123XYZ'`);
+    await db.exec(order('ABC123XYZ')); // a rejected order frees the id
+    await expect(db.exec(`insert into public.orders (edition, email, wallet, trx_id, sender, amount_due, access_token) values ('english','x@y.co','bkash','lowercase1','01712345678',2999,'${'a'.repeat(48)}')`)).rejects.toThrow();
+    await expect(db.exec(`insert into public.orders (edition, email, wallet, trx_id, sender, amount_due, access_token) values ('english','x@y.co','bkash','VALID12345','12345',2999,'${'a'.repeat(48)}')`)).rejects.toThrow();
+    await expect(db.exec(`insert into public.orders (edition, email, wallet, trx_id, sender, amount_due, access_token) values ('english','x@y.co','bkash','VALID12345','01712345678',2999,'short')`)).rejects.toThrow();
+    await expect(db.exec(`insert into public.orders (edition, email, wallet, trx_id, sender, amount_due, access_token) values ('other','x@y.co','bkash','VALID12345','01712345678',2999,'${'a'.repeat(48)}')`)).rejects.toThrow();
+  });
+
+  it('store each payment message only once', async () => {
+    await expect(db.exec(`insert into public.payment_sms (wallet, trx_id, raw) values ('bkash', 'ABC123XYZ', 'again')`)).rejects.toThrow();
+    await db.exec(`insert into public.payment_sms (wallet, trx_id, raw) values ('bkash', null, 'unreadable one'), ('bkash', null, 'unreadable two')`);
+  });
 });
