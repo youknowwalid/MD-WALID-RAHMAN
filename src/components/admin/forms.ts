@@ -138,7 +138,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { name: 'title', label: 'Title', required: true },
       { name: 'shortTitle', label: 'Short title', half: true },
       { name: 'price', label: 'Price', half: true, placeholder: '$29.00' },
-      { name: 'paddleUrl', label: 'Paddle price ID (pri_…) or checkout link', required: true, placeholder: 'pri_… or https://…' },
+      { name: 'paddleUrl', label: 'Checkout link or Paddle price ID (pri_…)', required: true, placeholder: 'pri_… or https://…' },
       { name: 'description', label: 'Description', type: 'textarea', rows: 4 },
       { name: 'thumbnail', label: 'Thumbnail (square / list view)', type: 'image', maxSide: 900 },
       { name: 'image', label: 'Main product image', type: 'image' },
