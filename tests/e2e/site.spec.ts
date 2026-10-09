@@ -484,3 +484,94 @@ test.describe('admin panel', () => {
     await expect(page.getByRole('heading', { name: 'Admin Access' })).toBeVisible();
   });
 });
+
+test.describe('checkout with bKash / Nagad', () => {
+  async function login(page: Page) {
+    await page.goto(CONNECTED + '/admin');
+    await page.getByLabel('E-mail').fill(ADMIN.email);
+    await page.getByLabel('Password').fill(ADMIN.password);
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await expect(page.getByRole('heading', { name: 'Projects', level: 1 })).toBeVisible();
+  }
+  const ORDER_ID = '11111111-1111-4111-8111-111111111111';
+  const TOKEN = 'a'.repeat(48);
+  const order = (status: 'pending' | 'paid') => ({
+    id: ORDER_ID, status, edition: 'english', name: 'Automate Your Facebook Business with AI (English edition)', amount: 2999,
+    downloadUrl: status === 'paid' ? `/api/download?id=${ORDER_ID}&t=${TOKEN}` : null, emailed: status === 'paid',
+  });
+
+  test('shows the wallet numbers, sends the transaction id and then offers the download', async ({ page }) => {
+    const errors = watchErrors(page);
+    let submitted: any = null;
+    // The preview server has no /api, so the server's answers are simulated here.
+    await page.route(/\/api\/checkout(\?.*)?$/, async (route) => {
+      if (route.request().method() === 'POST') {
+        submitted = route.request().postDataJSON();
+        await route.fulfill({ json: { ...order('pending'), token: TOKEN } });
+      } else {
+        await route.fulfill({ json: order('paid') });
+      }
+    });
+
+    await page.goto(CONNECTED + '/checkout/english');
+    await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
+    await expect(page.getByTestId('wallet-bkash')).toHaveText('01756520701');
+    await expect(page.getByTestId('wallet-nagad')).toHaveText('01744588644');
+    await expect(page.getByText('৳2,999').first()).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).disableRules(['color-contrast']).analyze();
+    expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`)).toEqual([]);
+
+    await page.getByLabel(/Your email/).fill('Buyer@Example.com');
+    await page.getByLabel('Nagad', { exact: true }).check();
+    await page.getByLabel('The number you paid from').fill('01712345678');
+    await page.getByLabel(/Transaction ID/).fill('71abcd12');
+    await page.getByRole('button', { name: /verify my payment/ }).click();
+
+    await expect(page).toHaveURL(new RegExp(`/thank-you\\?order=${ORDER_ID}&t=${TOKEN}`));
+    await expect(page.getByRole('heading', { name: /Payment confirmed/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Download:/ })).toHaveAttribute('href', `/api/download?id=${ORDER_ID}&t=${TOKEN}`);
+    expect(submitted).toMatchObject({ edition: 'english', email: 'Buyer@Example.com', wallet: 'nagad', trxId: '71abcd12', sender: '01712345678', website: '' });
+    expect(errors).toEqual([]);
+  });
+
+  test('explains a duplicate transaction id in plain words', async ({ page }) => {
+    await page.route(/\/api\/checkout(\?.*)?$/, (route) => route.fulfill({ status: 409, json: { error: 'duplicate' } }));
+    await page.goto(CONNECTED + '/checkout/bangla');
+    await page.getByLabel(/Your email/).fill('buyer@example.com');
+    await page.getByLabel('The number you paid from').fill('01712345678');
+    await page.getByLabel(/Transaction ID/).fill('8N7A6D5CQ');
+    await page.getByRole('button', { name: /verify my payment/ }).click();
+    await expect(page.getByRole('alert')).toContainText('already been submitted');
+    await expect(page).toHaveURL(/\/checkout\/bangla$/);
+  });
+
+  test('waits while the payment is not verified yet', async ({ page }) => {
+    await page.route(/\/api\/checkout(\?.*)?$/, (route) => route.fulfill({ json: order('pending') }));
+    await page.goto(`${CONNECTED}/thank-you?order=${ORDER_ID}&t=${TOKEN}`);
+    await expect(page.getByRole('heading', { name: 'Verifying your payment…' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Download:/ })).toHaveCount(0);
+  });
+
+  test('a made-up address and an unknown book are handled', async ({ page }) => {
+    await page.goto(`${CONNECTED}/thank-you`);
+    await expect(page.getByRole('heading', { name: "We couldn't find this order" })).toBeVisible();
+    await page.goto(`${CONNECTED}/checkout/nonsense`);
+    await expect(page.getByRole('heading', { name: "We couldn't find that book" })).toBeVisible();
+  });
+
+  test('a product set to "english" gets a Buy Now button that opens the checkout page', async ({ page }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'Products' }).click();
+    await page.getByRole('button', { name: 'Add new' }).click();
+    await page.getByLabel('Title *').fill('English guide');
+    await page.getByLabel(/Checkout link/).fill('english');
+    await page.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Item created.')).toBeVisible();
+    await page.goto(CONNECTED + '/resources');
+    await page.getByRole('button', { name: 'View English guide' }).click();
+    await page.getByRole('link', { name: 'Buy Now' }).click();
+    await expect(page).toHaveURL(/\/checkout\/english$/);
+    await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
+  });
+});
