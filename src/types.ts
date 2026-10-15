@@ -12,6 +12,8 @@ export interface Project {
   gallery?: string[];
   tags?: string[];
   heroImage?: string;
+  /** Full-length screenshot of the finished website, shown in a capped box after the client feedback. */
+  fullPageImage?: string;
   client?: string;
   designer?: string;
   startDate?: string;

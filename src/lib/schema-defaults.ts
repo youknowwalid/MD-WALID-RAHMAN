@@ -34,6 +34,7 @@ export const normalizeProject = (data: any): Project => ({
   gallery: list(data.gallery),
   content: str(data.content),
   heroImage: str(data.heroImage),
+  fullPageImage: str(data.fullPageImage),
   client: str(data.client),
   designer: str(data.designer),
   startDate: str(data.startDate),

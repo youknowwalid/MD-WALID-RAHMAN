@@ -18,6 +18,7 @@ export interface Field {
   options?: string[];
   half?: boolean;
   maxSide?: number;
+  fullPage?: boolean; // tall full-page screenshot: resized by width (maxSide = max width), height is free
   section?: string; // renders a heading before this field
   mono?: boolean;
 }
@@ -51,6 +52,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { section: 'Client feedback (hidden when the quote is empty)', name: 'feedbackQuote', label: 'Quote', type: 'textarea', rows: 4 },
       { name: 'feedbackName', label: 'Name of the person', half: true },
       { name: 'feedbackRole', label: 'Their role / company', half: true },
+      { section: 'Full website screenshot (optional, shown after the client feedback)', name: 'fullPageImage', label: 'Full-page screenshot of the finished website, top to bottom', type: 'image', fullPage: true, maxSide: 1920, hint: 'Export at exactly 1920 px wide; any height up to 16,000 px. Visitors see the first part with a “View full page” button.' },
       { section: 'Closing call-to-action card (optional)', name: 'ctaTitle', label: "Heading (default: Let's talk about your project!)" },
       { name: 'ctaButtonText', label: 'Button text (default: Contact Us)', half: true },
       { name: 'ctaButtonUrl', label: 'Button link (blank = contact form)', half: true, placeholder: '/#contact or https://…' },
