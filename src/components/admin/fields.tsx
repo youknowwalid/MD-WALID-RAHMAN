@@ -39,8 +39,8 @@ export function Toast({ toast }: { toast: ToastState | null }) {
 
 // ── Image upload (stored in Supabase Storage, the database keeps only the link) ──
 export function ImageField({
-  label, value, onChange, hint, maxSide = 1600, compact,
-}: { label: string; value: string; onChange: (url: string) => void; hint?: string; maxSide?: number; compact?: boolean }) {
+  label, value, onChange, hint, maxSide = 1600, compact, fullPage,
+}: { label: string; value: string; onChange: (url: string) => void; hint?: string; maxSide?: number; compact?: boolean; fullPage?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -51,7 +51,7 @@ export function ImageField({
     setBusy(true);
     setError('');
     try {
-      onChange(await uploadImage(file, maxSide));
+      onChange(await uploadImage(file, maxSide, fullPage));
     } catch (err: any) {
       setError(err.message || 'Upload failed.');
     } finally {
@@ -65,7 +65,7 @@ export function ImageField({
       <span className={labelCls}>{label}</span>
       <div className="flex gap-4 items-start flex-wrap sm:flex-nowrap">
         {value ? (
-          <img src={value} alt="" className={`${size} object-cover rounded-xl border border-white/10 shrink-0`} />
+          <img src={value} alt="" className={`${size} object-cover ${fullPage ? 'object-top' : ''} rounded-xl border border-white/10 shrink-0`} />
         ) : (
           <div className={`${size} bg-white/5 border border-dashed border-white/10 rounded-xl flex items-center justify-center shrink-0`}><ImageIcon className="w-8 h-8 text-gray-600" aria-hidden="true" /></div>
         )}

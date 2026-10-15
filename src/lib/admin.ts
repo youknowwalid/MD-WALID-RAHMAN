@@ -131,17 +131,22 @@ export const patchSettings = async (key: SettingsKey, patch: Record<string, any>
 
 // ── Files ──
 const MAX_BYTES = 5 * 1024 * 1024;
+/** Tall full-page screenshots are heavier than photos; the storage bucket allows up to 10 MB. */
+const FULL_PAGE_MAX_BYTES = 10 * 1024 * 1024;
 const extFor = (type: string) => ({ 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'application/pdf': 'pdf' } as Record<string, string>)[type] || 'bin';
 
-async function upload(blob: Blob, folder: string): Promise<string> {
-  if (blob.size > MAX_BYTES) throw new Error('This file is larger than 5 MB. Please choose a smaller one.');
+async function upload(blob: Blob, folder: string, maxBytes = MAX_BYTES): Promise<string> {
+  if (blob.size > maxBytes) throw new Error(`This file is larger than ${Math.round(maxBytes / 1024 / 1024)} MB. Please choose a smaller one.`);
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extFor(blob.type)}`;
   const bucket = getClient().storage.from('site-media');
   const { error } = await bucket.upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false });
   fail(error);
   return bucket.getPublicUrl(path).data.publicUrl;
 }
-export const uploadImage = async (file: File, maxSide = 1600) => upload(await prepareImage(file, maxSide), 'images');
+export const uploadImage = async (file: File, maxSide = 1600, fullPage = false) =>
+  fullPage
+    ? upload(await prepareImage(file, maxSide, { fitWidth: true, maxBytes: FULL_PAGE_MAX_BYTES }), 'images', FULL_PAGE_MAX_BYTES)
+    : upload(await prepareImage(file, maxSide), 'images');
 export const uploadPdf = async (file: File) => {
   if (file.type !== 'application/pdf') throw new Error('Only PDF files are allowed.');
   return upload(file, 'documents');

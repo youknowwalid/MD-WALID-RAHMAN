@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MotionConfig, m, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import { ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight } from 'lucide-react';
 import { getRow, listRows } from '../lib/api';
 import { normalizeProject } from '../lib/schema-defaults';
 import { safeUrl } from '../lib/text';
@@ -84,6 +84,100 @@ const TextSection = ({ title, lead, body, titleClass }: { title: string; lead?: 
     </div>
   </m.section>
 );
+
+/**
+ * Full-length website screenshot. Shows only the first ~900 px (520 px on phones) with a soft fade and a
+ * "View full page" button; short images are shown whole with no button. Nothing is ever cropped permanently.
+ */
+const FullPageShot = ({ src, title }: { src: string; title: string }) => {
+  const reduce = useReducedMotion();
+  const frame = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const [cap, setCap] = useState(900);
+  const [tall, setTall] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [settled, setSettled] = useState(false); // expansion finished: height is free again
+
+  useEffect(() => {
+    const measure = () => {
+      const c = window.innerWidth < 640 ? 520 : 900;
+      setCap(c);
+      setTall((inner.current?.offsetHeight ?? 0) > c + 40);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [loaded]);
+
+  const expand = () => {
+    setOpen(true);
+    if (reduce) setSettled(true);
+  };
+  const collapse = () => {
+    setOpen(false);
+    setSettled(false);
+    frame.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+  };
+
+  const clipped = tall && !settled;
+  const maxHeight = !clipped ? undefined : open ? (inner.current?.offsetHeight ?? cap) : cap;
+
+  return (
+    <m.section {...fadeUp} aria-label={`${title} full website design`}>
+      <div
+        ref={frame}
+        id="full-page-shot"
+        style={{ maxHeight, minHeight: loaded ? undefined : 320 }}
+        onTransitionEnd={(e) => { if (open && e.propertyName === 'max-height') setSettled(true); }}
+        className="relative overflow-hidden rounded-[24px] border border-white/10 bg-bg-card transition-[max-height] duration-[900ms] ease-out motion-reduce:transition-none md:rounded-[32px]"
+      >
+        <div ref={inner}>
+          <img
+            src={src}
+            alt={`${title} full website design`}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onLoad={() => setLoaded(true)}
+            className="block h-auto w-full"
+          />
+        </div>
+        {tall && !open && (
+          <>
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent sm:h-60" />
+            <div className="absolute inset-x-0 bottom-6 flex justify-center sm:bottom-8">
+              <button
+                type="button"
+                onClick={expand}
+                aria-expanded={false}
+                aria-controls="full-page-shot"
+                className="group inline-flex items-center gap-3 rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-white transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                View full page
+                <ArrowDown className="h-5 w-5 transition-transform duration-300 group-hover:translate-y-0.5" aria-hidden="true" />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+      {tall && open && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={collapse}
+            aria-expanded={true}
+            aria-controls="full-page-shot"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-text-main transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <ArrowUp className="h-4 w-4" aria-hidden="true" />
+            Show less
+          </button>
+        </div>
+      )}
+    </m.section>
+  );
+};
 
 /** Rows of two images, alternating wide/narrow; an odd last image spans the full width. */
 const ImageGrid = ({ images, title }: { images: string[]; title: string }) => {
@@ -305,6 +399,9 @@ export default function ProjectDetail() {
                 </div>
               </m.section>
             )}
+
+            {/* 10b. Full-length website screenshot (capped, expands on request) */}
+            {project.fullPageImage && <FullPageShot key={project.fullPageImage} src={project.fullPageImage} title={project.title} />}
           </div>
 
           {/* 11. Prev / next */}

@@ -247,7 +247,7 @@ function Dashboard({ email }: { email: string }) {
                       {f.section && <h3 className="sm:col-span-2 pt-4 border-t border-white/5 text-xs uppercase tracking-widest text-accent">{f.section}</h3>}
                       <div className={span}>
                         {f.type === 'image' ? (
-                          <ImageField label={f.label} value={v} onChange={(u) => setValue(f.name, u)} hint={f.hint} maxSide={f.maxSide} compact={f.name.startsWith('gallery')} />
+                          <ImageField label={f.label} value={v} onChange={(u) => setValue(f.name, u)} hint={f.hint} maxSide={f.maxSide} fullPage={f.fullPage} compact={f.name.startsWith('gallery')} />
                         ) : f.type === 'gallery' ? (
                           <GalleryField label={f.label} value={v} onChange={(u) => setValue(f.name, u)} hint={f.hint} />
                         ) : f.type === 'checkbox' ? (
