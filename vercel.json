@@ -3,8 +3,13 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/page-meta.js": { "includeFiles": "dist/index.html" }
+  },
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/projects/:slug", "destination": "/api/page-meta?type=project&slug=:slug" },
+    { "source": "/blog/:slug", "destination": "/api/page-meta?type=blog&slug=:slug" },
     { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
   ],
   "headers": [

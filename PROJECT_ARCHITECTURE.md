@@ -38,6 +38,12 @@ Dark, premium, single-page portfolio (Poppins, accent `#f45901`). **The look and
 ## SEO
 Static tags + JSON-LD in `index.html`; `src/components/Seo.tsx` sets per-page title/description/canonical/Open Graph/structured data;
 `/sitemap.xml` is generated live from the database (`api/sitemap.js`); `robots.txt` blocks `/admin`.
+**Link previews** (Facebook, LinkedIn, WhatsApp, X…) never run JavaScript, so `Seo.tsx` alone would show the home page's tags for every address.
+`/projects/:slug` and `/blog/:slug` are therefore rewritten (`vercel.json`) to `api/page-meta.js`, which returns the built `index.html`
+with that page's own title/description/canonical/share-image tags already filled in (same field choices as `ProjectDetail.tsx` / `BlogDetail.tsx`,
+same SEO settings rules as `SiteConfigContext.tsx`). Drafts are hidden by Row Level Security, so they get no preview. The result is cached at
+the edge for 5 minutes, so admin edits reach link previews within that time. If you change which fields a page shares, change `pickPage()` there too.
+After changing a page's share image, ask Facebook to re-read it at developers.facebook.com/tools/debug (it keeps its own copy of old previews).
 
 ## Workflow
 1. `npm run check` and `npm run test:e2e` must pass.
