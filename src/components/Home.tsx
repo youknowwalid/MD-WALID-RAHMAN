@@ -21,6 +21,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
+import Photo from './Photo';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = { Palette, Braces, Megaphone, Laptop };
 
@@ -332,8 +333,10 @@ export default function Home() {
                 <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
                 <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40" />
                 <m.div animate={{ y: [0, -10, 0], rotate: [1, 2, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="absolute inset-8 md:inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10">
-                  <img
+                  <Photo
                     src={heroImage}
+                    widths={[640]}
+                    sizes="(min-width: 768px) 300px, 240px"
                     alt="Portrait of Walid Rahman"
                     width={420}
                     height={420}
@@ -485,7 +488,7 @@ export default function Home() {
                   <m.div key={project.id || project.title} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: (i % 2) * 0.15 }} className="relative aspect-video rounded-3xl overflow-hidden group bg-bg-card">
                     <Link to={`/projects/${project.slug || project.id}`} className="block w-full h-full relative focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
                       {project.image && (
-                        <img src={project.image} alt={project.title} width={800} height={450} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+                        <Photo src={project.image} widths={[640, 1080, 1600]} sizes="(min-width: 768px) 50vw, 100vw" alt={project.title} width={800} height={450} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
                       )}
                       <div className="absolute inset-0 bg-bg-dark/60 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 [@media(hover:none)]:bg-gradient-to-t [@media(hover:none)]:from-black/80 [@media(hover:none)]:to-transparent transition-opacity duration-300 flex flex-col justify-end p-8">
                         <span className="text-accent text-sm font-bold uppercase mb-2 tracking-widest">{project.category}</span>
@@ -604,7 +607,7 @@ export default function Home() {
                   <m.div key={post.id || post.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: (i % 4) * 0.1 }} className="group">
                     <Link to={`/blog/${post.slug || post.id}`}>
                       <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-accent/40 transition-all bg-bg-card">
-                        {post.image && <img src={post.image} alt="" width={640} height={480} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" loading="lazy" decoding="async" />}
+                        {post.image && <Photo src={post.image} widths={[384, 640, 828]} sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" alt="" width={640} height={480} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" referrerPolicy="no-referrer" loading="lazy" decoding="async" />}
                       </div>
                       <div className="text-xs text-accent font-bold uppercase mb-2">{post.date}</div>
                       <h3 className="text-lg font-bold group-hover:text-accent transition-colors mb-2 line-clamp-2">{post.title}</h3>
