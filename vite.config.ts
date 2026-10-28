@@ -21,9 +21,14 @@ function earlySettings(): Plugin {
       const url = pick(process.env.VITE_SUPABASE_URL, publicConfig.supabaseUrl);
       const key = pick(process.env.VITE_SUPABASE_ANON_KEY, publicConfig.supabaseAnonKey);
       if (!url || !key) return;
-      const js = `(function(){try{var u=${JSON.stringify(url)},k=${JSON.stringify(key)};` +
-        `window.__settings=fetch(u+'/rest/v1/site_settings?select=key,value',{headers:{apikey:k,Authorization:'Bearer '+k}})` +
-        `.then(function(r){return r.ok?r.json():null}).catch(function(){return null});` +
+      // The settings come from /api/content (a copy kept near the visitor; see api/content.js). If that is not
+      // available (local development, or it fails), the database is asked directly, as before.
+      const js = `(function(){try{var u=${JSON.stringify(url)},k=${JSON.stringify(key)},q='site_settings?select=key,value';` +
+        `function direct(){return fetch(u+'/rest/v1/'+q,{headers:{apikey:k,Authorization:'Bearer '+k}})` +
+        `.then(function(r){return r.ok?r.json():null}).catch(function(){return null})}` +
+        `window.__settings=fetch('/api/content?p='+encodeURIComponent(q))` +
+        `.then(function(r){return r.ok&&(r.headers.get('content-type')||'').indexOf('json')>-1?r.json():null})` +
+        `.catch(function(){return null}).then(function(rows){return rows||direct()});` +
         // Preload the portrait as soon as its address is known (matches the <img>: no-referrer).
         `window.__settings.then(function(rows){if(!rows)return;for(var i=0;i<rows.length;i++){if(rows[i].key==='hero'){` +
         `var h=rows[i].value&&rows[i].value.heroImage;if(typeof h==='string'&&/^https?:\\/\\//i.test(h)){` +

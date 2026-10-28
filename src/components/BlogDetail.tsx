@@ -11,6 +11,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import NotFound from './NotFound';
 import Seo from './Seo';
+import Photo from './Photo';
 
 export default function BlogDetail() {
   const { blogId } = useParams();
@@ -122,7 +123,7 @@ export default function BlogDetail() {
 
           {/* Featured Image */}
           {post.image && <div className="rounded-[40px] overflow-hidden border border-white/10 mb-16 shadow-2xl relative aspect-[16/9]">
-            <img src={post.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" fetchPriority="high" />
+            <Photo src={post.image} widths={[640, 1080, 1600]} sizes="(min-width: 1024px) 900px, 100vw" alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" fetchPriority="high" />
           </div>}
 
           {/* Content */}

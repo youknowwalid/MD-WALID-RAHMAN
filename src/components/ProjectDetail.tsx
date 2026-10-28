@@ -11,6 +11,8 @@ import Footer from './Footer';
 import NotFound from './NotFound';
 import Seo from './Seo';
 import ScrollFillText from './ScrollFillText';
+import Photo from './Photo';
+import { useOptimizedImage } from '../lib/img';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const CONTAINER = 'mx-auto w-full max-w-[1500px] px-5 sm:px-8 lg:px-12';
@@ -55,11 +57,15 @@ const Cover = ({ src, alt }: { src: string; alt: string }) => {
   const box = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: box, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['-7%', '7%']);
+  const img = useOptimizedImage(src, [828, 1080, 1600, 1920], '100vw');
   return (
     <div ref={box} className="relative overflow-hidden rounded-[28px] md:rounded-[44px] aspect-[4/3] sm:aspect-[16/10] bg-bg-card">
       <m.div className="absolute inset-0" initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 1.4, ease: EASE }}>
         <m.img
-          src={src}
+          src={img.src}
+          srcSet={img.srcSet}
+          sizes={img.sizes}
+          onError={img.onError}
           alt={alt}
           fetchPriority="high"
           decoding="async"
@@ -190,7 +196,7 @@ const ImageGrid = ({ images, title }: { images: string[]; title: string }) => {
       {rows.map((row, r) =>
         row.length === 1 ? (
           <m.div key={r} {...fadeUp} className={`${cell} aspect-[16/10]`}>
-            <img src={row[0]} alt={`${title} ${r * 2 + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+            <Photo src={row[0]} widths={[640, 1080, 1600]} sizes="(min-width: 1024px) 1400px, 100vw" alt={`${title} ${r * 2 + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
           </m.div>
         ) : (
           <div key={r} className={`grid gap-5 md:gap-6 ${r % 2 === 0 ? 'md:grid-cols-[1fr_1.4fr]' : 'md:grid-cols-[1.4fr_1fr]'}`}>
@@ -203,7 +209,7 @@ const ImageGrid = ({ images, title }: { images: string[]; title: string }) => {
                 transition={{ ...fadeUp.transition, delay: c * 0.12 }}
                 className={`${cell} ${height}`}
               >
-                <img src={src} alt={`${title} ${r * 2 + c + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+                <Photo src={src} widths={[640, 1080, 1600]} sizes="(min-width: 768px) 60vw, 100vw" alt={`${title} ${r * 2 + c + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
               </m.div>
             ))}
           </div>
@@ -243,7 +249,7 @@ export default function ProjectDetail() {
 
   // Sibling projects (same ordering as the listing) for prev / next navigation
   useEffect(() => {
-    listRows('projects').then((rows) => { if (rows) setAllProjects(rows.map(normalizeProject)); });
+    listRows('projects', ['id', 'slug', 'title', 'published']).then((rows) => { if (rows) setAllProjects(rows.map(normalizeProject)); });
   }, []);
 
   useEffect(() => {
