@@ -10,14 +10,16 @@ const pick = (env: unknown, fallback: unknown) => (typeof env === 'string' ? cle
 
 /**
  * Starts the site-settings request from index.html, before the JavaScript has even downloaded,
- * and preconnects to the database. The app picks the result up from window.__settings, so the first
+ * and preconnects to the picture host. The app picks the result up from window.__settings, so the first
  * paint already has the real colours/texts (no flash of defaults) and no request waits for the bundle.
  * Nothing is baked in at build time: the data is always the live data.
  */
 function earlySettings(): Plugin {
   return {
     name: 'early-settings',
-    transformIndexHtml() {
+    transformIndexHtml(_html, ctx) {
+      // In production the portrait is shown as a resized Cloudinary copy (see src/lib/img.ts), so that is what to preload.
+      const resize = !ctx.server;
       const url = pick(process.env.VITE_SUPABASE_URL, publicConfig.supabaseUrl);
       const key = pick(process.env.VITE_SUPABASE_ANON_KEY, publicConfig.supabaseAnonKey);
       if (!url || !key) return;
@@ -32,10 +34,12 @@ function earlySettings(): Plugin {
         // Preload the portrait as soon as its address is known (matches the <img>: no-referrer).
         `window.__settings.then(function(rows){if(!rows)return;for(var i=0;i<rows.length;i++){if(rows[i].key==='hero'){` +
         `var h=rows[i].value&&rows[i].value.heroImage;if(typeof h==='string'&&/^https?:\\/\\//i.test(h)){` +
-        `var l=document.createElement('link');l.rel='preload';l.as='image';l.href=h.trim();l.referrerPolicy='no-referrer';l.setAttribute('fetchpriority','high');document.head.appendChild(l);}}}});` +
+        `var t=h.trim(),c=${resize}&&/^(https:\\/\\/res\\.cloudinary\\.com\\/[^\\/]+\\/image\\/upload\\/)(v\\d+\\/.+)$/.exec(t);` +
+        `var l=document.createElement('link');l.rel='preload';l.as='image';l.href=c?c[1]+'f_auto,q_auto,w_640,c_limit/'+c[2]:t;l.referrerPolicy='no-referrer';l.setAttribute('fetchpriority','high');document.head.appendChild(l);}}}});` +
         `}catch(e){}})();`;
       return [
-        { tag: 'link', attrs: { rel: 'preconnect', href: url, crossorigin: true }, injectTo: 'head-prepend' },
+        // Pictures come from Cloudinary: open that connection while the page is still loading.
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://res.cloudinary.com' }, injectTo: 'head-prepend' },
         { tag: 'script', children: js, injectTo: 'head-prepend' },
       ];
     },

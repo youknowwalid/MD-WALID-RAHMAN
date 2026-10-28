@@ -2,21 +2,35 @@ import { useEffect, useState } from 'react';
 import { SUPABASE_URL } from './config';
 
 /**
- * Pictures uploaded in the admin are stored in the database's file storage (far away from most visitors) at up to
- * 1600 px wide. Vercel's image service can hand out a smaller, lighter copy from a server near the visitor, so
- * cards and covers use that instead. If the lighter copy ever fails to load, the original picture is used.
+ * Pictures on the site are stored far away from most visitors, at their original (large) size:
+ *  - on Cloudinary, which can resize a picture on the fly when the width is added to its web address, or
+ *  - in the database's file storage (uploads made in the admin), which Vercel's image service can resize.
+ * Cards, covers and the portrait ask for a copy that is only as wide as they need. If the smaller copy ever
+ * fails to load, the original picture is used instead.
  *
- * The widths below must match "images.sizes" in vercel.json.
+ * The Vercel widths below must match "images.sizes" in vercel.json.
  */
 export const IMAGE_WIDTHS = [256, 384, 640, 828, 1080, 1600, 1920];
 
 const STORAGE_PREFIX = SUPABASE_URL ? `${SUPABASE_URL}/storage/v1/object/public/` : '';
 
-/** Only pictures from this site's own file storage are resized (never animated GIFs, SVGs or other sites' images). */
-export const canOptimize = (url?: string): url is string =>
-  Boolean(import.meta.env.PROD && STORAGE_PREFIX && url && url.startsWith(STORAGE_PREFIX) && !/\.(gif|svg)(\?|#|$)/i.test(url));
+// https://res.cloudinary.com/<account>/image/upload/<version>/<file>   (pictures that already carry
+// resize settings in their address are left alone, because the part after /upload/ then does not start with v123/)
+export const CLOUDINARY = /^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(v\d+\/.+)$/;
 
-const sized = (url: string, width: number) => `/_vercel/image?url=${encodeURIComponent(url)}&w=${width}&q=75`;
+const isStorage = (url: string) => Boolean(STORAGE_PREFIX) && url.startsWith(STORAGE_PREFIX) && !/\.(gif|svg)(\?|#|$)/i.test(url);
+
+/** Only pictures from this site's own Cloudinary account or file storage are resized (never GIFs, SVGs or other sites). */
+export const canOptimize = (url?: string): url is string =>
+  Boolean(import.meta.env.PROD && url && (CLOUDINARY.test(url) || isStorage(url)));
+
+/** The address of a copy of `url` that is at most `width` px wide. */
+export const sizedUrl = (url: string, width: number) => {
+  const cloud = CLOUDINARY.exec(url);
+  // f_auto: newest format the browser understands; q_auto: smallest size that still looks the same; c_limit: never enlarge.
+  if (cloud) return `${cloud[1]}f_auto,q_auto,w_${width},c_limit/${cloud[2]}`;
+  return `/_vercel/image?url=${encodeURIComponent(url)}&w=${width}&q=75`;
+};
 
 /**
  * Attributes for an <img> that shows `url`. `widths` are the sizes to offer the browser and `sizes` says how wide
@@ -28,8 +42,8 @@ export function useOptimizedImage(url: string | undefined, widths: number[], siz
   const optimize = canOptimize(url) && !failed;
   if (!optimize || !url) return { src: url, srcSet: undefined, sizes: undefined, onError: undefined };
   return {
-    src: sized(url, widths[Math.floor(widths.length / 2)]),
-    srcSet: widths.map((w) => `${sized(url, w)} ${w}w`).join(', '),
+    src: sizedUrl(url, widths[Math.floor(widths.length / 2)]),
+    srcSet: widths.map((w) => `${sizedUrl(url, w)} ${w}w`).join(', '),
     sizes,
     onError: () => setFailed(true),
   };

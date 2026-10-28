@@ -333,8 +333,10 @@ export default function Home() {
                 <div className="absolute inset-0 rounded-full border-2 border-dashed border-accent/20 animate-[spin_20s_linear_infinite]" />
                 <div className="absolute inset-4 md:inset-6 rounded-full border border-accent/40" />
                 <m.div animate={{ y: [0, -10, 0], rotate: [1, 2, 1] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="absolute inset-8 md:inset-12 rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-2xl z-10">
-                  <img
+                  <Photo
                     src={heroImage}
+                    widths={[640]}
+                    sizes="(min-width: 768px) 300px, 240px"
                     alt="Portrait of Walid Rahman"
                     width={420}
                     height={420}
