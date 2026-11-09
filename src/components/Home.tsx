@@ -144,14 +144,17 @@ const CountText = ({ raw, duration = 1500 }: { raw: string; duration?: number })
   const parsed = /^(\d[\d,]*)([\s\S]*)$/.exec(String(raw).trim());
   const target = parsed ? Number(parsed[1].replace(/,/g, '')) : 0;
   const suffix = parsed ? parsed[2] : '';
+  // Counting 0, 1 is not worth watching, so small figures simply appear.
+  const animated = Boolean(parsed) && target >= 3;
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.4 });
   const reduceMotion = useReducedMotion();
   const [shown, setShown] = useState(0);
 
+  // Every dependency here is a primitive on purpose: the match object is rebuilt on each
+  // render, so holding it would restart the count every time the figure ticked over.
   useEffect(() => {
-    if (!parsed) return;
-    if (reduceMotion) { setShown(target); return; }
+    if (!animated || reduceMotion) { setShown(target); return; }
     if (!inView) return;
     let frame = 0;
     const started = performance.now();
@@ -162,7 +165,7 @@ const CountText = ({ raw, duration = 1500 }: { raw: string; duration?: number })
     };
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
-  }, [inView, target, duration, reduceMotion, parsed]);
+  }, [inView, target, duration, reduceMotion, animated]);
 
   if (!parsed) return <>{raw}</>;
   return (
@@ -476,7 +479,7 @@ export default function Home() {
         {/* HERO SECTION */}
         <section
           id="home"
-          className="home-hero relative flex min-h-[760px] items-center overflow-hidden px-6 pb-32 pt-28 md:pt-32 lg:h-screen lg:max-h-[1000px] lg:min-h-[900px]"
+          className="home-hero relative flex min-h-[760px] items-center overflow-hidden px-6 pb-32 pt-28 md:pt-32 lg:min-h-[max(900px,100vh)]"
         >
           <div className="home-cloud home-cloud--a bottom-[20%] left-[-140px] h-[220px] w-[680px]" data-depth="26" aria-hidden="true" />
           <div className="home-cloud home-cloud--b bottom-[30%] right-[-180px] h-[260px] w-[820px]" data-depth="-34" aria-hidden="true" />
