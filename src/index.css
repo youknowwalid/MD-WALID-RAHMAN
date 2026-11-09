@@ -428,7 +428,17 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   transform: scale(1.12);
 }
 
-/* Lime is a background colour here, never a text colour on white: the shared footer's
-   hover state would be unreadable, so it uses the ink colour on the home page. */
-.home-v2 footer a:hover,
-.home-v2 footer a:hover svg { color: var(--ink); }
+/* The footer keeps the dark theme on the home page too: its brand mark is white
+   lettering, which disappears on a white footer, and an ink band closes the page
+   the way the ink header opens it. Restoring the site's own values is enough. */
+.home-v2 footer {
+  --color-bg-dark: #0a0a0a;
+  --color-bg-card: #111111;
+  --color-text-main: #ffffff;
+  --color-text-muted: #9ca3af;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-main);
+}
+
+/* The header floats over the page, so an anchor must stop below it. */
+.home-v2 main > section { scroll-margin-top: 92px; }
