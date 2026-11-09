@@ -200,7 +200,10 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
    shared header and footer re-theme themselves here without any change of their own.
    ========================================================================== */
 .home-v2 {
-  --color-accent: #c3ed3a;          /* delete this line to follow the admin's brand colour instead */
+  /* The home page has its own brand colour. Delete these two lines to follow the
+     admin's accent (and its gradient) here as every other page does. */
+  --color-accent: #c3ed3a;
+  --accent-gradient: none;
   --color-bg-dark: #ffffff;
   --color-bg-card: #f6f8fb;
   --color-text-main: #0d1117;
@@ -226,13 +229,15 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 
 /* ---- Hero ---------------------------------------------------------------- */
 .home-hero {
-  background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 46%, var(--sky-3) 74%, #dbe9f5 90%, #ffffff 100%);
+  /* Stays a deep enough blue behind the text, then turns to white quickly at the very
+     bottom, so white type over it keeps its contrast all the way down. */
+  background: linear-gradient(180deg, #2a6aa3 0%, #3676ac 48%, #427fb3 78%, #6a9cc8 90%, #d5e4f1 97%, #ffffff 100%);
 }
 .home-cloud {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
   filter: blur(10px);
   will-change: transform;
 }

@@ -449,7 +449,7 @@ export default function Home() {
                     fetchPriority="high"
                     decoding="async"
                   />
-                  <div className="absolute inset-x-4 bottom-4 rounded-[22px] border border-white/30 bg-white/20 p-4 backdrop-blur-md">
+                  <div className="absolute inset-x-4 bottom-4 rounded-[22px] border border-white/15 bg-[#0d1117]/60 p-4 backdrop-blur-md">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">{hero.heroStatus}</div>
                     <div className="text-[15px] text-white">{hero.heroAvailability}</div>
                   </div>
@@ -556,7 +556,7 @@ export default function Home() {
                           loading="lazy"
                         />
                       </div>
-                      <div className="absolute inset-x-5 bottom-5 rounded-[24px] border border-white/35 bg-white/20 p-5 backdrop-blur-md">
+                      <div className="absolute inset-x-5 bottom-5 rounded-[24px] border border-white/15 bg-[#0d1117]/60 p-5 backdrop-blur-md">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">Current Focus</div>
                         <div className="text-[22px] font-semibold tracking-[-0.02em] text-white">Strategic Brand Evolution</div>
                       </div>

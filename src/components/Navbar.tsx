@@ -81,7 +81,7 @@ export default function Navbar() {
           'mx-auto flex max-w-7xl items-center justify-between transition-all duration-300',
           isHome && 'rounded-full border px-4 py-2.5 md:px-5 md:py-3',
           isHome && onSky && 'border-white/30 bg-white/15 text-white backdrop-blur-xl',
-          isHome && !onSky && 'border-[#0d1117]/10 bg-white/90 text-[#0d1117] shadow-[0_14px_40px_-20px_rgba(13,17,23,0.45)] backdrop-blur-xl',
+          isHome && !onSky && 'border-white/10 bg-[#0d1117]/90 text-white shadow-[0_16px_40px_-22px_rgba(13,17,23,0.6)] backdrop-blur-xl',
         )}
       >
         <Link to="/" className="flex min-h-10 min-w-10 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>
@@ -105,7 +105,7 @@ export default function Navbar() {
                 className={cn(
                   'relative py-1 text-sm font-medium transition-all',
                   isHome
-                    ? cn('rounded-full px-3.5 py-2', onSky ? 'text-white hover:bg-white/15' : 'text-[#0d1117] hover:bg-[#0d1117]/5', isActive && (onSky ? 'bg-white/20' : 'bg-[#0d1117]/10'))
+                    ? cn('rounded-full px-3.5 py-2 text-white', onSky ? 'hover:bg-white/15' : 'hover:bg-white/10', isActive && 'bg-white/20')
                     : cn('hover:text-accent', isActive ? 'text-accent' : 'text-text-muted'),
                 )}
               >
@@ -130,7 +130,7 @@ export default function Navbar() {
             ref={menuButton}
             className={cn(
               'flex h-11 w-11 items-center justify-center lg:hidden',
-              isHome ? cn('rounded-full', onSky ? 'text-white' : 'text-[#0d1117]') : 'text-text-main',
+              isHome ? 'rounded-full text-white' : 'text-text-main',
             )}
             onClick={() => setIsMenuOpen((o) => !o)}
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
@@ -152,7 +152,7 @@ export default function Navbar() {
             className={cn(
               'z-50 flex flex-col gap-6 overflow-y-auto p-8 shadow-2xl lg:hidden',
               isHome
-                ? 'mx-auto mt-3 max-h-[calc(100vh-7rem)] max-w-7xl rounded-[32px] border border-[#0d1117]/10 bg-white/95 backdrop-blur-2xl'
+                ? 'mx-auto mt-3 max-h-[calc(100vh-7rem)] max-w-7xl rounded-[32px] border border-white/10 bg-[#0d1117]/95 backdrop-blur-2xl'
                 : 'absolute left-0 top-full max-h-[calc(100vh-4rem)] w-full border-b border-border-subtle bg-bg-dark/95 backdrop-blur-2xl',
             )}
           >
@@ -164,7 +164,7 @@ export default function Navbar() {
                 className={cn(
                   'transition-all',
                   isHome
-                    ? 'text-[28px] font-medium tracking-[-0.035em] text-[#0d1117]'
+                    ? 'text-[28px] font-medium tracking-[-0.035em] text-white'
                     : 'text-2xl font-black uppercase tracking-tighter text-text-muted hover:text-accent',
                 )}
               >
