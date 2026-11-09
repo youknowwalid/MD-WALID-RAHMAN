@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
+      // The home page is light, every other page is dark. Marking it here, before anything is painted,
+      // keeps a first-time visitor (who waits for their saved settings) from seeing a dark flash first.
+      if (location.pathname === '/') document.documentElement.setAttribute('data-home', '');
+    </script>
+
+    <script>
       // Google Tag Manager starts once the page has loaded and the browser is idle, so it never competes with the first paint.
       (function (w, d, s, l, i) {
         w[l] = w[l] || [];

@@ -16,8 +16,49 @@
   line-gap-override: 8.9%;
 }
 
+/* Home-page typeface: Inter Tight (SIL Open Font License, see src/fonts/LICENSE-InterTight.txt).
+   Served from this site, never from Google, so the strict Content-Security-Policy in
+   vercel.json (font-src 'self') allows it. Latin subset, ~22 kB a weight. */
+@font-face {
+  font-family: "Inter Tight";
+  src: url("./fonts/inter-tight-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Tight";
+  src: url("./fonts/inter-tight-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Tight";
+  src: url("./fonts/inter-tight-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Tight";
+  src: url("./fonts/inter-tight-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Tight Fallback";
+  src: local("Arial");
+  size-adjust: 97%;
+  ascent-override: 97%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
 @theme {
   --font-sans: "Poppins", "Poppins Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-tight: "Inter Tight", "Inter Tight Fallback", ui-sans-serif, system-ui, sans-serif;
   --color-accent: #f45901;
   --color-bg-dark: #0a0a0a;
   --color-bg-card: #111111;
@@ -31,9 +72,15 @@
     scroll-behavior: smooth;
     overflow-x: hidden;
   }
-  
+
   body {
     @apply bg-bg-dark text-text-main font-sans transition-colors duration-300;
+  }
+
+  /* The home page is light. Set before any JavaScript runs (index.html), so a first-time
+     visitor waiting for their settings sees the page's own colour, not a dark flash. */
+  html[data-home] body {
+    background: #2f6ea6;
   }
 
   /* Custom Scrollbar */
@@ -46,13 +93,19 @@
   ::-webkit-scrollbar-thumb {
     @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
   }
+  html[data-home] ::-webkit-scrollbar-track {
+    background: #eef2f7;
+  }
+  html[data-home] ::-webkit-scrollbar-thumb {
+    background: rgba(13, 17, 23, 0.18);
+  }
 }
 
 @layer utilities {
   .text-glow {
     text-shadow: none;
   }
-  
+
   .accent-shadow {
     box-shadow: none;
   }
@@ -137,3 +190,242 @@ main > section::after {
 main > section:nth-of-type(odd)::after { --glow: #7b3cff; right: -12%; }
 main > section:nth-of-type(even)::after { --glow: #00a8ff; left: -12%; }
 main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto; }
+
+
+/* ============================================================================
+   HOME PAGE (2026 redesign)
+   Everything below applies only inside .home-v2, the home page's own wrapper.
+   Project pages, blog pages, the admin and checkout keep the dark theme.
+   The surface colours are the same variables the whole site is built on, so the
+   shared header and footer re-theme themselves here without any change of their own.
+   ========================================================================== */
+.home-v2 {
+  --color-accent: #c3ed3a;          /* delete this line to follow the admin's brand colour instead */
+  --color-bg-dark: #ffffff;
+  --color-bg-card: #f6f8fb;
+  --color-text-main: #0d1117;
+  --color-text-muted: #5b6270;
+  --color-border-subtle: rgba(13, 17, 23, 0.08);
+
+  --sky-1: #2f6ea6;
+  --sky-2: #5f93c4;
+  --sky-3: #9cc0dd;
+  --ink: #0d1117;
+  --ok: #16a34a;
+
+  font-family: var(--font-tight);
+  color: var(--ink);
+  background: #ffffff;
+}
+
+/* The dark theme's grid and coloured glows do not belong on a light page. */
+.home-v2 main > section::before,
+.home-v2 main > section::after {
+  content: none;
+}
+
+/* ---- Hero ---------------------------------------------------------------- */
+.home-hero {
+  background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 46%, var(--sky-3) 74%, #dbe9f5 90%, #ffffff 100%);
+}
+.home-cloud {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+  filter: blur(10px);
+  will-change: transform;
+}
+@keyframes home-drift {
+  from { transform: translate3d(-40px, 0, 0); }
+  to { transform: translate3d(70px, 0, 0); }
+}
+.home-cloud--a { animation: home-drift 26s ease-in-out infinite alternate; }
+.home-cloud--b { animation: home-drift 34s ease-in-out infinite alternate-reverse; }
+.home-cloud--c { animation: home-drift 44s ease-in-out infinite alternate; }
+
+@keyframes home-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -16px, 0); }
+}
+.home-float { animation: home-float 6s ease-in-out infinite; }
+.home-float--slow { animation: home-float 7.5s ease-in-out infinite; animation-delay: -2s; }
+
+@keyframes home-spin {
+  to { transform: rotate(360deg); }
+}
+.home-spin { animation: home-spin 42s linear infinite; }
+.home-spin--rev { animation: home-spin 64s linear infinite reverse; }
+.home-spin--seal { animation: home-spin 30s linear infinite; }
+
+@keyframes home-pulse {
+  70% { box-shadow: 0 0 0 10px rgba(195, 237, 58, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(195, 237, 58, 0); }
+}
+.home-dot {
+  box-shadow: 0 0 0 0 rgba(195, 237, 58, 0.7);
+  animation: home-pulse 2.4s infinite;
+}
+
+/* ---- Buttons ------------------------------------------------------------- */
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border-radius: 999px;
+  font-weight: 500;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s, background-color 0.3s, color 0.3s;
+  will-change: transform;
+}
+.home-btn:hover { transform: translateY(-3px); }
+.home-btn .home-arrow { transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.home-btn:hover .home-arrow { transform: translate(3px, -3px); }
+
+/* ---- Cards --------------------------------------------------------------- */
+.home-card { position: relative; overflow: hidden; }
+.home-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(195, 237, 58, 0.38), transparent 62%);
+}
+.home-card:hover::before { opacity: 1; }
+
+/* ---- Most-popular pricing plan: slowly turning border --------------------- */
+@property --home-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes home-rotate {
+  to { --home-angle: 360deg; }
+}
+.home-plan-pop { position: relative; }
+.home-plan-pop::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  z-index: -1;
+  background: conic-gradient(from var(--home-angle), #c3ed3a, #5f93c4, #c3ed3a);
+  animation: home-rotate 6s linear infinite;
+}
+
+/* ---- Testimonial rows ---------------------------------------------------- */
+.home-marquee {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.home-marquee-row { animation: marquee 80s linear infinite; }
+.home-marquee-row--rev { animation: marquee 96s linear infinite reverse; }
+.home-marquee:hover .home-marquee-row { animation-play-state: paused; }
+
+/* ---- Floating form labels ------------------------------------------------ */
+.home-field { position: relative; }
+.home-field > input,
+.home-field > textarea {
+  width: 100%;
+  border: 1px solid rgba(13, 17, 23, 0.12);
+  border-radius: 18px;
+  padding: 1.45rem 1.1rem 0.55rem;
+  font: inherit;
+  font-size: 1rem;
+  background: #f8fafc;
+  color: var(--ink);
+  outline: none;
+  resize: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.home-field > label {
+  position: absolute;
+  left: 1.1rem;
+  top: 1.05rem;
+  font-size: 1rem;
+  color: #717886;
+  pointer-events: none;
+  transition: top 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), font-size 0.22s, color 0.22s;
+}
+.home-field > input:focus,
+.home-field > textarea:focus {
+  border-color: var(--ink);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(195, 237, 58, 0.55);
+}
+.home-field > input:focus + label,
+.home-field > input:not(:placeholder-shown) + label,
+.home-field > textarea:focus + label,
+.home-field > textarea:not(:placeholder-shown) + label {
+  top: 0.42rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: #4b5563;
+}
+
+/* The home page's own focus ring: lime on white is invisible, so use the ink colour. */
+.home-v2 :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.home-hero :focus-visible,
+.home-on-dark :focus-visible {
+  outline: 2px solid #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-marquee-row,
+  .home-marquee-row--rev,
+  .home-plan-pop::before {
+    animation: none !important;
+  }
+}
+
+/* ---- Light text where the home page goes dark (hero, skills panel, popular plan) ---- */
+.home-hero,
+.home-on-dark {
+  --color-text-main: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.86);
+  --color-border-subtle: rgba(255, 255, 255, 0.22);
+  --color-bg-card: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* ---- Résumé timeline ----------------------------------------------------- */
+.home-tl { position: relative; padding-left: 2.75rem; }
+.home-tl-rail,
+.home-tl-fill {
+  position: absolute;
+  left: 7px;
+  top: 0.5rem;
+  width: 2px;
+  border-radius: 2px;
+}
+.home-tl-rail { bottom: 0.5rem; background: rgba(13, 17, 23, 0.1); }
+.home-tl-fill { height: 0; background: linear-gradient(180deg, #c3ed3a, #16a34a); transition: height 0.15s linear; }
+.home-tl-dot {
+  position: absolute;
+  left: -2.75rem;
+  top: 0.4rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid rgba(13, 17, 23, 0.18);
+  transition: background 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.5s, transform 0.5s;
+}
+.home-tl-item:hover .home-tl-dot,
+.home-tl-item:focus-within .home-tl-dot {
+  background: #c3ed3a;
+  border-color: #0d1117;
+  transform: scale(1.12);
+}
+
+.home-plan-pop { isolation: isolate; }
+
+/* Lime is a background colour here, never a text colour on white: the shared footer's
+   hover state would be unreadable, so it uses the ink colour on the home page. */
+.home-v2 footer a:hover,
+.home-v2 footer a:hover svg { color: var(--ink); }

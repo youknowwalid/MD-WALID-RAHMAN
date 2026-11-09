@@ -83,27 +83,18 @@ export default function ResourcesSection() {
   }
 
   return (
-    <section id="resources" className="py-20 md:py-32 bg-bg-dark border-t border-white/5 relative overflow-hidden transition-all duration-300">
-      
-      {/* Background Ambience */}
-      <div 
-        className="absolute rounded-full pointer-events-none -z-10 w-[400px] h-[400px] top-1/4 -right-20 opacity-[0.05]" 
-        style={{ 
-          background: 'radial-gradient(circle, #f45901 0%, transparent 70%)',
-          filter: 'blur(100px)' 
-        }} 
-      />
+    <section id="resources" className="relative overflow-hidden py-20 md:py-32">
 
       <div className="max-w-7xl mx-auto px-6 relative">
         
         {/* Header Block with navigation controls */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#f45901] mb-2">
-              <Sparkles className="w-4 h-4" />
-              <span>Premium Resources</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-sans font-black tracking-tight text-white leading-tight">
+            <span className="inline-flex items-center gap-2.5 rounded-full border border-border-subtle bg-white px-4 py-2 text-[13px] font-medium text-text-main">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              Premium Resources
+            </span>
+            <h2 className="mt-5 text-[2.3rem] font-medium leading-[1.05] tracking-[-0.045em] text-text-main md:text-6xl">
               Curated Digital Products
             </h2>
           </div>
@@ -114,10 +105,10 @@ export default function ResourcesSection() {
               id="slider-btn-prev"
               onClick={() => handleScroll('left')}
               disabled={!showLeftArrow}
-              className={`w-12 h-12 rounded-full border border-white/10 flex items-center justify-center transition-all ${
-                showLeftArrow 
-                  ? 'bg-neutral-900/80 text-white hover:border-[#f45901] hover:text-[#f45901]' 
-                  : 'bg-neutral-900/20 text-white/30 cursor-not-allowed'
+              className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all ${
+                showLeftArrow
+                  ? 'border-[#0d1117]/15 bg-white text-[#0d1117] hover:-translate-y-0.5 hover:border-[#0d1117]'
+                  : 'cursor-not-allowed border-[#0d1117]/10 bg-bg-card text-[#0d1117]/25'
               }`}
               aria-label="Previous Products"
             >
@@ -127,10 +118,10 @@ export default function ResourcesSection() {
               id="slider-btn-next"
               onClick={() => handleScroll('right')}
               disabled={!showRightArrow}
-              className={`w-12 h-12 rounded-full border border-white/10 flex items-center justify-center transition-all ${
-                showRightArrow 
-                  ? 'bg-neutral-900/80 text-white hover:border-[#f45901] hover:text-[#f45901]' 
-                  : 'bg-neutral-900/20 text-white/30 cursor-not-allowed'
+              className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all ${
+                showRightArrow
+                  ? 'border-[#0d1117]/15 bg-white text-[#0d1117] hover:-translate-y-0.5 hover:border-[#0d1117]'
+                  : 'cursor-not-allowed border-[#0d1117]/10 bg-bg-card text-[#0d1117]/25'
               }`}
               aria-label="Next Products"
             >
@@ -157,7 +148,7 @@ export default function ResourcesSection() {
                 key={product.id}
                 id={`home-product-card-${product.id}`}
                 whileHover={{ y: -6 }}
-                className="w-[280px] sm:w-[320px] md:w-[360px] flex-shrink-0 snap-start bg-neutral-950 rounded-2xl border border-white/5 overflow-hidden group cursor-pointer flex flex-col justify-between"
+                className="group flex w-[280px] flex-shrink-0 cursor-pointer snap-start flex-col justify-between overflow-hidden rounded-[30px] border border-border-subtle bg-white transition-shadow duration-500 hover:shadow-[0_34px_56px_-34px_rgba(13,17,23,0.4)] sm:w-[320px] md:w-[380px]"
                 onClick={() => setActiveProduct(product)}
                   role="button"
                   tabIndex={0}
@@ -165,7 +156,7 @@ export default function ResourcesSection() {
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveProduct(product); } }}
               >
                 {/* Image aspect ratio container to prevent layout shift */}
-                <div className="aspect-[4/3] w-full bg-neutral-900 overflow-hidden relative">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-bg-card">
                   <img
                     src={product.thumbnail}
                     alt=""
@@ -173,29 +164,26 @@ export default function ResourcesSection() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
                   />
-                  {/* Subtle Accent Glow & Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent opacity-60" />
-                  
                   {/* Hover action overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <span className="bg-[#f45901] text-black font-semibold text-xs px-4 py-2 rounded-full flex items-center gap-1.5 shadow-xl">
-                      <Eye className="w-3.5 h-3.5" />
+                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-[#0d1117]/45 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-[#0d1117] shadow-xl">
+                      <Eye className="h-3.5 w-3.5" />
                       Quick View
                     </span>
                   </div>
 
                   {/* Price Tag Badge */}
-                  <div className="absolute top-4 right-4 bg-neutral-950/90 backdrop-blur border border-white/10 px-3 py-1 rounded-full text-xs font-bold text-[#f45901]">
+                  <div className="absolute right-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-[#0d1117] backdrop-blur">
                     {product.price}
                   </div>
                 </div>
 
                 {/* Info Area */}
-                <div className="p-5 flex-grow flex flex-col justify-between">
-                  <h3 className="text-base font-bold text-white group-hover:text-[#f45901] transition-colors duration-300 line-clamp-1 mb-2">
+                <div className="flex flex-grow flex-col justify-between p-6">
+                  <h3 className="mb-2 line-clamp-1 text-[19px] font-semibold tracking-[-0.02em] text-text-main">
                     {product.shortTitle || product.title}
                   </h3>
-                  <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
+                  <p className="line-clamp-2 text-[15px] leading-relaxed text-text-muted">
                     {product.description}
                   </p>
                 </div>
@@ -210,7 +198,7 @@ export default function ResourcesSection() {
           <Link
             id="resources-see-all-btn"
             to="/resources"
-            className="group inline-flex items-center gap-2.5 bg-neutral-900 border border-white/10 hover:border-[#f45901] px-8 py-4 rounded-full transition-all text-sm font-semibold text-white hover:text-[#f45901]"
+            className="home-btn home-mag group border border-[#0d1117]/15 px-8 py-4 text-[16px] text-text-main hover:bg-[#0d1117] hover:text-white"
           >
             <span>See All Digital Products</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
