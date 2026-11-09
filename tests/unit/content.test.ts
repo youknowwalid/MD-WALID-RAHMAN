@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error plain JavaScript serverless function
 import { validate } from '../../api/content.js';
 
 describe('/api/content request checking', () => {

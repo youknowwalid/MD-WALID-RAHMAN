@@ -407,7 +407,13 @@ export default function ProjectDetail() {
             )}
 
             {/* 10b. Full-length website screenshot (capped, expands on request) */}
-            {project.fullPageImage && <FullPageShot key={project.fullPageImage} src={project.fullPageImage} title={project.title} />}
+            {/* Keyed so that moving to another project starts the picture fresh (nothing expanded, nothing measured).
+                The key sits on a fragment: React reserves "key", so a component cannot declare it among its props. */}
+            {project.fullPageImage && (
+              <React.Fragment key={project.fullPageImage}>
+                <FullPageShot src={project.fullPageImage} title={project.title} />
+              </React.Fragment>
+            )}
           </div>
 
           {/* 11. Prev / next */}
