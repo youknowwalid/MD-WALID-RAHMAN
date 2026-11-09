@@ -16,8 +16,41 @@
   line-gap-override: 8.9%;
 }
 
+/* Heading font, self-hosted (Inter Display, SIL Open Font License; see src/fonts/LICENSE-Inter.txt).
+   Served from the site's own address, so the strict Content-Security-Policy in vercel.json
+   (font-src 'self') allows it without opening up Google's servers. Latin subset; only the weights a page uses are downloaded. */
+@font-face {
+  font-family: "Inter Display Web";
+  src: url("./fonts/inter-display-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Display Web";
+  src: url("./fonts/inter-display-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Display Web";
+  src: url("./fonts/inter-display-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Display Web";
+  src: url("./fonts/inter-display-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Poppins", "Poppins Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Display Web", ui-sans-serif, system-ui, sans-serif;
   --color-accent: #f45901;
   --color-bg-dark: #0a0a0a;
   --color-bg-card: #111111;
