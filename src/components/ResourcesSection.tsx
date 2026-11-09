@@ -83,7 +83,7 @@ export default function ResourcesSection() {
   }
 
   return (
-    <section id="resources" className="relative overflow-hidden py-20 md:py-32">
+    <section id="resources" className="relative overflow-hidden py-16 md:py-24">
 
       <div className="max-w-7xl mx-auto px-6 relative">
         

@@ -107,7 +107,7 @@ const Eyebrow = ({ children, onDark = false }: { children: React.ReactNode; onDa
 );
 
 const SectionHead = ({ label, title, lead, onDark = false }: { label: string; title: string; lead?: string; onDark?: boolean }) => (
-  <div className="mb-14 md:mb-20">
+  <div className="mb-12 md:mb-16">
     <Reveal><Eyebrow onDark={onDark}>{label}</Eyebrow></Reveal>
     <Reveal delay={0.07}>
       <h2 className="mt-5 max-w-4xl text-[2.3rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-6xl">{title}</h2>
@@ -474,15 +474,10 @@ export default function Home() {
         </section>
 
         {/* ABOUT SECTION */}
-        <section id="about" className="px-6 py-20 md:py-32">
+        <section id="about" className="px-6 py-16 md:py-24">
           <div className="mx-auto max-w-7xl">
             <div className={cn('grid items-center gap-12 md:gap-16', aboutVideo && 'lg:grid-cols-2')}>
               <div>
-                <Reveal>
-                  <div className="home-spin--seal mb-9 grid h-[108px] w-[108px] place-items-center rounded-full border border-dashed border-[#c9ccd2]" aria-hidden="true">
-                    <span className="home-spin--seal block h-9 w-9 rounded-[10px] bg-[#0d1117]" style={{ animationDirection: 'reverse' }} />
-                  </div>
-                </Reveal>
                 <SectionHead label="About me" title="Crafting Digital Excellence" />
                 <Reveal delay={0.05}>
                   <p className="-mt-6 max-w-2xl text-lg leading-relaxed text-text-muted md:text-xl">{config.aboutText}</p>
@@ -511,7 +506,7 @@ export default function Home() {
         </section>
 
         {/* RESUME SECTION */}
-        <section id="resume" className="px-6 py-20 md:py-32">
+        <section id="resume" className="px-6 py-16 md:py-24">
           <div className="mx-auto max-w-7xl">
             <SectionHead label="Resume" title="My Journey" />
             <div className="grid items-start gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
@@ -570,7 +565,7 @@ export default function Home() {
 
         {/* SERVICES SECTION */}
         {services.length > 0 && (
-          <section id="services" className="px-6 py-20 md:py-32">
+          <section id="services" className="px-6 py-16 md:py-24">
             <div className="mx-auto max-w-7xl">
               <SectionHead label="What I do" title="My Specialities" />
               <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
@@ -643,7 +638,7 @@ export default function Home() {
         )}
 
         {/* PROJECTS SECTION */}
-        <section id="projects" className="px-6 py-20 md:py-32">
+        <section id="projects" className="px-6 py-16 md:py-24">
           <div className="mx-auto max-w-7xl">
             <SectionHead label="Portfolio" title="Featured Work" />
             {projects.length === 0 ? (
@@ -700,7 +695,7 @@ export default function Home() {
 
         {/* TESTIMONIALS */}
         {testimonials.length > 0 && (
-          <section className="overflow-hidden bg-bg-card py-20 md:py-32" aria-label="Client testimonials">
+          <section className="overflow-hidden bg-bg-card py-16 md:py-24" aria-label="Client testimonials">
             <div className="mx-auto mb-14 max-w-7xl px-6 md:mb-20">
               <SectionHead label="Clients" title="Kind Words" />
             </div>
@@ -738,7 +733,7 @@ export default function Home() {
 
         {/* PRICING SECTION */}
         {pricingPlans.length > 0 && (
-          <section id="pricing" className="px-6 py-20 md:py-32">
+          <section id="pricing" className="px-6 py-16 md:py-24">
             <div className="mx-auto max-w-7xl">
               <SectionHead label="Investment" title="Pricing Plans" />
               <div className="grid items-stretch gap-7 lg:grid-cols-3">
@@ -748,7 +743,7 @@ export default function Home() {
                       className={cn(
                         'relative flex h-full flex-col rounded-[38px] p-9 md:p-10',
                         plan.accent
-                          ? 'home-plan-pop home-on-dark bg-[#0d1117]'
+                          ? 'home-plan-pop home-on-dark'
                           : 'border border-border-subtle bg-bg-card transition-[transform,box-shadow] duration-500 hover:-translate-y-2 hover:shadow-[0_44px_70px_-40px_rgba(13,17,23,0.45)]',
                       )}
                     >
@@ -814,7 +809,7 @@ export default function Home() {
         )}
 
         {/* BLOG SECTION */}
-        <section id="blog" className="px-6 py-20 md:py-32">
+        <section id="blog" className="px-6 py-16 md:py-24">
           <div className="mx-auto max-w-7xl">
             <SectionHead label="Journal" title="Latest Insights" />
             {blogPosts.length === 0 ? (
@@ -863,7 +858,7 @@ export default function Home() {
         <ResourcesSection />
 
         {/* CONTACT SECTION */}
-        <section id="contact" className="px-4 pb-20 pt-10 md:px-6 md:pb-32">
+        <section id="contact" className="px-4 pb-16 pt-6 md:px-6 md:pb-24">
           <div className="mx-auto max-w-[1400px]">
             <div className="home-on-dark relative overflow-hidden rounded-[40px] bg-[linear-gradient(180deg,#3f78ad_0%,#5f93c4_55%,#8fb6d9_100%)] px-7 py-16 md:rounded-[56px] md:px-16 md:py-24">
               <div className="home-cloud home-cloud--a h-[200px] w-[620px] left-[-120px] bottom-[-60px]" aria-hidden="true" />

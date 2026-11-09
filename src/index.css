@@ -309,14 +309,14 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 @keyframes home-rotate {
   to { --home-angle: 360deg; }
 }
-.home-plan-pop { position: relative; }
-.home-plan-pop::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  z-index: -1;
-  background: conic-gradient(from var(--home-angle), #c3ed3a, #5f93c4, #c3ed3a);
+/* The turning ring is painted in the border box and the card's own colour in the padding
+   box, so the gradient can never wash over the text the way a layer behind it would. */
+.home-plan-pop {
+  position: relative;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#0d1117, #0d1117) padding-box,
+    conic-gradient(from var(--home-angle), #c3ed3a, #5f93c4, #c3ed3a) border-box;
   animation: home-rotate 6s linear infinite;
 }
 
@@ -383,7 +383,7 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 @media (prefers-reduced-motion: reduce) {
   .home-marquee-row,
   .home-marquee-row--rev,
-  .home-plan-pop::before {
+  .home-plan-pop {
     animation: none !important;
   }
 }
@@ -427,8 +427,6 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   border-color: #0d1117;
   transform: scale(1.12);
 }
-
-.home-plan-pop { isolation: isolate; }
 
 /* Lime is a background colour here, never a text colour on white: the shared footer's
    hover state would be unreadable, so it uses the ink colour on the home page. */
