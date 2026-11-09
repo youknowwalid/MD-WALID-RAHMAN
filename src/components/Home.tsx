@@ -81,8 +81,10 @@ const FileVideo = ({ url }: { url: string }) => {
   );
 };
 
-/** Fades a block up into place the first time it is scrolled into view. */
-const Reveal = ({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) => (
+/** Fades a block up into place the first time it is scrolled into view.
+    Several of these sit in lists, so the props are intersected with React.Attributes,
+    which is where React declares `key` (the same shape NavItem uses). */
+const Reveal = ({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string } & React.Attributes) => (
   <m.div
     initial={{ opacity: 0, y: 28 }}
     whileInView={{ opacity: 1, y: 0 }}
