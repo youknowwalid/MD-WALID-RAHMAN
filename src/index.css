@@ -442,3 +442,150 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 
 /* The header floats over the page, so an anchor must stop below it. */
 .home-v2 main > section { scroll-margin-top: 92px; }
+
+/* ============================================================================
+   HOME PAGE — motion and detail from the demo
+   ========================================================================== */
+
+/* Reading progress along the top of the page. */
+.home-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  height: 3px;
+  width: 0;
+  background: var(--color-accent);
+}
+
+/* Back to the top, once the hero is well out of sight. */
+.home-totop {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 0;
+  border-radius: 50%;
+  background: #0d1117;
+  color: #ffffff;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease, cubic-bezier(0.2, 0.8, 0.2, 1)), transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.home-totop.is-on { opacity: 1; transform: none; pointer-events: auto; }
+
+/* A bead of light travelling around the portrait's dashed ring. */
+.home-ring-dot::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  margin-left: -7px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 18px rgba(195, 237, 58, 0.9);
+}
+
+/* The skill bars catch the light once they have filled. */
+@keyframes home-shine { to { transform: translateX(100%); } }
+.home-bar-fill { position: relative; overflow: hidden; }
+.home-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: translateX(-100%);
+  animation: home-shine 3.4s ease-in-out infinite 1.8s;
+}
+
+/* Slow blue light behind the dark skills panel. */
+.home-skills-glow {
+  position: absolute;
+  top: -260px;
+  right: -220px;
+  width: 700px;
+  height: 700px;
+  max-width: 120vw;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(63, 120, 173, 0.5), transparent);
+  animation: home-drift 16s ease-in-out infinite alternate;
+}
+
+/* A sheen turning slowly over the introduction video. */
+.home-sheen::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background: conic-gradient(from 0deg, transparent, rgba(195, 237, 58, 0.22), transparent 30%);
+  animation: home-spin 9s linear infinite;
+}
+
+/* A résumé dot lights up as its entry arrives, not only on hover. */
+.home-tl-item.is-in .home-tl-dot {
+  background: var(--color-accent);
+  border-color: #0d1117;
+  transform: scale(1.12);
+}
+
+/* The header drops in on first paint. */
+@keyframes home-nav-in {
+  from { opacity: 0; transform: translateY(-26px); }
+  to { opacity: 1; transform: none; }
+}
+.home-nav-in { animation: home-nav-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both 0.15s; }
+
+/* The current section's link draws its own underline. */
+@keyframes home-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.home-navlink { position: relative; }
+.home-navlink.is-on::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 1px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform-origin: left;
+  animation: home-grow 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Covers of the digital products, stood up like real ones. */
+.home-book {
+  transform: perspective(900px) rotateY(-16deg);
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.home-prod:hover .home-book { transform: perspective(900px) rotateY(-4deg) translateY(-6px); }
+.home-book::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  border-radius: 16px 0 0 16px;
+  background: rgba(0, 0, 0, 0.28);
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-bar-fill::after,
+  .home-skills-glow,
+  .home-sheen::after,
+  .home-nav-in,
+  .home-navlink.is-on::after {
+    animation: none !important;
+  }
+  .home-sheen::after { display: none; }
+}
