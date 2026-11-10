@@ -335,8 +335,8 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 .home-field > textarea {
   width: 100%;
   border: 1px solid rgba(13, 17, 23, 0.12);
-  border-radius: 18px;
-  padding: 1.45rem 1.1rem 0.55rem;
+  border-radius: 14px;
+  padding: 1.2rem 1rem 0.4rem;
   font: inherit;
   font-size: 1rem;
   background: #f8fafc;
@@ -347,9 +347,9 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 }
 .home-field > label {
   position: absolute;
-  left: 1.1rem;
-  top: 1.05rem;
-  font-size: 1rem;
+  left: 1rem;
+  top: 0.82rem;
+  font-size: 0.95rem;
   color: #717886;
   pointer-events: none;
   transition: top 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), font-size 0.22s, color 0.22s;
@@ -364,8 +364,8 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 .home-field > input:not(:placeholder-shown) + label,
 .home-field > textarea:focus + label,
 .home-field > textarea:not(:placeholder-shown) + label {
-  top: 0.42rem;
-  font-size: 0.68rem;
+  top: 0.3rem;
+  font-size: 0.7rem;
   letter-spacing: 0.04em;
   color: #4b5563;
 }

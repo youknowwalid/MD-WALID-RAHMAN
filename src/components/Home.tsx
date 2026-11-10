@@ -1097,11 +1097,11 @@ export default function Home() {
         {/* CONTACT SECTION */}
         <section id="contact" className="px-3 pb-12 pt-6 md:px-6 md:pb-[120px]">
           <div className="mx-auto max-w-[1400px]">
-            <div className="home-on-dark relative overflow-hidden rounded-[32px] bg-[linear-gradient(180deg,#3f78ad_0%,#5f93c4_55%,#8fb6d9_100%)] px-4 py-10 md:rounded-[56px] md:px-16 md:py-24">
+            <div className="home-on-dark relative overflow-hidden rounded-[32px] bg-[linear-gradient(180deg,#3f78ad_0%,#5f93c4_55%,#8fb6d9_100%)] px-4 py-8 md:rounded-[40px] md:px-12 md:py-12">
               <div className="home-cloud home-cloud--a bottom-[-60px] left-[-120px] h-[200px] w-[620px]" aria-hidden="true" />
               <div className="home-cloud home-cloud--b right-[-160px] top-[-70px] h-[220px] w-[720px]" aria-hidden="true" />
 
-              <div className="relative grid gap-12 lg:grid-cols-2 lg:gap-20">
+              <div className="relative grid gap-8 lg:grid-cols-2 lg:gap-12">
                 <div>
                   <SectionHead
                     label="Contact"
@@ -1134,9 +1134,9 @@ export default function Home() {
                   <form
                     onSubmit={handleContactSubmit}
                     aria-label="Contact form"
-                    className="grid gap-4 rounded-[24px] bg-white p-4 text-[#0d1117] sm:rounded-[32px] sm:p-7 shadow-[0_40px_60px_-30px_rgba(8,26,48,0.6)] md:p-9"
+                    className="grid gap-3 rounded-[24px] bg-white p-4 text-[#0d1117] sm:rounded-[28px] sm:p-5 shadow-[0_40px_60px_-30px_rgba(8,26,48,0.6)] md:p-6"
                   >
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-3 md:grid-cols-2">
                       <div className="home-field">
                         <input id="contact-name" name="name" type="text" required maxLength={120} autoComplete="name" placeholder=" " />
                         <label htmlFor="contact-name">Name</label>
@@ -1151,7 +1151,7 @@ export default function Home() {
                       <label htmlFor="contact-subject">Subject</label>
                     </div>
                     <div className="home-field">
-                      <textarea id="contact-message" name="message" rows={5} required maxLength={5000} placeholder=" "></textarea>
+                      <textarea id="contact-message" name="message" rows={4} required maxLength={5000} placeholder=" "></textarea>
                       <label htmlFor="contact-message">Message</label>
                     </div>
 
@@ -1164,7 +1164,7 @@ export default function Home() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="home-btn home-mag mt-1 w-full bg-accent px-7 py-4 text-[16px] text-[#0d1117] disabled:opacity-60"
+                      className="home-btn home-mag w-full bg-accent px-7 py-3.5 text-[16px] text-[#0d1117] disabled:opacity-60"
                     >
                       {isSubmitting
                         ? <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Sending…</span></>
