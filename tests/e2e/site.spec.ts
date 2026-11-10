@@ -170,11 +170,12 @@ test.describe('logos and intro video', () => {
       { name: 'Hidden Co', image: img('h2'), url: '', hidden: true },
     ] });
     await page.goto(CONNECTED + '/');
-    const row = page.locator('.home-marquee-row');
-    await expect(row.locator('img[alt="Acme Studio"]')).toHaveCount(1);
-    await expect(row.locator('img[alt="Northwind"]')).toHaveCount(1);
+    // With only a few logos each half of the loop is repeated so the strip always reaches both screen edges.
+    const row = page.locator('.home-marquee-row').first();
+    await expect(row.locator('img[alt="Acme Studio"]').first()).toBeAttached();
+    await expect(row.locator('img[alt="Northwind"]').first()).toBeAttached();
     await expect(row.locator('img[alt="Hidden Co"]')).toHaveCount(0);
-    await expect(row.getByRole('link', { name: 'Acme Studio' })).toHaveAttribute('href', 'https://acme.example');
+    await expect(row.getByRole('link', { name: 'Acme Studio' }).first()).toHaveAttribute('href', 'https://acme.example');
     const box = await row.boundingBox();
     expect(box!.height).toBeGreaterThan(26);
     expect(box!.height).toBeLessThan(31); // same row height as the text names it replaces
