@@ -2,6 +2,8 @@ import { ResumeItem, Service } from '../types';
 
 export interface HeaderLink { label: string; url: string }
 export interface SocialLink { platform: string; url: string }
+/** One logo in the home page's "Teams I have worked with" strip. */
+export interface ClientLogo { name: string; image: string; url: string; hidden: boolean }
 export interface HeroStat { value: string; unit: string; label: string }
 
 /** Branding, contact details and page texts (stored under site_settings.global). */
@@ -44,6 +46,8 @@ export interface SiteConfig {
   /** The "Current focus" cards on the home page (leave the title empty to hide them). */
   currentFocusTitle: string;
   currentFocusText: string;
+  /** Logos of the businesses he has worked with (stored under site_settings.global). */
+  clientLogos: ClientLogo[];
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
@@ -164,6 +168,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   wordmarkAccent: 'walid',
   currentFocusTitle: 'Strategic Brand Evolution',
   currentFocusText: '',
+  clientLogos: [],
 };
 
 export const DEFAULT_HERO: HeroConfig = {

@@ -162,6 +162,25 @@ test.describe('logos and intro video', () => {
     await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(1);
   });
 
+  test('client logos replace the company names in the home strip and keep its height', async ({ page, request }) => {
+    const img = (n: string) => `${API}/storage/v1/object/public/site-media/images/${n}.png`;
+    await seed(request, 'global', { clientLogos: [
+      { name: 'Acme Studio', image: img('a'), url: 'https://acme.example', hidden: false },
+      { name: 'Northwind', image: img('n'), url: '', hidden: false },
+      { name: 'Hidden Co', image: img('h2'), url: '', hidden: true },
+    ] });
+    await page.goto(CONNECTED + '/');
+    const row = page.locator('.home-marquee-row');
+    await expect(row.locator('img[alt="Acme Studio"]')).toHaveCount(1);
+    await expect(row.locator('img[alt="Northwind"]')).toHaveCount(1);
+    await expect(row.locator('img[alt="Hidden Co"]')).toHaveCount(0);
+    await expect(row.getByRole('link', { name: 'Acme Studio' })).toHaveAttribute('href', 'https://acme.example');
+    const box = await row.boundingBox();
+    expect(box!.height).toBeGreaterThan(26);
+    expect(box!.height).toBeLessThan(31); // same row height as the text names it replaces
+    await seed(request, 'global', { clientLogos: [] });
+  });
+
   test('without logos, no site-name text appears in the footer', async ({ page }) => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
