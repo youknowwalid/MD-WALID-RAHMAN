@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { m, useInView, useReducedMotion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Laptop, Braces, Palette, Megaphone, Check, X, ArrowUpRight, ArrowUp,
   Mail, Phone, MapPin, Clock, Loader2, Layers, PenTool, Compass, Sparkles,
@@ -289,6 +289,26 @@ export default function Home() {
   const formShownAt = useRef(Date.now());
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [openPlans, setOpenPlans] = useState<Record<string, boolean>>({});
+
+  // The first screen is drawn first; the sections below it are added in three quick steps right afterwards
+  // (all at once if the visitor scrolls or taps, or arrives at a #section link). Same page, same look: it only
+  // keeps the browser from building the whole long page before it can show the first screen.
+  const { hash } = useLocation();
+  const [stage, setStage] = useState(0);
+  useEffect(() => {
+    if (stage >= 3) return;
+    if (hash) { setStage(3); return; }
+    const later: (cb: () => void, o?: { timeout: number }) => number =
+      window.requestIdleCallback ? (cb, o) => window.requestIdleCallback(cb, o) : (cb) => window.setTimeout(cb, 150);
+    const id = later(() => setStage((n) => Math.min(3, n + 1)), { timeout: 600 });
+    const all = () => setStage(3);
+    const events = ['scroll', 'touchstart', 'pointerdown', 'keydown'] as const;
+    events.forEach((e) => window.addEventListener(e, all, { once: true, passive: true }));
+    return () => {
+      (window.cancelIdleCallback || window.clearTimeout)(id);
+      events.forEach((e) => window.removeEventListener(e, all));
+    };
+  }, [stage, hash]);
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineFillRef = useRef<HTMLDivElement>(null);
@@ -617,6 +637,7 @@ export default function Home() {
           )}
         </section>
 
+        {stage >= 1 && (<>
         {/* ABOUT SECTION */}
         <section id="about" className="px-6 py-10 md:py-14">
           <div className="mx-auto max-w-7xl">
@@ -764,6 +785,9 @@ export default function Home() {
           </section>
         )}
 
+        </>)}
+
+        {stage >= 2 && (<>
         {/* PROJECTS SECTION */}
         <section id="projects" className="px-6 py-12 md:py-[120px]">
           <div className="mx-auto max-w-7xl">
@@ -1056,6 +1080,9 @@ export default function Home() {
           </section>
         )}
 
+        </>)}
+
+        {stage >= 3 && (<>
         {/* BLOG SECTION */}
         <section id="blog" className="px-6 py-10 md:py-14">
           <div className="mx-auto max-w-7xl">
@@ -1199,6 +1226,10 @@ export default function Home() {
             </div>
           </div>
         </section>
+        </>)}
+
+        {/* Holds the place of the sections that are still to come, so the footer stays below the first screen. */}
+        {stage < 3 && <div aria-hidden="true" style={{ minHeight: '150vh' }} />}
 
       </main>
 

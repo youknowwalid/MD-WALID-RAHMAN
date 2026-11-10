@@ -442,7 +442,6 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 
 /* The header floats over the page, so an anchor must stop below it. */
 .home-v2 main > section { scroll-margin-top: 92px; }
-
 /* ============================================================================
    HOME PAGE — motion and detail from the demo
    ========================================================================== */
