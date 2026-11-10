@@ -177,7 +177,7 @@ test.describe('logos and intro video', () => {
     await expect(row.locator('img[alt="Hidden Co"]')).toHaveCount(0);
     await expect(row.getByRole('link', { name: 'Acme Studio' }).first()).toHaveAttribute('href', 'https://acme.example');
     const box = await row.boundingBox();
-    expect(box!.height).toBeGreaterThan(26);
+    expect(box!.height).toBeGreaterThan(23); // 24 px on phones, 28.5 px on desktop: the same as the text names
     expect(box!.height).toBeLessThan(31); // same row height as the text names it replaces
     await seed(request, 'global', { clientLogos: [] });
   });
