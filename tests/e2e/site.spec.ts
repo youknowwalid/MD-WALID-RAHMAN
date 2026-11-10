@@ -154,18 +154,17 @@ test.describe('logos and intro video', () => {
   const seed = (request: any, key: string, value: object) =>
     request.post(`${API}/__seed-settings`, { data: { key, value } });
 
-  test('header and footer show only the uploaded logos, never a text name', async ({ page, request }) => {
+  test('the footer shows only the uploaded logo, and the home header shows its wordmark', async ({ page, request }) => {
     await seed(request, 'global', { siteLogo: `${API}/storage/v1/object/public/site-media/images/h.png`, footerLogo: `${API}/storage/v1/object/public/site-media/images/f.png` });
     await page.goto(CONNECTED + '/');
-    await expect(page.getByRole('navigation', { name: 'Main' }).locator('img[src$="h.png"]')).toBeAttached();
     await expect(page.locator('footer img[src$="f.png"]')).toBeAttached();
-    await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(0);
     await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(1);
   });
 
-  test('without logos, no site-name text appears in header or footer', async ({ page }) => {
+  test('without logos, no site-name text appears in the footer', async ({ page }) => {
     await page.goto(CONNECTED + '/');
-    await expect(page.getByText('youknowwalid', { exact: true })).toHaveCount(0);
+    await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
   });
 
   test('a video file with no playable picture shows a notice instead of a silent black box', async ({ page, request }) => {
