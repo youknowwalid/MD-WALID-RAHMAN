@@ -284,6 +284,7 @@ export default function Home() {
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error' | 'limited' | 'mailto'>('idle');
   const formShownAt = useRef(Date.now());
   const [showAllPosts, setShowAllPosts] = useState(false);
+  const [openPlans, setOpenPlans] = useState<Record<string, boolean>>({});
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineFillRef = useRef<HTMLDivElement>(null);
@@ -522,7 +523,7 @@ export default function Home() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.72, duration: 0.6, ease: EASE }}
-                  className="mt-12 grid grid-cols-3 gap-5 border-t border-white/25 pt-8 md:mt-14 md:gap-8"
+                  className="mt-12 hidden grid-cols-3 gap-5 border-t border-white/25 pt-8 md:mt-14 md:gap-8 lg:grid"
                 >
                   {config.heroStats.map((stat, i) => (
                     <div key={i}>
@@ -567,16 +568,32 @@ export default function Home() {
             <i className="home-cloud-front__c" />
           </div>
 
+          {config.heroStats.length > 0 && (
+            <div className="absolute inset-x-6 bottom-[84px] z-[3] md:bottom-[112px] lg:hidden">
+              <dl className="mx-auto grid max-w-md grid-cols-3 gap-3 text-center">
+                {config.heroStats.map((stat, i) => (
+                  <div key={i}>
+                    <dd className="text-[24px] font-semibold tracking-[-0.03em] text-[#0d1117]">
+                      <CountText raw={stat.value} />
+                      {stat.unit && <> <span className="text-[0.55em] font-medium text-[#4a5361]">{stat.unit}</span></>}
+                    </dd>
+                    <dt className="mt-0.5 text-[12px] leading-tight text-[#4a5361]">{stat.label}</dt>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
           {workedWith.length > 2 && (
-            <div className="absolute inset-x-0 bottom-7 z-[3] hidden md:block">
-              <p className="text-center text-[15px] text-[#4a5361]">Teams I have worked with</p>
-              <div className="home-marquee mt-4">
-                <div className="home-marquee-row flex w-max gap-14" style={{ animationDuration: '34s' }}>
+            <div className="absolute inset-x-0 bottom-3 z-[3] md:bottom-7">
+              <p className="text-center text-[13px] text-[#4a5361] md:text-[15px]">Teams I have worked with</p>
+              <div className="home-marquee mt-2 md:mt-4">
+                <div className="home-marquee-row flex w-max gap-10 md:gap-14" style={{ animationDuration: '34s' }}>
                   {[...workedWith, ...workedWith].map((name, i) => (
                     <span
                       key={`${name}-${i}`}
                       aria-hidden={i >= workedWith.length ? 'true' : undefined}
-                      className="whitespace-nowrap text-[19px] font-semibold tracking-[-0.02em] text-[#1f2733]/80"
+                      className="whitespace-nowrap text-[16px] font-semibold tracking-[-0.02em] text-[#1f2733]/80 md:text-[19px]"
                     >
                       {name}
                     </span>
@@ -627,7 +644,7 @@ export default function Home() {
 
               {hero.resumeImage && (
                 <Reveal from="right" delay={0.1} className="order-first lg:order-last">
-                  <div className="relative h-[360px] overflow-hidden rounded-[32px] shadow-[0_30px_55px_-32px_rgba(13,17,23,0.5)] lg:h-full lg:min-h-[420px]">
+                  <div className="relative h-[260px] overflow-hidden rounded-[32px] sm:h-[360px] shadow-[0_30px_55px_-32px_rgba(13,17,23,0.5)] lg:h-full lg:min-h-[420px]">
                     <img
                       src={hero.resumeImage}
                       alt=""
@@ -636,7 +653,7 @@ export default function Home() {
                       loading="lazy"
                     />
                     <div className="absolute inset-x-4 bottom-4 rounded-[16px] border border-white/15 bg-[#0d1117]/60 px-4 py-3 backdrop-blur-md">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">Current Focus</div>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-accent">Current Focus</div>
                       <div className="text-[17px] font-semibold tracking-[-0.02em] text-white">Strategic Brand Evolution</div>
                     </div>
                   </div>
@@ -682,8 +699,8 @@ export default function Home() {
 
         {/* SKILLS SECTION */}
         {skills.length > 0 && (
-          <section id="skills" className="px-4 py-6 md:px-6 md:py-8">
-            <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-6 py-8 md:rounded-[36px] md:px-12 md:py-10">
+          <section id="skills" className="px-3 py-6 md:px-6 md:py-8">
+            <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-5 py-8 md:rounded-[36px] md:px-12 md:py-10">
               <div className="home-skills-glow" aria-hidden="true" />
               <div className="relative grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">
                 <div>
@@ -730,9 +747,9 @@ export default function Home() {
         )}
 
         {/* PROJECTS SECTION */}
-        <section id="projects" className="px-6 py-20 md:py-[120px]">
+        <section id="projects" className="px-6 py-12 md:py-[120px]">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-14 flex flex-wrap items-end justify-between gap-6 md:mb-[70px]">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-6 md:mb-[70px]">
               <div>
                 <Reveal><Eyebrow>Portfolio</Eyebrow></Reveal>
                 <Reveal delay={0.07}>
@@ -745,9 +762,9 @@ export default function Home() {
               loaded && <EmptyNote>Selected projects will be shown here soon.</EmptyNote>
             ) : (
               <>
-                <div className="grid gap-7 lg:grid-cols-[1.25fr_0.75fr]">
+                <div className="grid gap-5 md:gap-7 lg:grid-cols-[1.25fr_0.75fr]">
                   <Reveal from="zoom">
-                    <article className="group relative h-full min-h-[420px] overflow-hidden rounded-[44px] bg-bg-card lg:min-h-[560px]">
+                    <article className="group relative h-full min-h-[340px] overflow-hidden rounded-[28px] bg-bg-card md:min-h-[420px] md:rounded-[44px] lg:min-h-[560px]">
                       <Link to={`/projects/${featuredProject.slug || featuredProject.id}`} className="block h-full w-full">
                         {featuredProject.image && (
                           <Photo
@@ -764,14 +781,14 @@ export default function Home() {
                           />
                         )}
                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,18,32,0)_42%,rgba(10,18,32,0.86)_100%)]" aria-hidden="true" />
-                        <div className="absolute inset-x-8 bottom-8">
+                        <div className="absolute inset-x-5 bottom-5 md:inset-x-8 md:bottom-8">
                           <span className="inline-block rounded-xl bg-white/20 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm">
                             {featuredProject.category}
                           </span>
                           <h3 className="mt-4 text-[32px] font-medium tracking-[-0.035em] text-white md:text-[50px]">{featuredProject.title}</h3>
                         </div>
                         <span
-                          className="absolute right-8 top-8 grid h-[58px] w-[58px] place-items-center rounded-full bg-accent text-[#0d1117] transition-transform duration-500 group-hover:rotate-45 group-hover:scale-105"
+                          className="absolute right-5 top-5 grid h-[46px] w-[46px] place-items-center md:right-8 md:top-8 md:h-[58px] md:w-[58px] rounded-full bg-accent text-[#0d1117] transition-transform duration-500 group-hover:rotate-45 group-hover:scale-105"
                           aria-hidden="true"
                         >
                           <ArrowUpRight className="h-6 w-6" />
@@ -782,7 +799,7 @@ export default function Home() {
 
                   <div className="grid gap-7">
                     {guide ? (
-                      <Reveal delay={0.12} className="h-full">
+                      <Reveal delay={0.12} className="hidden h-full lg:block">
                         <div className="flex h-full flex-col justify-between rounded-[44px] bg-[linear-gradient(150deg,#e8f6c7,#c3ed3a)] p-9">
                           <div>
                             <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#0d1117]/60">Premium resource</span>
@@ -824,7 +841,7 @@ export default function Home() {
                       </Reveal>
                     ) : null}
 
-                    <Reveal delay={0.22} className="h-full">
+                    <Reveal delay={0.22} className="hidden h-full lg:block">
                       <div className="flex h-full flex-col justify-between rounded-[44px] bg-[linear-gradient(150deg,#e9e3fb,#c9d9fb)] p-9">
                         <div>
                           <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#0d1117]/60">Current focus</span>
@@ -841,7 +858,7 @@ export default function Home() {
                 </div>
 
                 {remainingProjects.length > 0 && (
-                  <div className="mt-7 grid gap-7 md:grid-cols-2">
+                  <div className="mt-5 grid gap-5 md:mt-7 md:gap-7 md:grid-cols-2">
                     {remainingProjects.map((project, i) => (
                       <Reveal key={project.id || project.title} delay={Math.min((i % 2) * 0.1, 0.2)}>
                         <article className="group relative aspect-[4/3] overflow-hidden rounded-[44px] bg-bg-card">
@@ -885,38 +902,42 @@ export default function Home() {
         </section>
 
         {/* TESTIMONIALS */}
-        {testimonials.length > 0 && (
-          <section className="overflow-hidden bg-bg-card py-8 md:py-12" aria-label="Client testimonials">
-            <div className="mx-auto mb-5 max-w-7xl px-6">
-              <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('testimonials')}</h2>
-            </div>
-            <div className="home-marquee">
-              <div className="home-marquee-row flex w-max gap-5 px-2.5" style={{ animationDuration: '90s' }}>
-                {(() => {
-                  // One row, looped. Each half holds enough cards to be wider than the screen.
-                  const half = Array.from({ length: Math.max(1, Math.ceil(8 / testimonials.length)) }, () => testimonials).flat();
-                  return [...half, ...half].map((t, i) => (
-                    <figure
-                      key={`${t.id}-${i}`}
-                      aria-hidden={i >= half.length ? 'true' : undefined}
-                      className="m-0 flex w-[290px] shrink-0 flex-col rounded-[22px] border border-border-subtle bg-white p-5 md:w-[350px]"
-                    >
-                      <div className="h-4 text-[38px] font-bold leading-[0.6] text-accent" aria-hidden="true">&ldquo;</div>
-                      <blockquote className="m-0 line-clamp-3 text-[15px] leading-relaxed text-[#2d3440]">{t.content}</blockquote>
-                      <figcaption className="mt-4 flex items-center gap-3">
-                        <Avatar src={t.avatar} name={t.name} className="h-9 w-9 shrink-0" />
-                        <div className="min-w-0">
-                          <div className="text-[14px] font-semibold leading-tight text-text-main">{t.name}</div>
-                          <div className="truncate text-[10px] uppercase tracking-[0.1em] text-text-muted">{t.role}</div>
-                        </div>
-                      </figcaption>
-                    </figure>
-                  ));
-                })()}
+        {testimonials.length > 0 && (() => {
+          const card = (t: (typeof testimonials)[number], key: string, cls: string, hidden?: boolean) => (
+            <figure
+              key={key}
+              aria-hidden={hidden ? 'true' : undefined}
+              className={cn('m-0 flex shrink-0 flex-col rounded-[22px] border border-border-subtle bg-white p-5', cls)}
+            >
+              <div className="h-4 text-[38px] font-bold leading-[0.6] text-accent" aria-hidden="true">&ldquo;</div>
+              <blockquote className="m-0 line-clamp-4 text-[15px] leading-relaxed text-[#2d3440] md:line-clamp-3">{t.content}</blockquote>
+              <figcaption className="mt-4 flex items-center gap-3">
+                <Avatar src={t.avatar} name={t.name} className="h-9 w-9 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[14px] font-semibold leading-tight text-text-main">{t.name}</div>
+                  <div className="truncate text-[12px] tracking-[0.02em] text-text-muted md:text-[10px] md:uppercase md:tracking-[0.1em]">{t.role}</div>
+                </div>
+              </figcaption>
+            </figure>
+          );
+          // The looping strip is for larger screens; on a phone the cards are swiped by hand.
+          const half = Array.from({ length: Math.max(1, Math.ceil(8 / testimonials.length)) }, () => testimonials).flat();
+          return (
+            <section className="overflow-hidden bg-bg-card py-8 md:py-12" aria-label="Client testimonials">
+              <div className="mx-auto mb-5 max-w-7xl px-6">
+                <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('testimonials')}</h2>
               </div>
-            </div>
-          </section>
-        )}
+              <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:hidden">
+                {testimonials.map((t, i) => card(t, `m-${t.id}-${i}`, 'w-[82%] snap-center'))}
+              </div>
+              <div className="home-marquee hidden md:block">
+                <div className="home-marquee-row flex w-max gap-5 px-2.5" style={{ animationDuration: '90s' }}>
+                  {[...half, ...half].map((t, i) => card(t, `${t.id}-${i}`, 'w-[350px]', i >= half.length))}
+                </div>
+              </div>
+            </section>
+          );
+        })()}
 
         {/* PRICING SECTION */}
         {pricingPlans.length > 0 && (
@@ -927,8 +948,11 @@ export default function Home() {
                 {pricingPlans.map((plan, i) => {
                   const rawPrice = String(plan.price ?? '').trim();
                   const needsCurrency = /^\d/.test(rawPrice);
+                  const planKey = String(plan.id || plan.name);
+                  const open = !!openPlans[planKey];
+                  const canCollapse = (plan.features || []).length > 5 || (plan.unavailableFeatures || []).length > 0;
                   return (
-                    <Reveal key={plan.id || plan.name} delay={Math.min(i * 0.1, 0.25)} className="h-full">
+                    <Reveal key={plan.id || plan.name} delay={Math.min(i * 0.1, 0.25)} className={cn('h-full', plan.accent && 'order-first lg:order-none')}>
                       <div
                         className={cn(
                           'relative flex h-full flex-col rounded-[24px] p-6',
@@ -967,22 +991,32 @@ export default function Home() {
 
                         <hr className={cn('my-4 h-px border-0', plan.accent ? 'bg-white/15' : 'bg-[#0d1117]/10')} />
 
-                        <h3 className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted">What&apos;s included</h3>
+                        <h3 className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-text-muted md:text-[10px] md:tracking-[0.18em]">What&apos;s included</h3>
                         <ul className="flex-grow space-y-1.5">
-                          {(plan.features || []).map((f) => (
-                            <li key={f} className="flex items-start gap-3 text-[14px] leading-snug text-text-main">
+                          {(plan.features || []).map((f, fi) => (
+                            <li key={f} className={cn('items-start gap-3 text-[14px] leading-snug text-text-main', open || fi < 5 ? 'flex' : 'hidden lg:flex')}>
                               <Check className={cn('mt-0.5 h-3.5 w-3.5 shrink-0', plan.accent ? 'text-accent' : 'text-[#15803d]')} aria-hidden="true" />
                               <span>{f}</span>
                             </li>
                           ))}
                           {(plan.unavailableFeatures || []).map((f) => (
-                            <li key={f} className="flex items-start gap-3 text-[14px] leading-snug text-text-muted/70">
+                            <li key={f} className={cn('items-start gap-3 text-[14px] leading-snug text-text-muted/70', open ? 'flex' : 'hidden lg:flex')}>
                               <X className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden="true" />
                               <span className="line-through"><span className="sr-only">Not included: </span>{f}</span>
                             </li>
                           ))}
                         </ul>
 
+                        {canCollapse && (
+                          <button
+                            type="button"
+                            onClick={() => setOpenPlans((o) => ({ ...o, [planKey]: !o[planKey] }))}
+                            aria-expanded={open}
+                            className="mt-3 inline-flex min-h-11 items-center self-start text-[14px] font-medium text-text-main underline underline-offset-4 lg:hidden"
+                          >
+                            {open ? 'Show fewer features' : 'See all features'}
+                          </button>
+                        )}
                         <a
                           href={safeUrl(plan.buttonUrl) || '/#contact'}
                           {...(/^https?:/i.test(plan.buttonUrl || '') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
@@ -1019,7 +1053,7 @@ export default function Home() {
                           className="flex h-full flex-col justify-between rounded-[22px] bg-bg-card p-5 transition-[transform,background-color] duration-300 hover:-translate-y-1 hover:bg-[#0d1117]"
                         >
                           <div>
-                            <span className="text-[12px] font-semibold uppercase tracking-[0.14em] text-text-muted transition-colors duration-300 group-hover:text-white/50">
+                            <span className="hidden text-[12px] font-semibold uppercase tracking-[0.14em] text-text-muted transition-colors duration-300 group-hover:text-white/50 md:inline">
                               {String(i + 1).padStart(2, '0')}
                             </span>
                             <h3 className="mt-2 line-clamp-3 text-[18px] font-semibold leading-[1.2] tracking-[-0.02em] text-text-main transition-colors duration-300 group-hover:text-white">
@@ -1061,9 +1095,9 @@ export default function Home() {
         <ResourcesSection />
 
         {/* CONTACT SECTION */}
-        <section id="contact" className="px-4 pb-20 pt-6 md:px-6 md:pb-[120px]">
+        <section id="contact" className="px-3 pb-12 pt-6 md:px-6 md:pb-[120px]">
           <div className="mx-auto max-w-[1400px]">
-            <div className="home-on-dark relative overflow-hidden rounded-[32px] bg-[linear-gradient(180deg,#3f78ad_0%,#5f93c4_55%,#8fb6d9_100%)] px-7 py-16 md:rounded-[56px] md:px-16 md:py-24">
+            <div className="home-on-dark relative overflow-hidden rounded-[32px] bg-[linear-gradient(180deg,#3f78ad_0%,#5f93c4_55%,#8fb6d9_100%)] px-4 py-10 md:rounded-[56px] md:px-16 md:py-24">
               <div className="home-cloud home-cloud--a bottom-[-60px] left-[-120px] h-[200px] w-[620px]" aria-hidden="true" />
               <div className="home-cloud home-cloud--b right-[-160px] top-[-70px] h-[220px] w-[720px]" aria-hidden="true" />
 
@@ -1078,12 +1112,12 @@ export default function Home() {
                   <div className="-mt-10 space-y-4">
                     {contactDetails.map((item, i) => (
                       <Reveal key={item.label} delay={Math.min(i * 0.08, 0.2)}>
-                        <div className="flex items-center gap-4 rounded-[20px] border border-white/25 bg-white/15 p-5 backdrop-blur-sm transition-transform duration-500 hover:translate-x-2">
+                        <div className="flex items-center gap-4 rounded-[20px] border border-white/25 bg-white/15 p-4 md:p-5 backdrop-blur-sm transition-transform duration-500 hover:translate-x-2">
                           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent text-[#0d1117]" aria-hidden="true">
                             <item.icon className="h-5 w-5" />
                           </span>
                           <div className="min-w-0">
-                            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80">{item.label}</div>
+                            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/85 md:text-[10px] md:tracking-[0.18em]">{item.label}</div>
                             {item.href ? (
                               <a href={item.href} className="break-words text-[19px] font-medium text-white underline-offset-4 hover:underline">{item.value}</a>
                             ) : (
@@ -1100,7 +1134,7 @@ export default function Home() {
                   <form
                     onSubmit={handleContactSubmit}
                     aria-label="Contact form"
-                    className="grid gap-4 rounded-[32px] bg-white p-7 text-[#0d1117] shadow-[0_40px_60px_-30px_rgba(8,26,48,0.6)] md:p-9"
+                    className="grid gap-4 rounded-[24px] bg-white p-4 text-[#0d1117] sm:rounded-[32px] sm:p-7 shadow-[0_40px_60px_-30px_rgba(8,26,48,0.6)] md:p-9"
                   >
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="home-field">

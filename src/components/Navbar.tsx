@@ -137,13 +137,16 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2.5">
           {isHome && (
-            <a
-              href={ctaHref}
-              {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              className="home-btn home-mag hidden bg-accent px-6 py-3 text-[15px] text-[#0d1117] shadow-[0_10px_20px_-10px_rgba(0,0,0,0.45)] lg:inline-flex"
-            >
-              {config.globalCtaText}
-            </a>
+            // A wrapper does the hiding: .home-btn sets its own display and would beat "hidden" on the link itself.
+            <div className="hidden lg:block">
+              <a
+                href={ctaHref}
+                {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                className="home-btn home-mag bg-accent px-6 py-3 text-[15px] text-[#0d1117] shadow-[0_10px_20px_-10px_rgba(0,0,0,0.45)]"
+              >
+                {config.globalCtaText}
+              </a>
+            </div>
           )}
           <button
             ref={menuButton}

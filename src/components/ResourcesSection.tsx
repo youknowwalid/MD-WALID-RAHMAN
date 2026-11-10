@@ -8,6 +8,9 @@ import { useProducts } from '../lib/products';
 import { Product } from '../types';
 import ProductModal from './ProductModal';
 
+/** Product text may carry list/markdown marks; the card shows it as plain prose. */
+const plain = (text: string) => String(text || '').replace(/[#*_`>]/g, '').replace(/\s*\n\s*/g, ' ').replace(/(^|\s)[-•]\s+/g, '$1').trim();
+
 export default function ResourcesSection() {
   const { products, loading } = useProducts();
   const { config } = useSiteConfig();
@@ -30,7 +33,7 @@ export default function ResourcesSection() {
           {(config.sectionTitles?.resources || '').trim() || DEFAULT_SECTION_TITLES.resources}
         </m.h2>
 
-        <div className="grid gap-7 lg:grid-cols-2">
+        <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-2 lg:gap-7 lg:overflow-visible lg:px-0 lg:pb-0">
           {products.map((product, i) => (
             <m.article
               key={product.id}
@@ -38,9 +41,9 @@ export default function ResourcesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.7, delay: Math.min(i * 0.1, 0.2), ease: [0.2, 0.8, 0.2, 1] }}
-              className="home-prod grid grid-cols-1 gap-8 rounded-[44px] border border-border-subtle bg-white p-9 transition-[transform,box-shadow] duration-500 hover:-translate-y-2 hover:shadow-[0_44px_70px_-40px_rgba(13,17,23,0.4)] sm:grid-cols-[150px_1fr] md:p-11"
+              className="home-prod grid w-[88%] shrink-0 snap-center grid-cols-[96px_1fr] gap-4 rounded-[28px] border border-border-subtle bg-white p-4 transition-[transform,box-shadow] duration-500 hover:-translate-y-2 hover:shadow-[0_44px_70px_-40px_rgba(13,17,23,0.4)] sm:w-[78%] sm:grid-cols-[150px_1fr] sm:gap-8 sm:rounded-[44px] sm:p-9 md:p-11 lg:w-auto"
             >
-              <div className="home-book relative h-[210px] w-[150px] shrink-0 overflow-hidden rounded-[6px_16px_16px_6px] bg-bg-card shadow-[12px_18px_30px_-10px_rgba(10,30,60,0.5)]">
+              <div className="home-book relative h-[134px] w-[96px] shrink-0 sm:h-[210px] sm:w-[150px] overflow-hidden rounded-[6px_16px_16px_6px] bg-bg-card shadow-[12px_18px_30px_-10px_rgba(10,30,60,0.5)]">
                 <img
                   src={product.thumbnail}
                   alt=""
@@ -51,18 +54,18 @@ export default function ResourcesSection() {
               </div>
 
               <div className="flex flex-col">
-                <h3 className="text-[26px] font-semibold leading-[1.14] tracking-[-0.03em] text-text-main">
+                <h3 className="text-[19px] font-semibold leading-[1.14] sm:text-[26px] tracking-[-0.03em] text-text-main">
                   {product.shortTitle || product.title}
                 </h3>
-                <p className="mt-3 line-clamp-4 flex-grow text-[16px] leading-relaxed text-text-muted">
-                  {product.description}
+                <p className="mt-2 line-clamp-3 flex-grow text-[14px] leading-snug text-text-muted sm:mt-3 sm:line-clamp-4 sm:text-[16px] sm:leading-relaxed">
+                  {plain(product.description)}
                 </p>
-                <div className="mt-6 flex flex-wrap items-center gap-5">
-                  <span className="text-[28px] font-semibold tracking-[-0.03em] text-text-main">{product.price}</span>
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 sm:mt-6 sm:gap-5">
+                  <span className="text-[22px] sm:text-[28px] font-semibold tracking-[-0.03em] text-text-main">{product.price}</span>
                   <button
                     type="button"
                     onClick={() => setActiveProduct(product)}
-                    className="home-btn home-mag bg-[#0d1117] px-6 py-3.5 text-[15px] text-white"
+                    className="home-btn home-mag bg-[#0d1117] px-5 py-3 text-[15px] text-white sm:px-6 sm:py-3.5"
                   >
                     <Eye className="h-4 w-4" aria-hidden="true" />
                     Quick View
@@ -74,7 +77,7 @@ export default function ResourcesSection() {
           ))}
         </div>
 
-        <div className="mt-14 flex justify-center">
+        <div className="mt-6 flex justify-center md:mt-14">
           <Link
             id="resources-see-all-btn"
             to="/resources"

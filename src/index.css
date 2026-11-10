@@ -629,3 +629,13 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   .home-logo-star,
   .home-cloud-front i { animation: none; }
 }
+
+/* ---- Phones --------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .home-btn .home-arrow { display: none; }
+  /* Softer, cheaper effects: big blurs and drop-shadows are heavy on a phone's GPU. */
+  .home-cloud,
+  .home-cloud-front i { filter: none; }
+  .home-cutout { filter: none; }
+  .home-cloud-front { height: 190px; }
+}
