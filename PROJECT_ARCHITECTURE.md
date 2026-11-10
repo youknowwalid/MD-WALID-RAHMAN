@@ -1,6 +1,12 @@
 # Project Architecture: Walid Rahman Portfolio
 
-Dark, premium, single-page portfolio (Poppins, accent `#f45901`). **The look and feel is fixed — see `AGENTS.md`.**
+Single-page portfolio for Walid Rahman. The design is open to change; nothing here freezes it.
+
+- **Home page** (`src/components/Home.tsx`): light, sky-and-lime, set in Inter Tight. Its look lives
+  behind the `.home-v2` class in `src/index.css`, which re-declares the site's colour variables for that
+  page only, so the shared header and footer follow it without a change of their own.
+- **Every other page** (project, blog, resources, checkout, policies, admin): dark, Poppins, with the
+  brand accent the admin chooses.
 
 ## Principles
 - **Deterministic rendering**: the UI renders from explicit fields; no keyword/regex logic on content.
@@ -21,7 +27,9 @@ Dark, premium, single-page portfolio (Poppins, accent `#f45901`). **The look and
 5. `src/lib/admin.ts` — the only file that uses `@supabase/supabase-js` (sign-in, saving, uploads); loaded only on `/admin`.
 
 ## Performance rules
-- Fonts are self-hosted (`@fontsource/poppins`, weights 400–900) with a metric-matched fallback; no third-party font requests.
+- Fonts are self-hosted (`@fontsource/poppins` 400–900; Inter Tight 400/500/600/700 in `src/fonts`, latin
+  subset) with metric-matched fallbacks. No third-party font requests: `vercel.json` allows styles and fonts
+  only from this site, so a Google Fonts link would be refused by the browser.
 - Animations use `<m.*>` inside `<LazyMotion>` (see `App.tsx`); do not import the full `motion` component (`strict` mode throws).
 - List queries on the home page ask only for the columns the cards show (`listRows(collection, columns)`).
 - Google Tag Manager starts after the page has loaded and the browser is idle.

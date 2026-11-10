@@ -10,8 +10,16 @@
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/projects/:slug", "destination": "/api/page-meta?type=project&slug=:slug" },
     { "source": "/blog/:slug", "destination": "/api/page-meta?type=blog&slug=:slug" },
-    { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|_vercel/).*)", "destination": "/index.html" }
   ],
+  "images": {
+    "sizes": [256, 384, 640, 828, 1080, 1600, 1920],
+    "remotePatterns": [
+      { "protocol": "https", "hostname": "biaedbathslspnumcqrp.supabase.co", "pathname": "/storage/v1/object/public/**" }
+    ],
+    "formats": ["image/webp"],
+    "minimumCacheTTL": 31536000
+  },
   "headers": [
     {
       "source": "/(.*)",

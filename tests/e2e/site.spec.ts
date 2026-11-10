@@ -154,18 +154,17 @@ test.describe('logos and intro video', () => {
   const seed = (request: any, key: string, value: object) =>
     request.post(`${API}/__seed-settings`, { data: { key, value } });
 
-  test('header and footer show only the uploaded logos, never a text name', async ({ page, request }) => {
+  test('the footer shows only the uploaded logo, and the home header shows its wordmark', async ({ page, request }) => {
     await seed(request, 'global', { siteLogo: `${API}/storage/v1/object/public/site-media/images/h.png`, footerLogo: `${API}/storage/v1/object/public/site-media/images/f.png` });
     await page.goto(CONNECTED + '/');
-    await expect(page.getByRole('navigation', { name: 'Main' }).locator('img[src$="h.png"]')).toBeAttached();
     await expect(page.locator('footer img[src$="f.png"]')).toBeAttached();
-    await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(0);
     await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(1);
   });
 
-  test('without logos, no site-name text appears in header or footer', async ({ page }) => {
+  test('without logos, no site-name text appears in the footer', async ({ page }) => {
     await page.goto(CONNECTED + '/');
-    await expect(page.getByText('youknowwalid', { exact: true })).toHaveCount(0);
+    await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
   });
 
   test('a video file with no playable picture shows a notice instead of a silent black box', async ({ page, request }) => {
@@ -193,14 +192,21 @@ test.describe('brand colors', () => {
     await expect(root).toHaveAttribute('data-accent', 'gradient');
     const grad = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent-gradient'));
     expect(grad).toContain('linear-gradient(135deg, #00c6ff, #7b61ff, #0072ff)');
-    const bg = await page.getByRole('link', { name: "Let's Discuss" }).evaluate((el) => getComputedStyle(el).backgroundImage);
+
+    // The home page has a brand colour of its own and keeps it whatever the admin picks.
+    const homeCta = await page.getByRole('link', { name: "Let's Discuss" }).first().evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(homeCta).toBe('rgb(195, 237, 58)');
+
+    // Every other page follows the admin.
+    await page.goto(CONNECTED + '/no-such-page');
+    const bg = await page.getByRole('link', { name: 'Back to the homepage' }).evaluate((el) => getComputedStyle(el).backgroundImage);
     expect(bg).toContain('linear-gradient');
   });
 
   test('solid mode still works (default look unchanged)', async ({ page }) => {
-    await page.goto(CONNECTED + '/');
+    await page.goto(CONNECTED + '/no-such-page');
     await expect(page.locator('html')).not.toHaveAttribute('data-accent', 'gradient');
-    const bg = await page.getByRole('link', { name: "Let's Discuss" }).evaluate((el) => getComputedStyle(el).backgroundImage);
+    const bg = await page.getByRole('link', { name: 'Back to the homepage' }).evaluate((el) => getComputedStyle(el).backgroundImage);
     expect(bg).toBe('none');
   });
 });

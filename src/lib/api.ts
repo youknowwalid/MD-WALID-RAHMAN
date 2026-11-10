@@ -12,7 +12,35 @@ const headers = (extra?: Record<string, string>) => ({
   ...extra,
 });
 
+/** Public tables that /api/content can serve from a cache near the visitor (see api/content.js). */
+const CACHEABLE = /^(projects|blog_posts|services|resume_items|skills|testimonials|pricing_plans|products|site_settings)\?/;
+const CACHE_TIMEOUT_MS = 4000;
+
+/**
+ * Reads of public content go through /api/content, which keeps a copy of each answer close to the visitor
+ * (the database itself is far away). If that is unavailable for any reason, the database is asked directly,
+ * exactly as before, so the site never depends on the cache.
+ */
+async function fetchCached(path: string): Promise<Response | null> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), CACHE_TIMEOUT_MS);
+  try {
+    const res = await fetch(`/api/content?p=${encodeURIComponent(path)}`, { signal: ctrl.signal });
+    // Only trust a real JSON answer (a dev server or an old deployment answers with the web page instead).
+    const isJson = (res.headers.get('content-type') || '').includes('json');
+    return isJson && res.status < 500 ? res : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function request(path: string, init: RequestInit = {}, timeoutMs = 8000): Promise<Response> {
+  if (import.meta.env.PROD && (!init.method || init.method === 'GET') && CACHEABLE.test(path)) {
+    const cached = await fetchCached(path);
+    if (cached) return cached;
+  }
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
