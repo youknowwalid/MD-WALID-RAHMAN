@@ -551,10 +551,10 @@ export default function Home() {
                   {/* Visitors who ask their device for less motion get the still portrait. */}
                   <source media="(prefers-reduced-motion: reduce)" srcSet="/walid-cutout.webp" />
                   <img
-                    src="/walid-hero-animated.webp"
+                    src="/walid-hero-animated-v2.webp"
                     alt="Portrait of Walid Rahman"
-                    width={356}
-                    height={476}
+                    width={362}
+                    height={482}
                     fetchPriority="high"
                     decoding="async"
                     className="home-cutout absolute inset-0 h-full w-full object-contain object-bottom"
