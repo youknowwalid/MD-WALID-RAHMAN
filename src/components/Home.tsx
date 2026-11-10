@@ -547,15 +547,19 @@ export default function Home() {
               <div className="relative aspect-[4/5] w-[min(94vw,440px)] md:w-[540px] lg:w-[min(108%,620px)]">
                 {/* The cut-out stands straight on the sky; the clouds in front of the lower body
                     (home-cloud-front) are what blend it in. */}
-                <img
-                  src="/walid-cutout.webp"
-                  alt="Portrait of Walid Rahman"
-                  width={1080}
-                  height={1350}
-                  fetchPriority="high"
-                  decoding="async"
-                  className="home-cutout absolute inset-0 h-full w-full object-contain object-bottom"
-                />
+                <picture>
+                  {/* Visitors who ask their device for less motion get the still portrait. */}
+                  <source media="(prefers-reduced-motion: reduce)" srcSet="/walid-cutout.webp" />
+                  <img
+                    src="/walid-hero-animated.webp"
+                    alt="Portrait of Walid Rahman"
+                    width={356}
+                    height={476}
+                    fetchPriority="high"
+                    decoding="async"
+                    className="home-cutout absolute inset-0 h-full w-full object-contain object-bottom"
+                  />
+                </picture>
 
               </div>
             </m.div>
