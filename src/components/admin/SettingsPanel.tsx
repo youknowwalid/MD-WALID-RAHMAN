@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { useSiteConfig } from '../../context/SiteConfigContext';
-import { DEFAULT_HEADER_LINKS, DEFAULT_REFUND, DEFAULT_TERMS, DEFAULT_PRIVACY_POLICY, HeaderLink, HeroStat, SocialLink } from '../../lib/defaults';
+import { DEFAULT_SECTION_TITLES, SECTION_TITLE_LABELS, DEFAULT_HEADER_LINKS, DEFAULT_REFUND, DEFAULT_TERMS, DEFAULT_PRIVACY_POLICY, HeaderLink, HeroStat, SocialLink } from '../../lib/defaults';
 import { changePassword, patchSettings } from '../../lib/admin';
 import { ImageField, PdfField, inputCls, labelCls } from './fields';
 import { friendlyError } from './forms';
@@ -18,6 +18,7 @@ type Form = {
   socialLinks: SocialLink[]; headerLinks: HeaderLink[];
   footerPortrait: string; copyrightText: string;
   termsOfService: string; privacyPolicy: string; refundPolicy: string;
+  titles: Record<string, string>;
 };
 
 const Card = ({ title, children, hint }: { title: string; children: React.ReactNode; hint?: string }) => (
@@ -77,6 +78,7 @@ export default function SettingsPanel({ onToast }: Props) {
         socialLinks: c.socialLinks, headerLinks: c.headerLinks,
         footerPortrait: c.footerPortrait, copyrightText: c.copyrightText,
         termsOfService: c.termsOfService, privacyPolicy: c.privacyPolicy, refundPolicy: c.refundPolicy,
+        titles: { ...DEFAULT_SECTION_TITLES, ...(c.sectionTitles || {}) },
       }),
     );
   }, [refresh]);
@@ -103,6 +105,7 @@ export default function SettingsPanel({ onToast }: Props) {
         headerLinks: f.headerLinks.filter((l) => l.label.trim() && l.url.trim()),
         footerPortrait: f.footerPortrait, copyrightText: f.copyrightText.trim(),
         termsOfService: f.termsOfService, privacyPolicy: f.privacyPolicy, refundPolicy: f.refundPolicy,
+        sectionTitles: Object.fromEntries(SECTION_TITLE_LABELS.map(([k]) => [k, (f.titles[k] || '').trim() || DEFAULT_SECTION_TITLES[k]])),
       });
       await refresh();
       onToast('success', 'Settings saved and published.');
@@ -157,12 +160,19 @@ export default function SettingsPanel({ onToast }: Props) {
           </div>
         </Card>
 
+        <Card title="Home page: section titles" hint="The big heading of each section on the home page. Leave one empty to use the original.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {SECTION_TITLE_LABELS.map(([k, label]) => (
+              <Text key={k} id={`s-title-${k}`} label={label} value={f.titles[k] ?? ''} onChange={(v) => setF((prev) => (prev ? { ...prev, titles: { ...prev.titles, [k]: v } } : prev))} placeholder={DEFAULT_SECTION_TITLES[k]} />
+            ))}
+          </div>
+        </Card>
+
         <Card title="About section">
           <div>
             <label htmlFor="s-about" className={labelCls}>About text</label>
             <textarea id="s-about" rows={5} value={f.aboutText} onChange={(e) => set('aboutText')(e.target.value)} className={inputCls} />
           </div>
-          <Text id="s-tags" label="Skill pills (comma separated)" value={f.aboutTags} onChange={set('aboutTags')} />
           <div>
             <Text id="s-video" label="Intro video (YouTube link or direct .mp4 link — optional)" value={f.aboutVideoUrl} onChange={set('aboutVideoUrl')} placeholder="https://www.youtube.com/watch?v=…" />
             <p className="text-xs text-amber-300 mt-2">For an .mp4 file, export it as H.264 video + AAC audio. Other formats (for example H.265/HEVC from some phones and screen recorders) may play only the sound in many browsers.</p>

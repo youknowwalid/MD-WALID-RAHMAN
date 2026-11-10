@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Eye, Sparkles } from 'lucide-react';
+import { Eye } from 'lucide-react';
+import { useSiteConfig } from '../context/SiteConfigContext';
+import { DEFAULT_SECTION_TITLES } from '../lib/defaults';
 import { useProducts } from '../lib/products';
 import { Product } from '../types';
 import ProductModal from './ProductModal';
 
 export default function ResourcesSection() {
   const { products, loading } = useProducts();
+  const { config } = useSiteConfig();
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
   if (loading || products.length === 0) {
@@ -15,29 +18,17 @@ export default function ResourcesSection() {
   }
 
   return (
-    <section id="resources" className="bg-[linear-gradient(180deg,#ffffff,#eef4fb)] px-6 py-20 md:py-[120px]">
+    <section id="resources" className="bg-[linear-gradient(180deg,#ffffff,#eef4fb)] px-6 py-10 md:py-14">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-14 md:mb-[70px]">
-          <m.span
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
-            className="inline-flex items-center gap-2.5 rounded-full border border-border-subtle bg-white px-4 py-2 text-[13px] font-medium text-text-main"
-          >
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
-            Premium Resources
-          </m.span>
-          <m.h2
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.7, delay: 0.07, ease: [0.2, 0.8, 0.2, 1] }}
-            className="mt-5 text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] text-text-main md:text-6xl"
-          >
-            Curated Digital Products
-          </m.h2>
-        </div>
+        <m.h2
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mb-8 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] text-text-main md:text-[2.6rem]"
+        >
+          {(config.sectionTitles?.resources || '').trim() || DEFAULT_SECTION_TITLES.resources}
+        </m.h2>
 
         <div className="grid gap-7 lg:grid-cols-2">
           {products.map((product, i) => (

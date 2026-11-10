@@ -34,6 +34,8 @@ export interface SiteConfig {
   privacyPolicy: string;
   refundPolicy: string;
   aboutVideoUrl: string;
+  /** Headings of the home-page sections, editable in the admin. */
+  sectionTitles: Record<string, string>;
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
@@ -86,6 +88,22 @@ You can ask me to delete a message you sent at any time by e-mailing the address
 export const DEFAULT_TERMS = 'The terms of service for this website are being prepared. If you have any question in the meantime, please get in touch through the contact form.';
 export const DEFAULT_REFUND = 'The refund policy for digital products is being prepared. If you have a question about an order, please get in touch through the contact form.';
 
+export const DEFAULT_SECTION_TITLES: Record<string, string> = {
+  about: 'Crafting Digital Excellence',
+  resume: 'My Journey',
+  services: 'My Specialities',
+  skills: 'Technical Arsenal',
+  testimonials: 'Kind Words',
+  pricing: 'Pricing Plans',
+  blog: 'Latest Insights',
+  resources: 'Premium Resources',
+};
+
+export const SECTION_TITLE_LABELS: [string, string][] = [
+  ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills'],
+  ['testimonials', 'Testimonials'], ['pricing', 'Pricing'], ['blog', 'Blog'], ['resources', 'Digital products'],
+];
+
 export const DEFAULT_CONFIG: SiteConfig = {
   siteTitle: 'youknowwalid',
   siteLogo: '',
@@ -120,6 +138,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   privacyPolicy: DEFAULT_PRIVACY_POLICY,
   refundPolicy: DEFAULT_REFUND,
   aboutVideoUrl: '',
+  sectionTitles: DEFAULT_SECTION_TITLES,
 };
 
 export const DEFAULT_HERO: HeroConfig = {

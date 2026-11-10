@@ -9,7 +9,7 @@ import {
 import { cn } from '../lib/utils';
 import { listRows, submitContact } from '../lib/api';
 import { backendConfigured } from '../lib/config';
-import { FALLBACK_RESUME, FALLBACK_SERVICES } from '../lib/defaults';
+import { DEFAULT_SECTION_TITLES, FALLBACK_RESUME, FALLBACK_SERVICES } from '../lib/defaults';
 import {
   normalizePricingPlan, normalizeProject, normalizeBlogPost, normalizeService,
   normalizeTestimonial, normalizeResumeItem,
@@ -283,6 +283,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error' | 'limited' | 'mailto'>('idle');
   const formShownAt = useRef(Date.now());
+  const [showAllPosts, setShowAllPosts] = useState(false);
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineFillRef = useRef<HTMLDivElement>(null);
@@ -392,6 +393,7 @@ export default function Home() {
     };
   }, [reduceMotion]);
 
+  const title = (key: string) => (config.sectionTitles?.[key] || '').trim() || DEFAULT_SECTION_TITLES[key] || '';
   const phoneDigits = config.officePhone.replace(/[^0-9+]/g, '');
   const ctaHref = safeUrl(config.globalCtaUrl) || (phoneDigits ? `https://wa.me/${phoneDigits.replace(/^\+/, '')}` : '/#contact');
   const ctaExternal = /^https?:/i.test(ctaHref);
@@ -586,22 +588,12 @@ export default function Home() {
         </section>
 
         {/* ABOUT SECTION */}
-        <section id="about" className="px-6 py-20 md:py-[120px]">
+        <section id="about" className="px-6 py-10 md:py-14">
           <div className="mx-auto max-w-7xl">
-            <div className={cn('grid items-center gap-12 md:gap-16', aboutVideo && 'lg:grid-cols-2')}>
+            <div className={cn('grid items-center gap-8 md:gap-12', aboutVideo && 'lg:grid-cols-2')}>
               <Reveal from="left">
-                <SectionHead label="About me" title="Crafting Digital Excellence" />
-                <p className="-mt-10 max-w-2xl text-lg leading-relaxed text-text-muted md:text-xl">{config.aboutText}</p>
-                <ul className="mt-9 flex flex-wrap gap-3">
-                  {config.aboutTags.map((tag) => (
-                    <li
-                      key={tag}
-                      className="rounded-full bg-bg-card px-5 py-2.5 text-[15px] font-medium text-text-main transition-transform duration-300 hover:-translate-y-1 hover:bg-accent"
-                    >
-                      {tag}
-                    </li>
-                  ))}
-                </ul>
+                <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('about')}</h2>
+                <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-text-muted">{config.aboutText}</p>
               </Reveal>
 
               {aboutVideo && (
@@ -617,7 +609,7 @@ export default function Home() {
         <section id="resume" className="bg-[linear-gradient(180deg,#ffffff,#f5f8fc)] px-6 py-10 md:py-14">
           <div className="mx-auto max-w-7xl">
             <Reveal>
-              <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">My Journey</h2>
+              <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('resume')}</h2>
             </Reveal>
             <div className="grid items-stretch gap-8 lg:grid-cols-[1fr_400px] lg:gap-14">
               <div>
@@ -659,7 +651,7 @@ export default function Home() {
           <section id="services" className="px-6 py-10 md:py-14">
             <div className="mx-auto max-w-7xl">
               <Reveal>
-                <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">My Specialities</h2>
+                <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('services')}</h2>
               </Reveal>
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {(() => {
@@ -696,7 +688,11 @@ export default function Home() {
               <div className="relative grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">
                 <div>
                   <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.4rem]">
-                    Technical <span className="text-white/45">Arsenal</span>
+                    {(() => {
+                      const words = title('skills').split(' ');
+                      const last = words.length > 1 ? words.pop() : '';
+                      return <>{words.join(' ')}{last && <> <span className="text-white/45">{last}</span></>}</>;
+                    })()}
                   </h2>
                   <p className="mt-3 max-w-md text-[15px] leading-relaxed text-text-muted">
                     Skills refined through years of practical application in demanding environments.
@@ -892,7 +888,7 @@ export default function Home() {
         {testimonials.length > 0 && (
           <section className="overflow-hidden bg-bg-card py-8 md:py-12" aria-label="Client testimonials">
             <div className="mx-auto mb-5 max-w-7xl px-6">
-              <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">Kind Words</h2>
+              <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('testimonials')}</h2>
             </div>
             <div className="home-marquee">
               <div className="home-marquee-row flex w-max gap-5 px-2.5" style={{ animationDuration: '90s' }}>
@@ -924,10 +920,10 @@ export default function Home() {
 
         {/* PRICING SECTION */}
         {pricingPlans.length > 0 && (
-          <section id="pricing" className="px-6 py-20 md:py-[120px]">
+          <section id="pricing" className="px-6 py-10 md:py-14">
             <div className="mx-auto max-w-7xl">
-              <SectionHead label="Investment" title="Pricing Plans" />
-              <div className="grid items-stretch gap-7 lg:grid-cols-3">
+              <Reveal><h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('pricing')}</h2></Reveal>
+              <div className="grid items-stretch gap-4 lg:grid-cols-3">
                 {pricingPlans.map((plan, i) => {
                   const rawPrice = String(plan.price ?? '').trim();
                   const needsCurrency = /^\d/.test(rawPrice);
@@ -935,33 +931,33 @@ export default function Home() {
                     <Reveal key={plan.id || plan.name} delay={Math.min(i * 0.1, 0.25)} className="h-full">
                       <div
                         className={cn(
-                          'relative flex h-full flex-col rounded-[32px] p-9 md:p-10',
+                          'relative flex h-full flex-col rounded-[24px] p-6',
                           plan.accent
                             ? 'home-plan-pop home-on-dark'
                             : 'border border-border-subtle bg-bg-card transition-[transform,box-shadow] duration-500 hover:-translate-y-2 hover:shadow-[0_44px_70px_-40px_rgba(13,17,23,0.45)]',
                         )}
                       >
                         {plan.accent && (
-                          <span className="absolute right-7 top-7 rounded-xl bg-accent px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#0d1117]">
+                          <span className="absolute right-5 top-5 rounded-lg bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#0d1117]">
                             Most Popular
                           </span>
                         )}
                         <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-text-muted">{plan.name}</div>
-                        <div className="mt-4 flex items-start gap-1">
-                          {needsCurrency && <span className="mt-2 text-[26px] font-medium text-text-main">$</span>}
-                          <span className="text-[58px] font-semibold leading-[0.9] tracking-[-0.045em] text-text-main md:text-[66px]">
+                        <div className="mt-2 flex items-start gap-1">
+                          {needsCurrency && <span className="mt-1 text-[20px] font-medium text-text-main">$</span>}
+                          <span className="text-[40px] font-semibold leading-[0.95] tracking-[-0.045em] text-text-main">
                             <CountText raw={rawPrice} />
                           </span>
-                          {plan.period && <span className="mt-auto mb-2 text-[17px] text-text-muted">{plan.period}</span>}
+                          {plan.period && <span className="mt-auto mb-1 text-[15px] text-text-muted">{plan.period}</span>}
                         </div>
 
                         {plan.showPriorityBox && (
-                          <div className="mt-6 flex items-center gap-4">
-                            <div className={cn('grid h-11 w-11 shrink-0 place-items-center rounded-xl', plan.accent ? 'bg-white/10' : 'bg-white')}>
+                          <div className="mt-4 flex items-center gap-3">
+                            <div className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg', plan.accent ? 'bg-white/10' : 'bg-white')}>
                               <Clock className="h-5 w-5 text-text-main" aria-hidden="true" />
                             </div>
                             <div>
-                              <div className="text-[17px] font-medium text-text-main">{plan.priorityTitle || 'N/A'}</div>
+                              <div className="text-[15px] font-medium text-text-main">{plan.priorityTitle || 'N/A'}</div>
                               <div className={cn('text-[11px] font-semibold uppercase tracking-[0.12em]', plan.accent ? 'text-accent' : 'text-[#15803d]')}>
                                 {plan.prioritySubtitle || 'Daily Priority Access'}
                               </div>
@@ -969,19 +965,19 @@ export default function Home() {
                           </div>
                         )}
 
-                        <hr className={cn('my-7 h-px border-0', plan.accent ? 'bg-white/15' : 'bg-[#0d1117]/10')} />
+                        <hr className={cn('my-4 h-px border-0', plan.accent ? 'bg-white/15' : 'bg-[#0d1117]/10')} />
 
-                        <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">What&apos;s included</h3>
-                        <ul className="flex-grow space-y-3">
+                        <h3 className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted">What&apos;s included</h3>
+                        <ul className="flex-grow space-y-1.5">
                           {(plan.features || []).map((f) => (
-                            <li key={f} className="flex items-start gap-3 text-[16px] leading-snug text-text-main">
-                              <Check className={cn('mt-0.5 h-4 w-4 shrink-0', plan.accent ? 'text-accent' : 'text-[#15803d]')} aria-hidden="true" />
+                            <li key={f} className="flex items-start gap-3 text-[14px] leading-snug text-text-main">
+                              <Check className={cn('mt-0.5 h-3.5 w-3.5 shrink-0', plan.accent ? 'text-accent' : 'text-[#15803d]')} aria-hidden="true" />
                               <span>{f}</span>
                             </li>
                           ))}
                           {(plan.unavailableFeatures || []).map((f) => (
-                            <li key={f} className="flex items-start gap-3 text-[16px] leading-snug text-text-muted/70">
-                              <X className="mt-0.5 h-4 w-4 shrink-0 opacity-60" aria-hidden="true" />
+                            <li key={f} className="flex items-start gap-3 text-[14px] leading-snug text-text-muted/70">
+                              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden="true" />
                               <span className="line-through"><span className="sr-only">Not included: </span>{f}</span>
                             </li>
                           ))}
@@ -991,7 +987,7 @@ export default function Home() {
                           href={safeUrl(plan.buttonUrl) || '/#contact'}
                           {...(/^https?:/i.test(plan.buttonUrl || '') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                           className={cn(
-                            'home-btn home-mag mt-9 w-full px-7 py-4 text-[16px]',
+                            'home-btn home-mag mt-5 w-full px-6 py-3 text-[15px]',
                             plan.accent ? 'bg-accent text-[#0d1117]' : 'border border-[#0d1117]/15 text-text-main hover:bg-[#0d1117] hover:text-white',
                           )}
                         >
@@ -1007,42 +1003,56 @@ export default function Home() {
         )}
 
         {/* BLOG SECTION */}
-        <section id="blog" className="px-6 py-20 md:py-[120px]">
+        <section id="blog" className="px-6 py-10 md:py-14">
           <div className="mx-auto max-w-7xl">
-            <SectionHead label="Journal" title="Latest Insights" />
+            <Reveal><h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('blog')}</h2></Reveal>
             {blogPosts.length === 0 ? (
               loaded && <EmptyNote>New articles are on their way.</EmptyNote>
             ) : (
-              <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
-                {blogPosts.map((post, i) => (
-                  <Reveal key={post.id || post.title} delay={Math.min((i % 3) * 0.08, 0.2)}>
-                    <article className="group h-full">
-                      <Link
-                        to={`/blog/${post.slug || post.id}`}
-                        className="flex h-full min-h-[300px] flex-col justify-between rounded-[32px] bg-bg-card p-8 transition-[transform,background-color] duration-500 hover:-translate-y-2 hover:bg-[#0d1117]"
-                      >
-                        <div>
-                          <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-text-muted transition-colors duration-500 group-hover:text-white/50">
-                            {String(i + 1).padStart(2, '0')}
+              <>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {(showAllPosts ? blogPosts : blogPosts.slice(0, 4)).map((post, i) => (
+                    <Reveal key={post.id || post.title} delay={Math.min((i % 4) * 0.05, 0.15)}>
+                      <article className="group h-full">
+                        <Link
+                          to={`/blog/${post.slug || post.id}`}
+                          className="flex h-full flex-col justify-between rounded-[22px] bg-bg-card p-5 transition-[transform,background-color] duration-300 hover:-translate-y-1 hover:bg-[#0d1117]"
+                        >
+                          <div>
+                            <span className="text-[12px] font-semibold uppercase tracking-[0.14em] text-text-muted transition-colors duration-300 group-hover:text-white/50">
+                              {String(i + 1).padStart(2, '0')}
+                            </span>
+                            <h3 className="mt-2 line-clamp-3 text-[18px] font-semibold leading-[1.2] tracking-[-0.02em] text-text-main transition-colors duration-300 group-hover:text-white">
+                              {post.title}
+                            </h3>
+                            <p className="mt-2 line-clamp-2 text-[14px] leading-snug text-text-muted transition-colors duration-300 group-hover:text-white/65">
+                              {post.excerpt}
+                            </p>
+                          </div>
+                          <span className="mt-4 inline-flex items-center gap-2 text-[14px] font-medium text-text-main transition-colors duration-300 group-hover:text-white">
+                            <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-[#0d1117]" aria-hidden="true">
+                              <ArrowUpRight className="h-3.5 w-3.5" />
+                            </span>
+                            Read article
                           </span>
-                          <h3 className="mt-4 text-[24px] font-semibold leading-[1.16] tracking-[-0.025em] text-text-main transition-colors duration-500 group-hover:text-white">
-                            {post.title}
-                          </h3>
-                          <p className="mt-3.5 text-[16px] leading-relaxed text-text-muted transition-colors duration-500 group-hover:text-white/65">
-                            {post.excerpt}
-                          </p>
-                        </div>
-                        <span className="mt-7 inline-flex items-center gap-2.5 text-[15px] font-medium text-text-main transition-colors duration-500 group-hover:text-white">
-                          <span className="grid h-9 w-9 place-items-center rounded-full bg-accent text-[#0d1117] transition-transform duration-500 group-hover:translate-x-1.5" aria-hidden="true">
-                            <ArrowUpRight className="h-4 w-4" />
-                          </span>
-                          Read article
-                        </span>
-                      </Link>
-                    </article>
-                  </Reveal>
-                ))}
-              </div>
+                        </Link>
+                      </article>
+                    </Reveal>
+                  ))}
+                </div>
+                {blogPosts.length > 4 && (
+                  <div className="mt-6 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowAllPosts((v) => !v)}
+                      aria-expanded={showAllPosts}
+                      className="home-btn border border-[#0d1117]/15 px-6 py-3 text-[15px] text-text-main hover:bg-[#0d1117] hover:text-white"
+                    >
+                      {showAllPosts ? 'Show less' : 'See more'}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

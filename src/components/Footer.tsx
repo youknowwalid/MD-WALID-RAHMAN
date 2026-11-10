@@ -27,16 +27,16 @@ export default function Footer() {
   const socials = config.socialLinks.filter((s) => safeUrl(s.url));
 
   return (
-    <footer className="bg-bg-dark border-t border-border-subtle relative z-10 pt-16 pb-8 overflow-hidden">
+    <footer className="bg-bg-dark border-t border-border-subtle relative z-10 pt-8 pb-4 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 relative">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-16 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 mb-5 relative z-10">
           <div className="md:col-span-4">
             {config.footerLogo && (
-              <Link to="/" className="inline-block mb-4 hover:opacity-80 transition-opacity" aria-label={`${config.siteTitle} – home`}>
+              <Link to="/" className="inline-block mb-2 hover:opacity-80 transition-opacity" aria-label={`${config.siteTitle} – home`}>
                 <img src={config.footerLogo} alt="" className="h-8 w-auto" />
               </Link>
             )}
-            <p className="text-text-muted text-sm max-w-sm mb-6 leading-relaxed">{config.brandTagline}</p>
+            <p className="text-text-muted text-sm max-w-sm mb-3 leading-relaxed">{config.brandTagline}</p>
 
             {socials.length > 0 && (
               <ul className="flex gap-3">
@@ -59,8 +59,8 @@ export default function Footer() {
 
           <div className="md:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-8">
             <nav aria-label="Footer">
-              <h2 className="text-text-main font-bold mb-6 text-base">Navigation</h2>
-              <ul className="grid grid-cols-2 gap-y-3 gap-x-4">
+              <h2 className="text-text-main font-bold mb-3 text-base">Navigation</h2>
+              <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
                 {navLinks.map((link) => (
                   <li key={link.label}>
                     {link.url.startsWith('/') ? (
@@ -73,8 +73,8 @@ export default function Footer() {
               </ul>
             </nav>
             <div>
-              <h2 className="text-text-main font-bold mb-6 text-base">Contact Info</h2>
-              <ul className="space-y-4">
+              <h2 className="text-text-main font-bold mb-3 text-base">Contact Info</h2>
+              <ul className="space-y-2.5">
                 {config.officeAddress && (
                   <li className="text-text-muted flex items-center gap-3 text-sm">
                     <MapPin className="w-4 h-4 text-accent/70 shrink-0" aria-hidden="true" />
@@ -103,13 +103,13 @@ export default function Footer() {
 
           {config.footerPortrait && (
             <div className="hidden md:flex md:col-span-3 justify-end items-end relative">
-              <div className="absolute bottom-0 right-0 w-48 h-48 bg-accent/10 blur-[60px] rounded-full pointer-events-none" />
-              <img src={config.footerPortrait} alt="" className="w-full max-w-[260px] h-auto object-contain object-bottom drop-shadow-2xl relative z-10" style={{ maxHeight: '280px' }} loading="lazy" referrerPolicy="no-referrer" />
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/10 blur-[60px] rounded-full pointer-events-none" />
+              <img src={config.footerPortrait} alt="" className="w-full max-w-[150px] h-auto object-contain object-bottom drop-shadow-2xl relative z-10" style={{ maxHeight: '150px' }} loading="lazy" referrerPolicy="no-referrer" />
             </div>
           )}
         </div>
 
-        <div className="pt-8 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+        <div className="pt-4 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
           <p className="text-text-muted text-sm">{config.copyrightText}</p>
           <ul className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
             <li><Link to="/terms-of-service" className="text-text-muted hover:text-accent transition-colors">Terms of Service</Link></li>
