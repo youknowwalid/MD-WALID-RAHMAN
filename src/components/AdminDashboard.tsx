@@ -224,7 +224,7 @@ function Dashboard({ email }: { email: string }) {
               );
             })}
             {items.length === 0 && (
-              <div className="text-center py-20 border border-dashed border-white/10 rounded-3xl"><p className="text-gray-400">Nothing here yet. Click “Add new” to create the first {form.singular}.</p></div>
+              <li className="text-center py-20 border border-dashed border-white/10 rounded-3xl"><p className="text-gray-400">Nothing here yet. Click “Add new” to create the first {form.singular}.</p></li>
             )}
           </ul>
         )}
