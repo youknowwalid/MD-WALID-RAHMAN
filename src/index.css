@@ -316,7 +316,7 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   border: 2px solid transparent;
   background:
     linear-gradient(#0d1117, #0d1117) padding-box,
-    conic-gradient(from var(--home-angle), #c3ed3a, #5f93c4, #c3ed3a) border-box;
+    conic-gradient(from var(--home-angle), var(--color-accent), #5f93c4, var(--color-accent)) border-box;
   animation: home-rotate 6s linear infinite;
 }
 
@@ -409,7 +409,7 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   border-radius: 2px;
 }
 .home-tl-rail { bottom: 0.5rem; background: rgba(13, 17, 23, 0.1); }
-.home-tl-fill { height: 0; background: linear-gradient(180deg, #c3ed3a, #16a34a); transition: height 0.15s linear; }
+.home-tl-fill { height: 0; background: linear-gradient(180deg, var(--color-accent), #16a34a); transition: height 0.15s linear; }
 .home-tl-dot {
   position: absolute;
   left: -2.75rem;
@@ -423,7 +423,7 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
 }
 .home-tl-item:hover .home-tl-dot,
 .home-tl-item:focus-within .home-tl-dot {
-  background: #c3ed3a;
+  background: var(--color-accent);
   border-color: #0d1117;
   transform: scale(1.12);
 }

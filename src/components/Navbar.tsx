@@ -100,8 +100,8 @@ export default function Navbar() {
             <span className="flex items-center gap-2.5 text-[20px] tracking-[-0.03em]">
               <i className="home-logo-star" aria-hidden="true" />
               <span className={cn('transition-colors duration-300', onSky ? 'text-white' : 'text-[#0d1117]')}>
-                <span className="font-light">youknow</span>
-                <b className={cn('font-semibold transition-colors duration-300', onSky ? 'text-accent' : 'text-[#6f8f0a]')}>walid</b>
+                <span className="font-light">{config.wordmarkLight}</span>
+                <b className={cn('font-semibold transition-colors duration-300', onSky ? 'text-accent' : 'text-[color-mix(in_srgb,var(--color-accent)_55%,#000)]')}>{config.wordmarkAccent}</b>
               </span>
             </span>
           ) : (

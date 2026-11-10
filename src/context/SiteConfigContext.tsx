@@ -38,9 +38,9 @@ function merge<T extends object>(defaults: T, saved: any, allowEmpty: (keyof T)[
 
 const GLOBAL_ALLOW_EMPTY: (keyof SiteConfig)[] = [
   'siteLogo', 'footerLogo', 'favicon', 'footerPortrait', 'copyrightText', 'aboutVideoUrl', 'globalCtaUrl',
-  'officeAddress', 'contactEmail', 'officePhone', 'aboutText', 'gradientVia',
+  'officeAddress', 'contactEmail', 'officePhone', 'aboutText', 'gradientVia', 'currentFocusTitle', 'currentFocusText',
 ];
-const HERO_ALLOW_EMPTY: (keyof HeroConfig)[] = ['heroImage', 'cvUrl', 'resumeImage'];
+const HERO_ALLOW_EMPTY: (keyof HeroConfig)[] = ['heroPortrait', 'cvUrl', 'resumeImage'];
 const SEO_ALLOW_EMPTY: (keyof SeoConfig)[] = ['ogImage', 'twitterHandle', 'titleTemplate'];
 
 const build = (raw: Raw) => ({

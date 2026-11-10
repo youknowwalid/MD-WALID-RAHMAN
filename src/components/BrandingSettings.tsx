@@ -6,7 +6,16 @@ import { AccentSettings, applyAccent, buildGradient, validHex } from '../lib/gra
 import { friendlyError } from './admin/forms';
 import { inputCls, labelCls } from './admin/fields';
 
-type Form = AccentSettings & { secondaryColor: string };
+type Form = AccentSettings & { secondaryColor: string; homeAccent: string };
+
+const HOME_PRESETS = [['Lime', '#c3ed3a'], ['Mint', '#7de0b0'], ['Sun', '#ffd23f'], ['Coral', '#ff8a6b'], ['Sky', '#8fd3ff'], ['Lilac', '#c7b3ff']] as const;
+
+/** Dark text sits on this colour on the home page, so it has to be bright enough. */
+const isBright = (hex: string) => {
+  const n = parseInt(hex.slice(1), 16);
+  const lin = (c: number) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255) > 0.3;
+};
 
 const PRESETS: { name: string; from: string; via: string; to: string; angle: number }[] = [
   { name: 'Sunrise', from: '#f45901', via: '', to: '#ffb347', angle: 135 },
@@ -62,6 +71,7 @@ export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 
         accentMode: f.accentMode,
         primaryColor: validHex(f.primaryColor, '#f45901'),
         secondaryColor: validHex(f.secondaryColor, '#00c6ff'),
+        homeAccent: validHex(f.homeAccent, '#c3ed3a'),
         gradientFrom: validHex(f.gradientFrom, '#f45901'),
         gradientVia: f.gradientVia ? validHex(f.gradientVia, '') : '',
         gradientTo: validHex(f.gradientTo, '#ff9a3c'),
@@ -83,7 +93,7 @@ export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 
   return (
     <form onSubmit={save} className="space-y-8 max-w-5xl">
       <div className="flex justify-between items-center gap-4 bg-bg-card p-4 sm:p-6 rounded-2xl border border-white/5 flex-wrap">
-        <p className="text-sm text-gray-300">Choose a solid color or a gradient. Changes preview live on this page; click Save to publish.</p>
+        <p className="text-sm text-gray-300">The <b>Home page accent</b> below colors the home page. The accent style and secondary color color every other page (projects, blog, shop, checkout) and this admin. Click Save to publish.</p>
         <div className="flex gap-3">
           {dirty && <button type="button" onClick={discard} className="px-5 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-300 hover:bg-white/5">Discard</button>}
           <button type="submit" disabled={saving || !dirty} className="bg-accent text-white font-black px-6 py-2.5 rounded-xl flex items-center gap-2 disabled:opacity-50">
@@ -143,6 +153,24 @@ export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 
             <span className="h-1.5 w-40 rounded-full" style={isGradient ? { backgroundImage: gradient } : { backgroundColor: validHex(f.primaryColor, '#f45901') }} />
           </div>
           {isGradient && <p className="text-xs text-gray-400 mt-3">Gradients are used on buttons, bars, badges, underlines and the big name in the hero. Small text, icons and thin borders use the start color so they stay readable.</p>}
+        </div>
+      </section>
+
+      <section className="bg-bg-card border border-white/5 rounded-3xl p-6 md:p-8 space-y-5 max-w-3xl">
+        <h2 className="text-xl font-black flex items-center gap-2.5"><Sparkles className="text-accent w-5 h-5" aria-hidden="true" /> Home page accent</h2>
+        <p className="text-sm text-gray-300">The color of the buttons, dots, bars and highlights on the home page. Pick a bright color: dark text sits on top of it.</p>
+        <div className="flex flex-wrap gap-3">
+          {HOME_PRESETS.map(([name, hex]) => (
+            <button key={name} type="button" onClick={() => update({ homeAccent: hex })} className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border border-white/10 hover:border-white/30 text-sm text-gray-200">
+              <span className="w-6 h-6 rounded-full border border-white/20" style={{ backgroundColor: hex }} aria-hidden="true" />{name}
+            </button>
+          ))}
+        </div>
+        <div className="max-w-md"><ColorInput label="Home accent color" value={f.homeAccent} onChange={(v) => update({ homeAccent: v })} /></div>
+        {validHex(f.homeAccent, '') && !isBright(validHex(f.homeAccent, '#c3ed3a')) && <p role="alert" className="text-xs text-amber-300">This color is quite dark, so the dark button text on the home page will be hard to read. A brighter color is safer.</p>}
+        <div className="rounded-2xl border border-white/10 p-6 flex flex-wrap items-center gap-6 bg-bg-dark">
+          <span className="px-8 py-3 rounded-full font-black text-[#0d1117]" style={{ backgroundColor: validHex(f.homeAccent, '#c3ed3a') }}>Let&apos;s Discuss ↗</span>
+          <span className="h-1.5 w-40 rounded-full" style={{ backgroundColor: validHex(f.homeAccent, '#c3ed3a') }} />
         </div>
       </section>
 
