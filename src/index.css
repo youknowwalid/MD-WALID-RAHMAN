@@ -589,3 +589,43 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   }
   .home-sheen::after { display: none; }
 }
+
+/* ---- Header wordmark star ------------------------------------------------- */
+.home-logo-star {
+  display: block;
+  width: 24px;
+  height: 28px;
+  background: var(--color-accent);
+  clip-path: polygon(50% 0, 100% 28%, 70% 50%, 100% 72%, 50% 100%, 0 72%, 30% 50%, 0 28%);
+  animation: home-spin 9s linear infinite;
+}
+
+/* ---- Hero cut-out and the clouds in front of it --------------------------- */
+.home-cutout {
+  filter: drop-shadow(0 30px 40px rgba(8, 26, 48, 0.28));
+  -webkit-mask-image: linear-gradient(180deg, #000 74%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 74%, transparent 100%);
+}
+.home-cloud-front {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 230px;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(0deg, #fff 0%, rgba(255, 255, 255, 0.96) 38%, rgba(255, 255, 255, 0.6) 70%, rgba(255, 255, 255, 0) 100%);
+}
+.home-cloud-front i {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+  filter: blur(8px);
+  will-change: transform;
+}
+.home-cloud-front__a { left: -6%; bottom: 20px; width: 52%; height: 170px; animation: home-drift 28s ease-in-out infinite alternate; }
+.home-cloud-front__b { left: 30%; bottom: 40px; width: 50%; height: 190px; animation: home-drift 36s ease-in-out infinite alternate-reverse; }
+.home-cloud-front__c { right: -8%; bottom: 10px; width: 50%; height: 180px; animation: home-drift 32s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) {
+  .home-logo-star,
+  .home-cloud-front i { animation: none; }
+}

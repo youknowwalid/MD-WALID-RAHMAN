@@ -3,7 +3,7 @@ import { m, useInView, useReducedMotion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import {
   Laptop, Braces, Palette, Megaphone, Check, X, ArrowUpRight, ArrowUp,
-  Mail, Phone, MapPin, Clock, Loader2,
+  Mail, Phone, MapPin, Clock, Loader2, Layers, PenTool, Compass, Sparkles,
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
@@ -25,6 +25,8 @@ import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = { Palette, Braces, Megaphone, Laptop };
+// Used when two services would otherwise share the same icon.
+const ICON_POOL = [Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles];
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -286,8 +288,6 @@ export default function Home() {
   const timelineFillRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const toTopRef = useRef<HTMLButtonElement>(null);
-  const portraitRef = useRef<HTMLDivElement>(null);
-  const portraitCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -358,7 +358,7 @@ export default function Home() {
   }, [resume.length, reduceMotion]);
 
   // A soft light follows the pointer across the cards, the main buttons lean towards it,
-  // and the portrait turns a few degrees to face it.
+  // and nothing else moves with it.
   useEffect(() => {
     if (reduceMotion) return;
     const onMove = (e: PointerEvent) => {
@@ -378,20 +378,6 @@ export default function Home() {
         const x = (e.clientX - box.left - box.width / 2) * 0.16;
         const y = (e.clientY - box.top - box.height / 2) * 0.26 - 2;
         magnet.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      }
-
-      const frame = portraitRef.current;
-      const card3d = portraitCardRef.current;
-      if (frame && card3d) {
-        const box = frame.getBoundingClientRect();
-        const near = e.clientX > box.left - 120 && e.clientX < box.right + 120 && e.clientY > box.top - 120 && e.clientY < box.bottom + 120;
-        if (near) {
-          const x = (e.clientX - box.left) / box.width - 0.5;
-          const y = (e.clientY - box.top) / box.height - 0.5;
-          card3d.style.transform = `rotateY(${(x * 13).toFixed(2)}deg) rotateX(${(-y * 13).toFixed(2)}deg)`;
-        } else {
-          card3d.style.transform = '';
-        }
       }
     };
     const onOut = (e: PointerEvent) => {
@@ -444,7 +430,6 @@ export default function Home() {
     }
   };
 
-  const heroImage = hero.heroImage || '/portrait-placeholder.svg';
   const aboutVideo = config.aboutVideoUrl.trim();
   const statusMessages: Record<string, { text: string; cls: string }> = {
     success: { text: 'Thank you! Your message has been sent.', cls: 'text-[#15803d]' },
@@ -479,19 +464,15 @@ export default function Home() {
         {/* HERO SECTION */}
         <section
           id="home"
-          className="home-hero relative flex min-h-[760px] items-center overflow-hidden px-6 pb-32 pt-28 md:pt-32 lg:min-h-[max(900px,100vh)]"
+          className="home-hero relative flex min-h-[760px] items-end overflow-hidden px-6 pt-28 md:pt-32 lg:min-h-[max(900px,100vh)]"
         >
           <div className="home-cloud home-cloud--a bottom-[20%] left-[-140px] h-[220px] w-[680px]" data-depth="26" aria-hidden="true" />
           <div className="home-cloud home-cloud--b bottom-[30%] right-[-180px] h-[260px] w-[820px]" data-depth="-34" aria-hidden="true" />
           <div className="home-cloud home-cloud--c left-[36%] top-[26%] h-[150px] w-[460px] opacity-40" data-depth="18" aria-hidden="true" />
 
-          <div className="mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-            <div className="relative z-10 text-center lg:text-left">
-              <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }}>
-                <Eyebrow onDark>Brand Developer</Eyebrow>
-              </m.div>
-
-              <h1 className="mt-7 text-[clamp(2.6rem,8vw,6.2rem)] font-medium leading-[1.03] tracking-[-0.045em] text-white">
+          <div className="mx-auto grid w-full max-w-7xl items-end gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+            <div className="relative z-10 pb-4 text-center lg:pb-44 lg:text-left">
+              <h1 className="text-[clamp(2.6rem,8vw,6.2rem)] font-medium leading-[1.03] tracking-[-0.045em] text-white">
                 Hello, I&apos;m <br />
                 <span className="text-white/65">
                   <Typewriter text="Walid Rahman." />
@@ -555,40 +536,26 @@ export default function Home() {
             </div>
 
             <m.div
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.8, ease: EASE }}
-              className="relative order-first flex justify-center lg:order-last"
+              className="relative z-[1] flex justify-center lg:justify-end"
             >
-              <div className="relative aspect-[4/5] w-full max-w-[300px] [perspective:1000px] md:max-w-[400px]" ref={portraitRef}>
-                <div className="home-spin home-ring-dot pointer-events-none absolute left-1/2 top-1/2 h-[116%] w-[116%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/45" aria-hidden="true" />
-                <div className="home-spin--rev pointer-events-none absolute left-1/2 top-1/2 h-[132%] w-[132%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20" aria-hidden="true" />
+              <div className="relative aspect-[4/5] w-[min(88vw,380px)] md:w-[460px] lg:w-[min(100%,580px)]">
+                <div className="home-spin home-ring-dot pointer-events-none absolute left-1/2 top-[44%] h-[100%] w-[100%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/45" aria-hidden="true" />
+                <div className="home-spin--rev pointer-events-none absolute left-1/2 top-[44%] h-[116%] w-[116%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20" aria-hidden="true" />
 
-                {/* Two elements: the outer one floats, the inner one turns towards the pointer,
-                    so the two movements never overwrite each other. */}
-                <div className="home-float h-full w-full [transform-style:preserve-3d]">
-                  <div
-                    ref={portraitCardRef}
-                    className="relative h-full w-full overflow-hidden rounded-[32px] bg-[#1b2433] shadow-[0_50px_80px_-30px_rgba(8,26,48,0.75)] transition-transform duration-200 ease-out"
-                  >
-                    <Photo
-                      src={heroImage}
-                      widths={[640]}
-                      sizes="(min-width: 768px) 400px, 300px"
-                      alt="Portrait of Walid Rahman"
-                      width={400}
-                      height={500}
-                      className="h-full w-full object-cover"
-                      referrerPolicy="no-referrer"
-                      fetchPriority="high"
-                      decoding="async"
-                    />
-                    <div className="absolute inset-x-4 bottom-4 rounded-[20px] border border-white/15 bg-[#0d1117]/60 p-4 backdrop-blur-md">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">{hero.heroStatus}</div>
-                      <div className="text-[15px] text-white">{hero.heroAvailability}</div>
-                    </div>
-                  </div>
-                </div>
+                {/* The cut-out stands straight on the sky; the clouds in front of the lower body
+                    (home-cloud-front) are what blend it in. */}
+                <img
+                  src="/walid-cutout.webp"
+                  alt="Portrait of Walid Rahman"
+                  width={1080}
+                  height={1350}
+                  fetchPriority="high"
+                  decoding="async"
+                  className="home-cutout absolute inset-0 h-full w-full object-contain object-bottom"
+                />
 
                 {config.aboutTags.slice(0, 2).map((tag, i) => (
                   <div
@@ -596,7 +563,7 @@ export default function Home() {
                     aria-hidden="true"
                     className={cn(
                       'absolute hidden items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[13px] font-medium text-[#0d1117] shadow-[0_18px_30px_-14px_rgba(8,26,48,0.6)] xl:flex',
-                      i === 0 ? 'home-float -left-10 top-[18%]' : 'home-float--slow -right-8 bottom-[26%]',
+                      i === 0 ? 'home-float left-[-4%] top-[22%]' : 'home-float--slow right-[-2%] bottom-[34%]',
                     )}
                   >
                     <i className="h-2 w-2 rounded-full bg-[#16a34a]" />
@@ -607,16 +574,23 @@ export default function Home() {
             </m.div>
           </div>
 
+          {/* Clouds in front of the figure's lower body, melting into the white below the hero. */}
+          <div className="home-cloud-front" aria-hidden="true">
+            <i className="home-cloud-front__a" />
+            <i className="home-cloud-front__b" />
+            <i className="home-cloud-front__c" />
+          </div>
+
           {workedWith.length > 2 && (
-            <div className="absolute inset-x-0 bottom-7 hidden md:block">
-              <p className="text-center text-[15px] text-white/90">Teams I have worked with</p>
+            <div className="absolute inset-x-0 bottom-7 z-[3] hidden md:block">
+              <p className="text-center text-[15px] text-[#4a5361]">Teams I have worked with</p>
               <div className="home-marquee mt-4">
                 <div className="home-marquee-row flex w-max gap-14" style={{ animationDuration: '34s' }}>
                   {[...workedWith, ...workedWith].map((name, i) => (
                     <span
                       key={`${name}-${i}`}
                       aria-hidden={i >= workedWith.length ? 'true' : undefined}
-                      className="whitespace-nowrap text-[19px] font-semibold tracking-[-0.02em] text-white/85"
+                      className="whitespace-nowrap text-[19px] font-semibold tracking-[-0.02em] text-[#1f2733]/80"
                     >
                       {name}
                     </span>
@@ -707,35 +681,33 @@ export default function Home() {
 
         {/* SERVICES SECTION */}
         {services.length > 0 && (
-          <section id="services" className="px-6 py-20 md:py-[120px]">
+          <section id="services" className="px-6 py-10 md:py-14">
             <div className="mx-auto max-w-7xl">
-              <SectionHead label="What I do" title="My Specialities" />
-              <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
-                {services.map((service, i) => {
-                  const Icon = ICON_MAP[service.iconName || 'Palette'] || Palette;
-                  const tinted = i % 3 === 1;
-                  return (
-                    <Reveal key={service.id} delay={Math.min((i % 3) * 0.08, 0.2)}>
-                      <div
-                        className={cn(
-                          'home-card group h-full rounded-[32px] p-9 transition-[transform,box-shadow] duration-500 hover:-translate-y-2 hover:shadow-[0_36px_60px_-34px_rgba(13,17,23,0.4)]',
-                          tinted
-                            ? 'bg-[linear-gradient(160deg,#dbe9fb,#f1f6fd_60%,#ffffff)]'
-                            : 'border border-border-subtle bg-bg-card',
-                        )}
-                      >
-                        <span className="pointer-events-none absolute right-6 top-3 text-[84px] font-semibold leading-none tracking-[-0.05em] text-[#0d1117]/5" aria-hidden="true">
-                          {service.displayId || String(i + 1).padStart(2, '0')}
-                        </span>
-                        <div className="relative mb-14 grid h-[52px] w-[52px] place-items-center rounded-[16px] bg-[#0d1117] text-white transition-[transform,background-color,color] duration-500 group-hover:-rotate-6 group-hover:bg-accent group-hover:text-[#0d1117]">
-                          <Icon className="h-6 w-6" />
+              <Reveal>
+                <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">My Specialities</h2>
+              </Reveal>
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {(() => {
+                  const used = new Set<React.ComponentType<{ className?: string }>>();
+                  return services.map((service, i) => {
+                    let Icon = ICON_MAP[service.iconName || ''] || ICON_POOL[i % ICON_POOL.length];
+                    if (used.has(Icon)) Icon = ICON_POOL.find((c) => !used.has(c)) || Icon;
+                    used.add(Icon);
+                    return (
+                      <Reveal key={service.id} delay={Math.min((i % 3) * 0.05, 0.12)}>
+                        <div className="home-card group flex h-full items-center gap-4 rounded-[20px] border border-border-subtle bg-bg-card px-4 py-3.5 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-22px_rgba(13,17,23,0.4)]">
+                          <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#0d1117] text-white transition-colors duration-300 group-hover:bg-accent group-hover:text-[#0d1117]">
+                            <Icon className="h-[18px] w-[18px]" />
+                          </div>
+                          <div className="relative min-w-0">
+                            <h3 className="text-[17px] font-semibold leading-tight tracking-[-0.02em] text-text-main">{service.title}</h3>
+                            <p className="mt-0.5 line-clamp-2 text-[14px] leading-snug text-text-muted">{service.description}</p>
+                          </div>
                         </div>
-                        <h3 className="relative text-[27px] font-semibold tracking-[-0.03em] text-text-main">{service.title}</h3>
-                        <p className="relative mt-3 text-[17px] leading-relaxed text-text-muted">{service.description}</p>
-                      </div>
-                    </Reveal>
-                  );
-                })}
+                      </Reveal>
+                    );
+                  });
+                })()}
               </div>
             </div>
           </section>
@@ -743,46 +715,42 @@ export default function Home() {
 
         {/* SKILLS SECTION */}
         {skills.length > 0 && (
-          <section id="skills" className="px-4 py-10 md:px-6 md:py-16">
-            <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] bg-[#0d1117] px-7 py-16 md:rounded-[56px] md:px-16 md:py-24">
+          <section id="skills" className="px-4 py-6 md:px-6 md:py-8">
+            <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-6 py-8 md:rounded-[36px] md:px-12 md:py-10">
               <div className="home-skills-glow" aria-hidden="true" />
-              <div className="relative grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+              <div className="relative grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">
                 <div>
-                  <SectionHead
-                    label="Excellence"
-                    title={<>Technical <span className="text-white/45">Arsenal</span></>}
-                    lead="My skills are refined through years of practical application in demanding environments. I focus on technologies that deliver performance and scalability."
-                    onDark
-                  />
+                  <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.4rem]">
+                    Technical <span className="text-white/45">Arsenal</span>
+                  </h2>
+                  <p className="mt-3 max-w-md text-[15px] leading-relaxed text-text-muted">
+                    Skills refined through years of practical application in demanding environments.
+                  </p>
                 </div>
-                <div className="-mt-6 lg:mt-2">
+                <div className="grid gap-x-10 gap-y-3.5 sm:grid-cols-2">
                   {skills.map((skill, i) => (
-                    <Reveal key={skill.id || skill.name} delay={Math.min(i * 0.05, 0.3)}>
-                      <div className="py-4">
-                        <div className="mb-3 flex items-baseline justify-between gap-4">
-                          <span className="text-[17px] font-medium text-white md:text-lg">{skill.name}</span>
-                          <span className="text-[17px] font-medium tabular-nums text-accent" aria-hidden="true">
-                            <CountText raw={`${skill.level}%`} />
-                          </span>
-                        </div>
-                        <div
-                          className="h-2 w-full overflow-hidden rounded-full bg-white/10"
-                          role="progressbar"
-                          aria-label={skill.name}
-                          aria-valuenow={skill.level}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        >
-                          <m.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${skill.level}%` }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.4, delay: Math.min(i * 0.06, 0.4), ease: EASE }}
-                            className="home-bar-fill h-full rounded-full bg-[linear-gradient(90deg,#8db4d8,#c3ed3a)]"
-                          />
-                        </div>
+                    <div key={skill.id || skill.name}>
+                      <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                        <span className="text-[14px] font-medium text-white">{skill.name}</span>
+                        <span className="text-[13px] font-medium tabular-nums text-accent" aria-hidden="true">{skill.level}%</span>
                       </div>
-                    </Reveal>
+                      <div
+                        className="h-1 w-full overflow-hidden rounded-full bg-white/10"
+                        role="progressbar"
+                        aria-label={skill.name}
+                        aria-valuenow={skill.level}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        <m.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${skill.level}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 1.1, delay: Math.min(i * 0.04, 0.3), ease: EASE }}
+                          className="h-full rounded-full bg-[linear-gradient(90deg,#8db4d8,#c3ed3a)]"
+                        />
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -947,34 +915,34 @@ export default function Home() {
 
         {/* TESTIMONIALS */}
         {testimonials.length > 0 && (
-          <section className="overflow-hidden bg-bg-card py-20 md:py-[120px]" aria-label="Client testimonials">
-            <div className="mx-auto mb-14 max-w-7xl px-6 md:mb-[70px]">
-              <SectionHead label="Clients" title="Kind Words" />
+          <section className="overflow-hidden bg-bg-card py-8 md:py-12" aria-label="Client testimonials">
+            <div className="mx-auto mb-5 max-w-7xl px-6">
+              <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">Kind Words</h2>
             </div>
-            <div className="home-marquee space-y-6">
-              {[0, 1].map((row) => (
-                <div key={row} className="flex w-max px-3" {...(row === 1 ? { 'aria-hidden': 'true' } : {})}>
-                  <div className={cn('flex w-max gap-6', row === 0 ? 'home-marquee-row' : 'home-marquee-row--rev')}>
-                    {[...testimonials, ...testimonials].map((t, i) => (
-                      <figure
-                        key={`${row}-${t.id}-${i}`}
-                        aria-hidden={row === 0 && i >= testimonials.length ? 'true' : undefined}
-                        className="m-0 flex w-[330px] shrink-0 flex-col rounded-[32px] border border-border-subtle bg-white p-7 transition-[transform,box-shadow] duration-500 hover:-translate-y-1.5 hover:shadow-[0_30px_50px_-30px_rgba(13,17,23,0.35)] md:w-[420px]"
-                      >
-                        <div className="h-6 text-[52px] font-bold leading-[0.6] text-accent" aria-hidden="true">&ldquo;</div>
-                        <blockquote className="m-0 flex-grow text-[17px] leading-relaxed text-[#2d3440]">{t.content}</blockquote>
-                        <figcaption className="mt-6 flex items-center gap-3.5">
-                          <Avatar src={t.avatar} name={t.name} className="h-11 w-11 shrink-0" />
-                          <div className="min-w-0">
-                            <div className="text-[16px] font-semibold text-text-main">{t.name}</div>
-                            <div className="truncate text-[11px] uppercase tracking-[0.1em] text-text-muted">{t.role}</div>
-                          </div>
-                        </figcaption>
-                      </figure>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            <div className="home-marquee">
+              <div className="home-marquee-row flex w-max gap-5 px-2.5" style={{ animationDuration: '90s' }}>
+                {(() => {
+                  // One row, looped. Each half holds enough cards to be wider than the screen.
+                  const half = Array.from({ length: Math.max(1, Math.ceil(8 / testimonials.length)) }, () => testimonials).flat();
+                  return [...half, ...half].map((t, i) => (
+                    <figure
+                      key={`${t.id}-${i}`}
+                      aria-hidden={i >= half.length ? 'true' : undefined}
+                      className="m-0 flex w-[290px] shrink-0 flex-col rounded-[22px] border border-border-subtle bg-white p-5 md:w-[350px]"
+                    >
+                      <div className="h-4 text-[38px] font-bold leading-[0.6] text-accent" aria-hidden="true">&ldquo;</div>
+                      <blockquote className="m-0 line-clamp-3 text-[15px] leading-relaxed text-[#2d3440]">{t.content}</blockquote>
+                      <figcaption className="mt-4 flex items-center gap-3">
+                        <Avatar src={t.avatar} name={t.name} className="h-9 w-9 shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-[14px] font-semibold leading-tight text-text-main">{t.name}</div>
+                          <div className="truncate text-[10px] uppercase tracking-[0.1em] text-text-muted">{t.role}</div>
+                        </div>
+                      </figcaption>
+                    </figure>
+                  ));
+                })()}
+              </div>
             </div>
           </section>
         )}

@@ -95,19 +95,17 @@ export default function Navbar() {
         )}
       >
         <Link to="/" className="flex min-h-10 min-w-10 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>
-          {config.siteLogo && (
-            // The mark is white lettering. Over the sky it is turned fully white, on the white bar
-            // fully ink: one tone either way, and legible on both, which the original is not.
-            <img
-              src={config.siteLogo}
-              alt=""
-              width={160}
-              height={40}
-              className={cn(
-                'h-10 w-auto transition-[filter] duration-300',
-                isHome && (onSky ? 'brightness-0 invert' : 'brightness-0'),
-              )}
-            />
+          {isHome ? (
+            // Home wordmark as in the design: a slowly turning lime star, "youknow" light, "walid" lime.
+            <span className="flex items-center gap-2.5 text-[20px] tracking-[-0.03em]">
+              <i className="home-logo-star" aria-hidden="true" />
+              <span className={cn('transition-colors duration-300', onSky ? 'text-white' : 'text-[#0d1117]')}>
+                <span className="font-light">youknow</span>
+                <b className={cn('font-semibold transition-colors duration-300', onSky ? 'text-accent' : 'text-[#6f8f0a]')}>walid</b>
+              </span>
+            </span>
+          ) : (
+            config.siteLogo && <img src={config.siteLogo} alt="" width={160} height={40} className="h-10 w-auto" />
           )}
         </Link>
 
@@ -152,7 +150,7 @@ export default function Navbar() {
             className={cn(
               'flex items-center justify-center transition-colors',
               isHome
-                ? 'h-11 w-11 rounded-full bg-accent text-[#0d1117] outline outline-1 outline-offset-[3px] outline-accent/60'
+                ? 'h-11 w-11 rounded-full bg-accent text-[#0d1117] lg:hidden'
                 : 'h-11 w-11 text-text-main lg:hidden',
             )}
             onClick={() => setIsMenuOpen((o) => !o)}
