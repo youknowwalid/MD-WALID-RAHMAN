@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { m, MotionValue, useReducedMotion, useScroll, useTransform } from 'motion/react';
 
 /** Letters never fade below this, so unrevealed text stays readable. */
-const MIN_OPACITY = 0.4;
+const MIN_OPACITY = 0.55;
 
 type Tag = 'h2' | 'h3';
 

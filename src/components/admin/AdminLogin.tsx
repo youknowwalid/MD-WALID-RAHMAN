@@ -64,12 +64,12 @@ export default function AdminLogin() {
         </form>
 
         <div className="mt-6 flex flex-col gap-2 text-sm text-center">
-          {mode !== 'signin' && <button type="button" className="text-accent hover:underline" onClick={() => { setMode('signin'); setError(''); setNotice(''); }}>Back to sign in</button>}
-          {mode === 'signin' && <button type="button" className="text-accent hover:underline" onClick={() => { setMode('link'); setError(''); setNotice(''); }}>Forgot your password? Get a sign-in link</button>}
-          {mode === 'signin' && <button type="button" className="text-text-muted hover:text-accent" onClick={() => { setMode('signup'); setError(''); setNotice(''); }}>First time? Create the admin account</button>}
+          {mode !== 'signin' && <button type="button" className="inline-flex min-h-11 items-center text-accent hover:underline" onClick={() => { setMode('signin'); setError(''); setNotice(''); }}>Back to sign in</button>}
+          {mode === 'signin' && <button type="button" className="inline-flex min-h-11 items-center text-accent hover:underline" onClick={() => { setMode('link'); setError(''); setNotice(''); }}>Forgot your password? Get a sign-in link</button>}
+          {mode === 'signin' && <button type="button" className="inline-flex min-h-11 items-center text-text-muted hover:text-accent" onClick={() => { setMode('signup'); setError(''); setNotice(''); }}>First time? Create the admin account</button>}
         </div>
       </main>
-      <a href="/" className="mt-6 text-sm text-text-muted hover:text-accent">← Back to the website</a>
+      <a href="/" className="mt-4 inline-flex min-h-11 items-center text-sm text-text-muted hover:text-accent">← Back to the website</a>
     </div>
   );
 }

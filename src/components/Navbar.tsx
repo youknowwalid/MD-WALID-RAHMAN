@@ -184,8 +184,8 @@ export default function Navbar() {
             className={cn(
               'z-50 flex flex-col gap-6 overflow-y-auto p-8 shadow-2xl',
               isHome
-                ? 'mx-auto mt-3 max-h-[calc(100vh-7rem)] max-w-7xl rounded-[32px] border border-[#0d1117]/10 bg-white/95 backdrop-blur-2xl'
-                : 'absolute left-0 top-full max-h-[calc(100vh-4rem)] w-full border-b border-border-subtle bg-bg-dark/95 backdrop-blur-2xl lg:hidden',
+                ? 'mx-auto mt-3 max-h-[calc(100vh-7rem)] max-w-7xl rounded-[32px] border border-[#0d1117]/10 bg-white'
+                : 'absolute left-0 top-full max-h-[calc(100vh-4rem)] w-full border-b border-border-subtle bg-bg-dark lg:hidden',
             )}
           >
             <div className={cn(isHome && 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3')}>
@@ -195,7 +195,7 @@ export default function Navbar() {
                   url={link.url}
                   onClick={() => setIsMenuOpen(false)}
                   className={cn(
-                    'block transition-all',
+                    'block py-1.5 transition-all',
                     isHome
                       ? 'text-[26px] font-medium tracking-[-0.035em] text-[#0d1117] hover:text-[#0d1117]/60'
                       : 'text-2xl font-black uppercase tracking-tighter text-text-muted hover:text-accent',

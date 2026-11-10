@@ -128,7 +128,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         <button
           ref={closeRef}
           onClick={onClose}
-          className="absolute top-5 right-5 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-neutral-900 border border-white/10 flex items-center justify-center transition-all hover:scale-110 hover:text-accent"
+          className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-black/50 hover:bg-neutral-900 border border-white/10 flex items-center justify-center transition-all hover:scale-110 hover:text-accent"
           aria-label="Close Modal"
         >
           <X className="w-5 h-5" />
@@ -164,7 +164,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-accent hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-black/60 border border-white/10 hover:bg-accent hover:border-transparent text-white flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:scale-105"
                   aria-label="Previous Image"
                 >
                   <span className="text-xl font-bold font-mono">‹</span>
@@ -172,7 +172,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/10 hover:bg-accent hover:border-transparent text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-105"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-black/60 border border-white/10 hover:bg-accent hover:border-transparent text-white flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:scale-105"
                   aria-label="Next Image"
                 >
                   <span className="text-xl font-bold font-mono">›</span>
@@ -182,14 +182,14 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
             {/* Counter Badge */}
             {images.length > 1 && (
-              <span className="absolute top-4 left-4 bg-black/75 border border-white/10 text-[10px] font-mono px-2 py-0.5 rounded-md text-gray-300">
+              <span className="absolute top-4 left-4 bg-black/75 border border-white/10 text-xs font-mono px-2 py-0.5 rounded-md text-gray-300">
                 {activeIndex + 1} / {images.length}
               </span>
             )}
 
             {/* Secure File Badge */}
             <div className="absolute bottom-4 left-4 flex gap-2">
-              <span className="bg-black/80 border border-white/10 text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full text-gray-300 flex items-center gap-1.5 backdrop-blur-sm">
+              <span className="bg-black/80 border border-white/10 text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full text-gray-300 flex items-center gap-1.5 backdrop-blur-sm">
                 <Shield className="w-3.5 h-3.5 text-accent" />
                 Secure Digital File
               </span>
@@ -231,7 +231,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <div>
             {/* Tag / Category Badge */}
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] font-bold text-accent uppercase tracking-widest px-2.5 py-1 bg-accent/10 rounded border border-accent/20">
+              <span className="text-xs font-bold text-accent uppercase tracking-widest px-2.5 py-1 bg-accent/10 rounded border border-accent/20">
                 Digital Resource
               </span>
               <span className="text-xs text-neutral-400 font-mono">
@@ -307,7 +307,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             )}
 
             {/* Dynamic Checkout note */}
-            <p className="text-[10px] text-center text-neutral-400 uppercase tracking-widest leading-relaxed">
+            <p className="text-xs text-center text-neutral-400 uppercase tracking-widest leading-relaxed">
               bKash • Nagad • Verified in minutes
             </p>
 

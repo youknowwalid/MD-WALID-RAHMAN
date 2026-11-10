@@ -80,13 +80,13 @@ export default function Orders({ onToast }: Props) {
               role="tab"
               aria-selected={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${filter === f.id ? 'bg-accent text-white border-transparent' : 'border-white/10 text-gray-300 hover:bg-white/5'}`}
+              className={`min-h-11 px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${filter === f.id ? 'bg-accent text-[#0d1117] border-transparent' : 'border-white/10 text-gray-300 hover:bg-white/5'}`}
             >
               {f.label} <span className="opacity-70">({counts[f.id]})</span>
             </button>
           ))}
         </div>
-        <button onClick={load} className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-sm text-gray-300 hover:bg-white/5" aria-label="Refresh orders">
+        <button onClick={load} className="ml-auto flex min-h-11 items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-sm text-gray-300 hover:bg-white/5" aria-label="Refresh orders">
           <RefreshCw className="w-4 h-4" aria-hidden="true" /> Refresh
         </button>
       </div>
@@ -106,7 +106,7 @@ export default function Orders({ onToast }: Props) {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`text-[11px] font-black uppercase tracking-wide rounded-full border px-3 py-1 ${STATUS_STYLE[o.status]}`}>{STATUS_LABEL[o.status]}</span>
+                    <span className={`text-xs font-black uppercase tracking-wide rounded-full border px-3 py-1 ${STATUS_STYLE[o.status]}`}>{STATUS_LABEL[o.status]}</span>
                     <span className="text-xs text-gray-400 uppercase tracking-wider">{o.edition === 'bangla' ? 'Bangla edition' : 'English edition'}</span>
                     {o.status === 'paid' && o.paid_how && <span className="text-xs text-gray-500">({o.paid_how === 'auto' ? 'matched automatically' : 'approved by hand'})</span>}
                   </div>

@@ -64,9 +64,9 @@ export default function Footer() {
                 {navLinks.map((link) => (
                   <li key={link.label}>
                     {link.url.startsWith('/') ? (
-                      <Link to={link.url} className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</Link>
+                      <Link to={link.url} className="inline-flex min-h-11 min-w-11 items-center lg:min-h-0 lg:min-w-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</Link>
                     ) : (
-                      <a href={link.url} className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</a>
+                      <a href={link.url} className="inline-flex min-h-11 min-w-11 items-center lg:min-h-0 lg:min-w-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</a>
                     )}
                   </li>
                 ))}

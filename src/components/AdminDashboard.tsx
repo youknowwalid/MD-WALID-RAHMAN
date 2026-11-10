@@ -160,8 +160,8 @@ function Dashboard({ email }: { email: string }) {
         <div className="flex items-center justify-between lg:block">
           <div className="text-xl font-black lg:mb-10 tracking-tighter">Admin<span className="text-accent">Panel</span></div>
           <div className="flex lg:hidden items-center gap-3 text-sm">
-            <a href="/" className="text-gray-300 hover:text-white">View site</a>
-            <button onClick={() => admin.signOut()} className="text-red-300 font-bold">Log out</button>
+            <a href="/" className="inline-flex min-h-11 items-center text-gray-300 hover:text-white">View site</a>
+            <button onClick={() => admin.signOut()} className="inline-flex min-h-11 items-center text-red-300 font-bold">Log out</button>
           </div>
         </div>
         <nav aria-label="Admin sections" className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible mt-4 lg:mt-0 lg:flex-1 pb-1">
@@ -170,7 +170,7 @@ function Dashboard({ email }: { email: string }) {
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               aria-current={activeTab === t.id ? 'page' : undefined}
-              className={`shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm lg:text-base whitespace-nowrap ${activeTab === t.id ? 'bg-accent text-white font-bold' : 'text-text-muted hover:bg-white/5'}`}
+              className={`shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm lg:text-base whitespace-nowrap ${activeTab === t.id ? 'bg-accent text-[#0d1117] font-bold' : 'text-text-muted hover:bg-white/5'}`}
             >
               <t.icon className="w-5 h-5" aria-hidden="true" />{t.label}
             </button>
@@ -203,7 +203,7 @@ function Dashboard({ email }: { email: string }) {
         )}
 
         {form && !loading && (
-          <ul className="grid gap-4">
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-4">
             {items.map((item) => {
               const img = item.image || item.thumbnail || item.avatar;
               return (

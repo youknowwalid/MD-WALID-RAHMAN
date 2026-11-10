@@ -46,7 +46,7 @@ export default function ThankYou() {
     <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
       <Seo title="Your order" description="Your order status and download." noindex />
       <Navbar />
-      <main className="pt-32 pb-20 px-6 max-w-2xl mx-auto">
+      <main className="min-h-[100svh] pt-32 pb-20 px-6 max-w-2xl mx-auto">
         <div className="bg-bg-card border border-white/5 rounded-3xl p-8 md:p-10 shadow-xl text-center">
           {state.kind === 'loading' && (
             <div role="status" aria-live="polite">
