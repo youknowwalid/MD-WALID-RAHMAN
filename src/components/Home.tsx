@@ -658,12 +658,15 @@ export default function Home() {
               {hero.resumeImage && (
                 <Reveal from="right" delay={0.1} className="order-first lg:order-last">
                   <div className="relative h-[260px] overflow-hidden rounded-[32px] sm:h-[360px] shadow-[0_30px_55px_-32px_rgba(13,17,23,0.5)] lg:h-full lg:min-h-[420px]">
-                    <img
+                    <Photo
                       src={hero.resumeImage}
+                      widths={[640, 828, 1080]}
+                      sizes="(min-width: 1024px) 50vw, 100vw"
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover object-top"
                       referrerPolicy="no-referrer"
                       loading="lazy"
+                      decoding="async"
                     />
                     {focusTitle && (
                       <div className="absolute inset-x-4 bottom-4 rounded-[16px] border border-white/15 bg-[#0d1117]/60 px-4 py-3 backdrop-blur-md">

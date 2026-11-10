@@ -6,6 +6,7 @@ import { cn } from '../lib/utils';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useProducts } from '../lib/products';
 import { safeUrl } from '../lib/text';
+import Photo from './Photo';
 
 /** In-site links use the router (no page reload); everything else is a normal link. */
 const NavItem = ({ url, className, onClick, children, ...rest }: { url: string; className?: string; onClick?: () => void; children: React.ReactNode } & React.AriaAttributes) =>
@@ -113,7 +114,7 @@ export default function Navbar() {
               </span>
             </span>
           ) : (
-            config.siteLogo && <img src={config.siteLogo} alt="" width={160} height={40} className="h-10 w-auto" />
+            config.siteLogo && <Photo src={config.siteLogo} widths={[256]} sizes="128px" alt="" width={160} height={40} className="h-10 w-auto" />
           )}
         </Link>
 

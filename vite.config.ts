@@ -18,8 +18,6 @@ function earlySettings(): Plugin {
   return {
     name: 'early-settings',
     transformIndexHtml(_html, ctx) {
-      // In production the portrait is shown as a resized Cloudinary copy (see src/lib/img.ts), so that is what to preload.
-      const resize = !ctx.server;
       const url = pick(process.env.VITE_SUPABASE_URL, publicConfig.supabaseUrl);
       const key = pick(process.env.VITE_SUPABASE_ANON_KEY, publicConfig.supabaseAnonKey);
       if (!url || !key) return;
@@ -31,13 +29,23 @@ function earlySettings(): Plugin {
         `window.__settings=fetch('/api/content?p='+encodeURIComponent(q))` +
         `.then(function(r){return r.ok&&(r.headers.get('content-type')||'').indexOf('json')>-1?r.json():null})` +
         `.catch(function(){return null}).then(function(rows){return rows||direct()});` +
-        // Preload the portrait as soon as its address is known (matches the <img>: no-referrer).
-        `window.__settings.then(function(rows){if(!rows)return;for(var i=0;i<rows.length;i++){if(rows[i].key==='hero'){` +
-        `var h=rows[i].value&&rows[i].value.heroImage;if(typeof h==='string'&&/^https?:\\/\\//i.test(h)){` +
-        `var t=h.trim(),c=${resize}&&/^(https:\\/\\/res\\.cloudinary\\.com\\/[^\\/]+\\/image\\/upload\\/)(v\\d+\\/.+)$/.exec(t);` +
-        `var l=document.createElement('link');l.rel='preload';l.as='image';l.href=c?c[1]+'f_auto,q_auto,w_640,c_limit/'+c[2]:t;l.referrerPolicy='no-referrer';l.setAttribute('fetchpriority','high');document.head.appendChild(l);}}}});` +
+        // Preload the portrait the home page really shows (hero.heroPortrait, else the built-in animated one) so it does not
+        // wait for the JavaScript. A returning visitor's saved settings decide at once; a first-time visitor gets the
+        // built-in portrait started now and the custom one (if the owner set one) as soon as the settings arrive.
+        `function pre(h,motion){var l=document.createElement('link');l.rel='preload';l.as='image';l.href=h;l.setAttribute('fetchpriority','high');` +
+        `if(motion)l.media='(prefers-reduced-motion: no-preference)';document.head.appendChild(l);}` +
+        `var DEF='/walid-hero-animated-v2.webp',home=location.pathname==='/',done='';` +
+        `try{var c=JSON.parse(localStorage.getItem('site_settings_cache_v2')||'null');if(home){var cp=c&&c.hero&&c.hero.heroPortrait;` +
+        `if(typeof cp==='string'&&/^https?:\\/\\//i.test(cp)){done=cp;pre(cp,false)}else{done=DEF;pre(DEF,true)}}}catch(e){}` +
+        `window.__settings.then(function(rows){if(!rows||!home)return;for(var i=0;i<rows.length;i++){if(rows[i].key==='hero'){` +
+        `var h=rows[i].value&&rows[i].value.heroPortrait;if(typeof h==='string'&&/^https?:\\/\\//i.test(h)&&h.trim()!==done){pre(h.trim(),false)}}}});` +
         `}catch(e){}})();`;
+      const fonts = Object.keys(ctx.bundle || {}).filter((f) => /poppins-latin-(400|600|700)-normal.*\.woff2$/.test(f));
+      const fontJs = fonts.length
+        ? `if(location.pathname!=='/'){${JSON.stringify(fonts)}.forEach(function(f){var l=document.createElement('link');l.rel='preload';l.as='font';l.type='font/woff2';l.crossOrigin='anonymous';l.href='/'+f;document.head.appendChild(l)})}`
+        : '';
       return [
+        ...(fontJs ? [{ tag: 'script', children: fontJs, injectTo: 'head-prepend' as const }] : []),
         // Pictures come from Cloudinary: open that connection while the page is still loading.
         { tag: 'link', attrs: { rel: 'preconnect', href: 'https://res.cloudinary.com' }, injectTo: 'head-prepend' },
         { tag: 'script', children: js, injectTo: 'head-prepend' },

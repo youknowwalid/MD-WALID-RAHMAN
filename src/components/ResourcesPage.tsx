@@ -7,6 +7,7 @@ import { Product } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ProductModal from './ProductModal';
+import Photo from './Photo';
 
 export default function ResourcesPage() {
   const { products, loading } = useProducts();
@@ -89,8 +90,11 @@ export default function ResourcesPage() {
 
         {/* Main Content View List */}
         {loading ? (
-          <div className="flex justify-center items-center py-32">
-            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+          // Placeholder cards the size of the real ones, so the page does not jump when the products arrive.
+          <div role="status" aria-label="Loading resources" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[0, 1].map((i) => (
+              <div key={i} aria-hidden="true" className="min-h-[470px] animate-pulse rounded-3xl border border-white/5 bg-neutral-900/60 motion-reduce:animate-none" />
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-24 bg-neutral-950/30 rounded-3xl border border-white/5 p-8">
@@ -117,7 +121,7 @@ export default function ResourcesPage() {
           <div>
             {/* Grid Layout of products */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product, index) => (
                 <m.div
                   key={product.id}
                   id={`resource-grid-item-${product.id}`}
@@ -134,10 +138,14 @@ export default function ResourcesPage() {
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveProduct(product); } }}
                 >
                   <div className="aspect-[4/3] w-full bg-neutral-900 overflow-hidden relative">
-                    <img
+                    <Photo
                       src={product.thumbnail}
+                      widths={[384, 640, 828]}
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       alt=""
-                      loading="lazy"
+                      loading={index < 2 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : undefined}
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                     />

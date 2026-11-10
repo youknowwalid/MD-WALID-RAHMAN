@@ -4,6 +4,7 @@ import { Mail, MapPin, Phone, Github, Twitter, Linkedin, Facebook, Instagram, Yo
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useProducts } from '../lib/products';
 import { safeUrl } from '../lib/text';
+import Photo from './Photo';
 
 const getSocialIcon = (platform: string) => {
   const p = platform.toLowerCase();
@@ -33,7 +34,7 @@ export default function Footer() {
           <div className="md:col-span-4">
             {config.footerLogo && (
               <Link to="/" className="inline-flex min-h-11 items-center mb-1 hover:opacity-80 transition-opacity" aria-label={`${config.siteTitle} – home`}>
-                <img src={config.footerLogo} alt="" className="h-8 w-auto" />
+                <Photo src={config.footerLogo} widths={[256]} sizes="100px" alt="" width={100} height={32} loading="lazy" decoding="async" className="h-8 w-auto" />
               </Link>
             )}
             <p className="text-text-muted text-sm max-w-sm mb-3 leading-relaxed">{config.brandTagline}</p>
