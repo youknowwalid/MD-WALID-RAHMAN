@@ -28,7 +28,7 @@ const PRESETS: { name: string; from: string; via: string; to: string; angle: num
 
 const ColorInput = ({ label, value, onChange, optional, onClear }: { label: string; value: string; onChange: (v: string) => void; optional?: boolean; onClear?: () => void }) => (
   <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-    <span className="block text-[11px] font-black uppercase text-slate-300 tracking-wider">{label}{optional && ' (optional)'}</span>
+    <span className="block text-xs font-black uppercase text-slate-300 tracking-wider">{label}{optional && ' (optional)'}</span>
     <div className="flex items-center gap-3">
       <label className="relative w-14 h-11 rounded-lg border border-white/10 overflow-hidden cursor-pointer shrink-0 focus-within:outline focus-within:outline-2 focus-within:outline-white" style={{ backgroundColor: value || 'transparent' }}>
         <input type="color" value={validHex(value, '#000000')} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" aria-label={`${label} picker`} />
@@ -161,7 +161,7 @@ export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 
         <p className="text-sm text-gray-300">The color of the buttons, dots, bars and highlights on the home page. Pick a bright color: dark text sits on top of it.</p>
         <div className="flex flex-wrap gap-3">
           {HOME_PRESETS.map(([name, hex]) => (
-            <button key={name} type="button" onClick={() => update({ homeAccent: hex })} className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border border-white/10 hover:border-white/30 text-sm text-gray-200">
+            <button key={name} type="button" onClick={() => update({ homeAccent: hex })} className="flex items-center gap-2 min-h-11 pl-2 pr-4 py-1.5 rounded-full border border-white/10 hover:border-white/30 text-sm text-gray-200">
               <span className="w-6 h-6 rounded-full border border-white/20" style={{ backgroundColor: hex }} aria-hidden="true" />{name}
             </button>
           ))}

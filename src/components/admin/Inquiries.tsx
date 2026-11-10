@@ -27,7 +27,7 @@ export default function Inquiries({ items, onMarkRead, onDelete }: Props) {
                 onClick={() => { setOpen(isOpen ? null : m.id); if (!m.isRead) onMarkRead(m.id, true); }}
               >
                 <span className="flex items-center gap-2 mb-1">
-                  {!m.isRead && <span className="text-[10px] font-black uppercase bg-accent text-white rounded px-2 py-0.5">New</span>}
+                  {!m.isRead && <span className="text-xs font-black uppercase bg-accent text-white rounded px-2 py-0.5">New</span>}
                   <span className="text-lg font-bold text-white truncate">{m.name}</span>
                   <span className="text-sm text-gray-400 truncate">({m.email})</span>
                 </span>

@@ -7,6 +7,7 @@ import { Product } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ProductModal from './ProductModal';
+import Photo from './Photo';
 
 export default function ResourcesPage() {
   const { products, loading } = useProducts();
@@ -22,7 +23,7 @@ export default function ResourcesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-main relative z-10 font-sans transition-colors duration-300">
+    <div className="min-h-screen overflow-x-clip bg-bg-dark text-text-main relative z-10 font-sans transition-colors duration-300">
       
       <Seo title="Digital Resources" description="Digital products, templates and PDF guides by Walid Rahman." noindex={!loading && products.length === 0} />
       <Navbar />
@@ -36,7 +37,7 @@ export default function ResourcesPage() {
         }} 
       />
 
-      <main className="max-w-7xl mx-auto px-6 pt-32 pb-24 md:pt-40 md:pb-32 relative">
+      <main className="min-h-[100svh] max-w-7xl mx-auto px-6 pt-32 pb-24 md:pt-40 md:pb-32 relative">
         
         {/* Breadcrumb back navigation link */}
         <div className="mb-8">
@@ -46,7 +47,7 @@ export default function ResourcesPage() {
           >
             <a 
               href="/#resources" 
-              className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-[#f45901] transition-colors flex items-center gap-2 w-fit"
+              className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-[#f45901] transition-colors flex min-h-11 items-center gap-2 w-fit"
             >
               <span>← Back to Portfolio</span>
             </a>
@@ -81,7 +82,7 @@ export default function ResourcesPage() {
                 placeholder="Search products or guides..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 rounded-full bg-neutral-900/50 hover:bg-neutral-900 border border-white/10 focus:border-[#f45901] transition-all outline-none text-sm text-white placeholder-neutral-500 font-medium"
+                className="w-full pl-11 pr-4 py-3.5 rounded-full bg-neutral-900/50 hover:bg-neutral-900 border border-white/10 focus:border-[#f45901] transition-all outline-none text-base md:text-sm text-white placeholder-neutral-500 font-medium"
               />
             </div>
           </div>
@@ -89,8 +90,11 @@ export default function ResourcesPage() {
 
         {/* Main Content View List */}
         {loading ? (
-          <div className="flex justify-center items-center py-32">
-            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+          // Placeholder cards the size of the real ones, so the page does not jump when the products arrive.
+          <div role="status" aria-label="Loading resources" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[0, 1].map((i) => (
+              <div key={i} aria-hidden="true" className="min-h-[470px] animate-pulse rounded-3xl border border-white/5 bg-neutral-900/60 motion-reduce:animate-none" />
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-24 bg-neutral-950/30 rounded-3xl border border-white/5 p-8">
@@ -108,7 +112,7 @@ export default function ResourcesPage() {
             </p>
             <button
               onClick={() => setSearchQuery('')}
-              className="mt-6 text-xs text-[#f45901] font-bold uppercase tracking-wider underline hover:opacity-85"
+              className="mt-6 inline-flex min-h-11 items-center text-xs text-[#f45901] font-bold uppercase tracking-wider underline hover:opacity-85"
             >
               Clear Search Query
             </button>
@@ -117,7 +121,7 @@ export default function ResourcesPage() {
           <div>
             {/* Grid Layout of products */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product, index) => (
                 <m.div
                   key={product.id}
                   id={`resource-grid-item-${product.id}`}
@@ -134,10 +138,14 @@ export default function ResourcesPage() {
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveProduct(product); } }}
                 >
                   <div className="aspect-[4/3] w-full bg-neutral-900 overflow-hidden relative">
-                    <img
+                    <Photo
                       src={product.thumbnail}
+                      widths={[384, 640, 828]}
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       alt=""
-                      loading="lazy"
+                      loading={index < 2 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : undefined}
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                     />
@@ -169,7 +177,7 @@ export default function ResourcesPage() {
                     </div>
 
                     <div className="border-t border-white/5 pt-4 flex items-center justify-between">
-                      <span className="text-[10px] text-neutral-400 uppercase font-semibold tracking-wider flex items-center gap-1">
+                      <span className="text-xs text-neutral-400 uppercase font-semibold tracking-wider flex items-center gap-1">
                         <ShieldCheck className="w-3.5 h-3.5 text-[#f45901]" /> Secure Delivery
                       </span>
                       <span className="text-xs font-bold text-[#f45901] flex items-center gap-1 group-hover:underline">
@@ -185,21 +193,21 @@ export default function ResourcesPage() {
             <div className="mt-24 border-t border-white/10 pt-16 grid md:grid-cols-3 gap-8 text-neutral-400">
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
                 <HelpCircle className="w-6 h-6 text-[#f45901] mb-3" />
-                <h4 className="text-sm font-bold text-white mb-2">How do I access/receive files?</h4>
+                <h3 className="text-sm font-bold text-white mb-2">How do I access/receive files?</h3>
                 <p className="text-xs leading-relaxed">
                   Pay with bKash or Nagad (Send Money) and enter your transaction ID. Once your payment is verified, usually within a minute, you get a confirmation page with your PDF download button, and the link is emailed to you too. If you ever lose it, write to us and we will resend it.
                 </p>
               </div>
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
                 <LayoutGrid className="w-6 h-6 text-[#f45901] mb-3" />
-                <h4 className="text-sm font-bold text-white mb-2">Can these be updated?</h4>
+                <h3 className="text-sm font-bold text-white mb-2">Can these be updated?</h3>
                 <p className="text-xs leading-relaxed">
                   Absolutely! All active templates, manuals, or kits are continuously refined. Updated versions are sent to the email you used at checkout as they go live.
                 </p>
               </div>
               <div className="bg-neutral-950/20 p-6 rounded-2xl border border-white/5">
                 <ShieldCheck className="w-6 h-6 text-[#f45901] mb-3" />
-                <h4 className="text-sm font-bold text-white mb-2">Secured Payments?</h4>
+                <h3 className="text-sm font-bold text-white mb-2">Secured Payments?</h3>
                 <p className="text-xs leading-relaxed">
                   Yes. You pay from your own bKash or Nagad app using their PIN-protected Send Money, so we never see your PIN or card details. The file is only released after your payment is matched.
                 </p>

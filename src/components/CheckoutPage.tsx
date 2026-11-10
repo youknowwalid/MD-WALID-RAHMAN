@@ -35,7 +35,7 @@ function CopyButton({ value, name }: { value: string; name: string }) {
     <button
       type="button"
       onClick={copy}
-      className="shrink-0 flex items-center gap-2 bg-accent text-black font-extrabold text-sm px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+      className="shrink-0 flex items-center gap-2 bg-accent text-black font-extrabold text-sm px-4 min-h-11 rounded-xl hover:opacity-90 transition-opacity"
       aria-label={`Copy ${name} number`}
     >
       {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Copy className="w-4 h-4" aria-hidden="true" />}
@@ -95,7 +95,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
       <Seo title="Checkout" description="Pay with bKash or Nagad and download your book." noindex />
       <Navbar />
-      <main className="pt-28 pb-20 px-4 sm:px-6 max-w-2xl mx-auto">
+      <main className="pt-28 pb-20 px-6 max-w-2xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">Checkout</h1>
         <p className="text-text-muted mb-8">{title}</p>
 
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-2 gap-3">
                 {WALLETS.map((w) => (
                   <label key={w.id} className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold cursor-pointer transition-colors ${wallet === w.id ? 'border-accent bg-accent/10 text-white' : 'border-white/10 text-neutral-300 hover:border-white/30'}`}>
-                    <input type="radio" name="wallet" value={w.id} checked={wallet === w.id} onChange={() => setWallet(w.id)} className="accent-accent" />
+                    <input type="radio" name="wallet" value={w.id} checked={wallet === w.id} onChange={() => setWallet(w.id)} className="h-5 w-5 accent-accent" />
                     {w.name}
                   </label>
                 ))}

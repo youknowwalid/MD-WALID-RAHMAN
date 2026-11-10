@@ -92,7 +92,7 @@ export default function BlogDetail() {
       <main className="pt-32 pb-20 px-6">
         <div className="max-w-4xl mx-auto">
            {/* Back link */}
-           <Link to="/#blog" className="inline-flex items-center gap-2 text-text-muted hover:text-accent transition-colors mb-12 group">
+           <Link to="/#blog" className="inline-flex min-h-11 items-center gap-2 text-text-muted hover:text-accent transition-colors mb-8 group">
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             Back to Journal
           </Link>
@@ -148,7 +148,7 @@ export default function BlogDetail() {
               {post.tags && post.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-12 pt-12 border-t border-border-subtle">
                   {post.tags.map(tag => (
-                    <span key={tag} className="px-4 py-1 bg-border-subtle rounded-full text-xs text-text-muted hover:text-accent transition-colors cursor-default">
+                    <span key={tag} className="px-4 py-1 bg-border-subtle rounded-full text-sm text-text-muted hover:text-accent transition-colors cursor-default">
                       #{tag}
                     </span>
                   ))}
@@ -159,7 +159,7 @@ export default function BlogDetail() {
             {/* Sidebar */}
             <div className="space-y-10">
               <div className="p-8 bg-bg-card rounded-3xl border border-white/5 sticky top-32">
-                <h3 className="text-lg font-black mb-6">Share Article</h3>
+                <h2 className="text-lg font-black mb-6">Share Article</h2>
                 <div className="flex lg:flex-col gap-4">
                   {([['twitter', Twitter, 'Twitter'], ['facebook', Facebook, 'Facebook'], ['linkedin', Linkedin, 'LinkedIn']] as const).map(([net, Icon, label]) => (
                     <button key={net} type="button" onClick={() => share(net)} aria-label={`Share on ${label}`} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-accent hover:text-black transition-all group w-full">

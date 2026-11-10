@@ -25,7 +25,7 @@ export default function PolicyPage({ kind }: { kind: PolicyKind }) {
       <Seo title={title} description={`${title} for walidrahman.com.`} noindex={text === DEFAULT_TERMS || text === DEFAULT_REFUND} />
       <Navbar />
       <main className="pt-32 pb-20 px-6 max-w-4xl mx-auto">
-        <Link to="/" className="inline-flex items-center gap-2 text-text-muted hover:text-accent transition-colors mb-12 group text-sm font-bold">
+        <Link to="/" className="inline-flex min-h-11 items-center gap-2 text-text-muted hover:text-accent transition-colors mb-8 group text-sm font-bold">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
           Back to Portfolio
         </Link>

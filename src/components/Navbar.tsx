@@ -6,6 +6,7 @@ import { cn } from '../lib/utils';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useProducts } from '../lib/products';
 import { safeUrl } from '../lib/text';
+import Photo from './Photo';
 
 /** In-site links use the router (no page reload); everything else is a normal link. */
 const NavItem = ({ url, className, onClick, children, ...rest }: { url: string; className?: string; onClick?: () => void; children: React.ReactNode } & React.AriaAttributes) =>
@@ -67,6 +68,14 @@ export default function Navbar() {
 
   useEffect(() => { setIsMenuOpen(false); }, [location.pathname, location.hash]);
 
+  // Keep the page still behind the open mobile menu.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isMenuOpen]);
+
   useEffect(() => {
     if (!isMenuOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -94,7 +103,7 @@ export default function Navbar() {
           isHome && !onSky && 'border-[#0d1117]/10 bg-white/90 shadow-[0_14px_40px_-22px_rgba(13,17,23,0.45)] backdrop-blur-xl',
         )}
       >
-        <Link to="/" className="flex min-h-10 min-w-10 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>
+        <Link to="/" className="flex min-h-11 min-w-11 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>
           {isHome ? (
             // Home wordmark as in the design: a slowly turning lime star, "youknow" light, "walid" lime.
             <span className="flex items-center gap-2.5 text-[20px] tracking-[-0.03em]">
@@ -105,7 +114,7 @@ export default function Navbar() {
               </span>
             </span>
           ) : (
-            config.siteLogo && <img src={config.siteLogo} alt="" width={160} height={40} className="h-10 w-auto" />
+            config.siteLogo && <Photo src={config.siteLogo} widths={[256]} sizes="128px" alt="" width={160} height={40} className="h-10 w-auto" />
           )}
         </Link>
 
@@ -176,8 +185,8 @@ export default function Navbar() {
             className={cn(
               'z-50 flex flex-col gap-6 overflow-y-auto p-8 shadow-2xl',
               isHome
-                ? 'mx-auto mt-3 max-h-[calc(100vh-7rem)] max-w-7xl rounded-[32px] border border-[#0d1117]/10 bg-white/95 backdrop-blur-2xl'
-                : 'absolute left-0 top-full max-h-[calc(100vh-4rem)] w-full border-b border-border-subtle bg-bg-dark/95 backdrop-blur-2xl lg:hidden',
+                ? 'mx-auto mt-3 max-h-[calc(100vh-7rem)] max-w-7xl rounded-[32px] border border-[#0d1117]/10 bg-white'
+                : 'absolute left-0 top-full max-h-[calc(100vh-4rem)] w-full border-b border-border-subtle bg-bg-dark lg:hidden',
             )}
           >
             <div className={cn(isHome && 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3')}>
@@ -187,7 +196,7 @@ export default function Navbar() {
                   url={link.url}
                   onClick={() => setIsMenuOpen(false)}
                   className={cn(
-                    'block transition-all',
+                    'block py-1.5 transition-all',
                     isHome
                       ? 'text-[26px] font-medium tracking-[-0.035em] text-[#0d1117] hover:text-[#0d1117]/60'
                       : 'text-2xl font-black uppercase tracking-tighter text-text-muted hover:text-accent',

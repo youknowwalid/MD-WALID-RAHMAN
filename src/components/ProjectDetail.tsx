@@ -59,7 +59,7 @@ const Cover = ({ src, alt }: { src: string; alt: string }) => {
   const y = useTransform(scrollYProgress, [0, 1], ['-7%', '7%']);
   const img = useOptimizedImage(src, [828, 1080, 1600, 1920], '100vw');
   return (
-    <div ref={box} className="relative overflow-hidden rounded-[28px] md:rounded-[44px] aspect-[4/3] sm:aspect-[16/10] bg-bg-card">
+    <div ref={box} className="relative overflow-hidden rounded-[28px] md:rounded-[44px] aspect-[16/10] bg-bg-card">
       <m.div className="absolute inset-0" initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 1.4, ease: EASE }}>
         <m.img
           src={img.src}
@@ -326,8 +326,8 @@ export default function ProjectDetail() {
         <main className="relative z-10">
           <div className={`${CONTAINER} pt-28 sm:pt-32`}>
             {/* 1. Back link */}
-            <Link to="/#projects" className="inline-flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
-              All Projects <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            <Link to="/#projects" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> All Projects
             </Link>
 
             {/* 2. Title */}
@@ -355,7 +355,7 @@ export default function ProjectDetail() {
                     <div key={d.label}>
                       <dt className="text-sm text-text-muted">{d.label}</dt>
                       <dd className="mt-1 text-base font-medium text-text-main sm:text-lg [overflow-wrap:anywhere]">
-                        {d.href ? <a href={d.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 transition-colors hover:text-accent">{d.value}<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : d.value}
+                        {d.href ? <a href={d.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 transition-colors hover:text-accent">{d.value}<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : d.value}
                       </dd>
                     </div>
                   ))}
