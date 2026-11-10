@@ -235,13 +235,13 @@ const TimelineItem = ({ item, last, delay }: { item: ResumeItem; last: boolean; 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.7, delay, ease: EASE }}
-      className={cn('home-tl-item relative', inView && 'is-in', last ? 'pb-0' : 'pb-12')}
+      className={cn('home-tl-item relative', inView && 'is-in', last ? 'pb-0' : 'pb-5')}
     >
       <span className="home-tl-dot" aria-hidden="true" />
-      <span className="text-[13px] font-medium uppercase tracking-[0.14em] text-text-muted">{item.year}</span>
-      <h3 className="mt-2 text-[26px] font-semibold uppercase leading-tight tracking-[-0.03em] text-text-main md:text-3xl">{item.role}</h3>
-      <div className="mt-1 text-[17px] font-medium text-text-main/80">{item.company}</div>
-      {item.desc && <p className="mt-2.5 max-w-xl text-[17px] leading-relaxed text-text-muted">{item.desc}</p>}
+      <span className="text-[12px] font-medium uppercase tracking-[0.14em] text-text-muted">{item.year}</span>
+      <h3 className="mt-0.5 text-[19px] font-semibold uppercase leading-tight tracking-[-0.02em] text-text-main md:text-[21px]">{item.role}</h3>
+      <div className="mt-0.5 text-[15px] font-medium text-text-main/80">{item.company}</div>
+      {item.desc && <p className="mt-1 max-w-xl text-[14px] leading-snug text-text-muted">{item.desc}</p>}
     </m.div>
   );
 };
@@ -470,7 +470,7 @@ export default function Home() {
           <div className="home-cloud home-cloud--b bottom-[30%] right-[-180px] h-[260px] w-[820px]" data-depth="-34" aria-hidden="true" />
           <div className="home-cloud home-cloud--c left-[36%] top-[26%] h-[150px] w-[460px] opacity-40" data-depth="18" aria-hidden="true" />
 
-          <div className="mx-auto grid w-full max-w-7xl items-end gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+          <div className="mx-auto grid w-full max-w-7xl items-end gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6">
             <div className="relative z-10 pb-4 text-center lg:pb-44 lg:text-left">
               <h1 className="text-[clamp(2.6rem,8vw,6.2rem)] font-medium leading-[1.03] tracking-[-0.045em] text-white">
                 Hello, I&apos;m <br />
@@ -541,10 +541,7 @@ export default function Home() {
               transition={{ delay: 0.25, duration: 0.8, ease: EASE }}
               className="relative z-[1] flex justify-center lg:justify-end"
             >
-              <div className="relative aspect-[4/5] w-[min(88vw,380px)] md:w-[460px] lg:w-[min(100%,580px)]">
-                <div className="home-spin home-ring-dot pointer-events-none absolute left-1/2 top-[44%] h-[100%] w-[100%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/45" aria-hidden="true" />
-                <div className="home-spin--rev pointer-events-none absolute left-1/2 top-[44%] h-[116%] w-[116%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20" aria-hidden="true" />
-
+              <div className="relative aspect-[4/5] w-[min(94vw,440px)] md:w-[540px] lg:w-[min(108%,620px)]">
                 {/* The cut-out stands straight on the sky; the clouds in front of the lower body
                     (home-cloud-front) are what blend it in. */}
                 <img
@@ -557,19 +554,6 @@ export default function Home() {
                   className="home-cutout absolute inset-0 h-full w-full object-contain object-bottom"
                 />
 
-                {config.aboutTags.slice(0, 2).map((tag, i) => (
-                  <div
-                    key={tag}
-                    aria-hidden="true"
-                    className={cn(
-                      'absolute hidden items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[13px] font-medium text-[#0d1117] shadow-[0_18px_30px_-14px_rgba(8,26,48,0.6)] xl:flex',
-                      i === 0 ? 'home-float left-[-4%] top-[22%]' : 'home-float--slow right-[-2%] bottom-[34%]',
-                    )}
-                  >
-                    <i className="h-2 w-2 rounded-full bg-[#16a34a]" />
-                    {tag}
-                  </div>
-                ))}
               </div>
             </m.div>
           </div>
@@ -630,50 +614,41 @@ export default function Home() {
         </section>
 
         {/* RESUME SECTION */}
-        <section id="resume" className="bg-[linear-gradient(180deg,#ffffff,#f5f8fc)] px-6 py-20 md:py-[120px]">
+        <section id="resume" className="bg-[linear-gradient(180deg,#ffffff,#f5f8fc)] px-6 py-10 md:py-14">
           <div className="mx-auto max-w-7xl">
-            <SectionHead label="Resume" title="My Journey" />
-            <div className="grid items-start gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+            <Reveal>
+              <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">My Journey</h2>
+            </Reveal>
+            <div className="grid items-stretch gap-8 lg:grid-cols-[1fr_400px] lg:gap-14">
               <div>
-                {hero.resumeImage && (
-                  <Reveal className="mb-12 lg:hidden">
-                    <div className="aspect-[4/5] w-full overflow-hidden rounded-[32px]">
-                      <img src={hero.resumeImage} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" loading="lazy" />
-                    </div>
-                  </Reveal>
-                )}
                 {loaded && resume.length === 0 && <EmptyNote>Experience will be listed here soon.</EmptyNote>}
                 {resume.length > 0 && (
                   <div className="home-tl" ref={timelineRef}>
                     <div className="home-tl-rail" aria-hidden="true" />
                     <div className="home-tl-fill" ref={timelineFillRef} aria-hidden="true" />
                     {resume.map((item, i) => (
-                      <TimelineItem key={item.id || i} item={item} last={i === resume.length - 1} delay={Math.min(i * 0.06, 0.3)} />
+                      <TimelineItem key={item.id || i} item={item} last={i === resume.length - 1} delay={Math.min(i * 0.05, 0.2)} />
                     ))}
                   </div>
                 )}
               </div>
 
               {hero.resumeImage && (
-                <div className="hidden lg:block">
-                  <Reveal from="right" delay={0.1}>
-                    <div className="group sticky top-28 overflow-hidden rounded-[44px] shadow-[0_40px_70px_-35px_rgba(13,17,23,0.5)]">
-                      <div className="aspect-[3/4] w-full">
-                        <img
-                          src={hero.resumeImage}
-                          alt=""
-                          className="h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105"
-                          referrerPolicy="no-referrer"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="absolute inset-x-5 bottom-5 rounded-[20px] border border-white/15 bg-[#0d1117]/60 p-5 backdrop-blur-md">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">Current Focus</div>
-                        <div className="text-[22px] font-semibold tracking-[-0.02em] text-white">Strategic Brand Evolution</div>
-                      </div>
+                <Reveal from="right" delay={0.1} className="order-first lg:order-last">
+                  <div className="relative h-[360px] overflow-hidden rounded-[32px] shadow-[0_30px_55px_-32px_rgba(13,17,23,0.5)] lg:h-full lg:min-h-[420px]">
+                    <img
+                      src={hero.resumeImage}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover object-top"
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-x-4 bottom-4 rounded-[16px] border border-white/15 bg-[#0d1117]/60 px-4 py-3 backdrop-blur-md">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">Current Focus</div>
+                      <div className="text-[17px] font-semibold tracking-[-0.02em] text-white">Strategic Brand Evolution</div>
                     </div>
-                  </Reveal>
-                </div>
+                  </div>
+                </Reveal>
               )}
             </div>
           </div>
