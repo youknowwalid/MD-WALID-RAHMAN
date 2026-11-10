@@ -67,6 +67,14 @@ export default function Navbar() {
 
   useEffect(() => { setIsMenuOpen(false); }, [location.pathname, location.hash]);
 
+  // Keep the page still behind the open mobile menu.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isMenuOpen]);
+
   useEffect(() => {
     if (!isMenuOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -94,7 +102,7 @@ export default function Navbar() {
           isHome && !onSky && 'border-[#0d1117]/10 bg-white/90 shadow-[0_14px_40px_-22px_rgba(13,17,23,0.45)] backdrop-blur-xl',
         )}
       >
-        <Link to="/" className="flex min-h-10 min-w-10 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>
+        <Link to="/" className="flex min-h-11 min-w-11 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>
           {isHome ? (
             // Home wordmark as in the design: a slowly turning lime star, "youknow" light, "walid" lime.
             <span className="flex items-center gap-2.5 text-[20px] tracking-[-0.03em]">

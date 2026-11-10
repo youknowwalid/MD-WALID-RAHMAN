@@ -483,7 +483,7 @@ export default function Home() {
           <div className="home-cloud home-cloud--c left-[36%] top-[26%] h-[150px] w-[460px] opacity-40" data-depth="18" aria-hidden="true" />
 
           <div className="mx-auto grid w-full max-w-7xl items-end gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6">
-            <div className="relative z-10 pb-4 text-center lg:pb-44 lg:text-left">
+            <div className="relative z-10 min-w-0 pb-4 text-center lg:pb-44 lg:text-left">
               <h1 className="text-[clamp(2.6rem,8vw,6.2rem)] font-medium leading-[1.03] tracking-[-0.045em] text-white">
                 {title('heroGreeting')} <br />
                 <span className="text-white/65">
@@ -504,12 +504,12 @@ export default function Home() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.58, duration: 0.6, ease: EASE }}
-                className="mt-9 flex flex-wrap justify-center gap-4 lg:justify-start"
+                className="mx-auto mt-9 flex max-w-[22rem] flex-col items-stretch justify-center gap-3 min-[480px]:max-w-none min-[480px]:flex-row min-[480px]:flex-wrap min-[480px]:gap-4 lg:mx-0 lg:justify-start"
               >
                 <a
                   href={ctaHref}
                   {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  className="home-btn home-mag bg-accent px-7 py-4 text-[16px] text-[#0d1117] shadow-[0_14px_24px_-12px_rgba(0,0,0,0.55)] md:text-[17px]"
+                  className="home-btn home-mag bg-accent min-h-[52px] px-7 py-3.5 text-[16px] text-[#0d1117] shadow-[0_14px_24px_-12px_rgba(0,0,0,0.55)] md:text-[17px]"
                 >
                   {config.globalCtaText}
                   <span className="home-arrow" aria-hidden="true">↗</span>
@@ -520,7 +520,7 @@ export default function Home() {
                     download="Walid_Rahman_CV.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="home-btn home-mag bg-white px-7 py-4 text-[16px] text-[#0d1117] md:text-[17px]"
+                    className="home-btn home-mag min-h-[52px] bg-white px-7 py-3.5 text-[16px] text-[#0d1117] md:text-[17px]"
                   >
                     Download CV
                   </a>
@@ -551,9 +551,9 @@ export default function Home() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.8, ease: EASE }}
-              className="relative z-[1] flex justify-center lg:justify-end"
+              className="relative z-[1] flex min-w-0 justify-center lg:justify-end"
             >
-              <div className="relative aspect-[4/5] w-[min(94vw,440px)] md:w-[540px] lg:w-[min(108%,620px)]">
+              <div className="relative aspect-[4/5] w-[min(100%,440px)] md:w-[540px] lg:w-[min(108%,620px)]">
                 {/* The cut-out stands straight on the sky; the clouds in front of the lower body
                     (home-cloud-front) are what blend it in. */}
                 <picture>
@@ -797,7 +797,7 @@ export default function Home() {
                         )}
                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,18,32,0)_42%,rgba(10,18,32,0.86)_100%)]" aria-hidden="true" />
                         <div className="absolute inset-x-5 bottom-5 md:inset-x-8 md:bottom-8">
-                          <span className="inline-block rounded-xl bg-white/20 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+                          <span className="inline-block rounded-xl bg-white/20 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm">
                             {featuredProject.category}
                           </span>
                           <h3 className="mt-4 text-[32px] font-medium tracking-[-0.035em] text-white md:text-[50px]">{featuredProject.title}</h3>
@@ -848,7 +848,7 @@ export default function Home() {
                             )}
                             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,18,32,0)_40%,rgba(10,18,32,0.86)_100%)]" aria-hidden="true" />
                             <div className="absolute inset-x-7 bottom-7">
-                              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/80">{sideProject.category}</span>
+                              <span className="text-xs font-medium uppercase tracking-[0.14em] text-white/80">{sideProject.category}</span>
                               <h3 className="mt-2 text-[28px] font-medium tracking-[-0.03em] text-white">{sideProject.title}</h3>
                             </div>
                           </Link>
@@ -896,7 +896,7 @@ export default function Home() {
                             )}
                             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,18,32,0)_42%,rgba(10,18,32,0.86)_100%)]" aria-hidden="true" />
                             <div className="absolute inset-x-7 bottom-7">
-                              <span className="inline-block rounded-xl bg-white/20 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+                              <span className="inline-block rounded-xl bg-white/20 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm">
                                 {project.category}
                               </span>
                               <h3 className="mt-3 text-[28px] font-medium tracking-[-0.03em] text-white md:text-[34px]">{project.title}</h3>
@@ -944,7 +944,7 @@ export default function Home() {
               <div className="mx-auto mb-5 max-w-7xl px-6">
                 <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('testimonials')}</h2>
               </div>
-              <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:hidden">
+              <div tabIndex={0} role="region" aria-label="Testimonials, scroll sideways" className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:hidden">
                 {testimonials.map((t, i) => card(t, `m-${t.id}-${i}`, 'w-[82%] snap-center'))}
               </div>
               <div className="home-marquee hidden md:block">
@@ -979,7 +979,7 @@ export default function Home() {
                         )}
                       >
                         {plan.accent && (
-                          <span className="absolute right-5 top-5 rounded-lg bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#0d1117]">
+                          <span className="absolute right-5 top-5 rounded-lg bg-accent px-2.5 py-1 text-xs font-bold uppercase tracking-[0.1em] text-[#0d1117]">
                             Most Popular
                           </span>
                         )}
@@ -999,7 +999,7 @@ export default function Home() {
                             </div>
                             <div>
                               <div className="text-[15px] font-medium text-text-main">{plan.priorityTitle || 'N/A'}</div>
-                              <div className={cn('text-[11px] font-semibold uppercase tracking-[0.12em]', plan.accent ? 'text-accent' : 'text-[#15803d]')}>
+                              <div className={cn('text-xs font-semibold uppercase tracking-[0.12em]', plan.accent ? 'text-accent' : 'text-[#15803d]')}>
                                 {plan.prioritySubtitle || 'Daily Priority Access'}
                               </div>
                             </div>
@@ -1129,14 +1129,14 @@ export default function Home() {
                   <div className="-mt-10 space-y-4">
                     {contactDetails.map((item, i) => (
                       <Reveal key={item.label} delay={Math.min(i * 0.08, 0.2)}>
-                        <div className="flex items-center gap-4 rounded-[20px] border border-white/25 bg-white/15 p-4 md:p-5 backdrop-blur-sm transition-transform duration-500 hover:translate-x-2">
+                        <div className="relative flex items-center gap-4 rounded-[20px] border border-white/25 bg-white/15 p-4 md:p-5 backdrop-blur-sm transition-transform duration-500 hover:translate-x-2">
                           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent text-[#0d1117]" aria-hidden="true">
                             <item.icon className="h-5 w-5" />
                           </span>
                           <div className="min-w-0">
                             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/85 md:text-[10px] md:tracking-[0.18em]">{item.label}</div>
                             {item.href ? (
-                              <a href={item.href} className="break-words text-[19px] font-medium text-white underline-offset-4 hover:underline">{item.value}</a>
+                              <a href={item.href} className="break-words text-[19px] font-medium text-white underline-offset-4 after:absolute after:inset-0 after:rounded-[20px] hover:underline">{item.value}</a>
                             ) : (
                               <span className="break-words text-[19px] font-medium text-white">{item.value}</span>
                             )}

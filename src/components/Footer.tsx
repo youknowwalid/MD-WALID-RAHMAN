@@ -32,7 +32,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 mb-5 relative z-10">
           <div className="md:col-span-4">
             {config.footerLogo && (
-              <Link to="/" className="inline-block mb-2 hover:opacity-80 transition-opacity" aria-label={`${config.siteTitle} – home`}>
+              <Link to="/" className="inline-flex min-h-11 items-center mb-1 hover:opacity-80 transition-opacity" aria-label={`${config.siteTitle} – home`}>
                 <img src={config.footerLogo} alt="" className="h-8 w-auto" />
               </Link>
             )}
@@ -47,7 +47,7 @@ export default function Footer() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`${social.platform} (opens in a new tab)`}
-                      className="w-10 h-10 rounded-full border border-border-subtle flex items-center justify-center text-text-muted hover:text-accent hover:border-accent transition-all hover:-translate-y-1 bg-bg-card"
+                      className="w-11 h-11 rounded-full border border-border-subtle flex items-center justify-center text-text-muted hover:text-accent hover:border-accent transition-all hover:-translate-y-1 bg-bg-card"
                     >
                       {getSocialIcon(social.platform)}
                     </a>
@@ -64,9 +64,9 @@ export default function Footer() {
                 {navLinks.map((link) => (
                   <li key={link.label}>
                     {link.url.startsWith('/') ? (
-                      <Link to={link.url} className="inline-block py-2 md:py-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</Link>
+                      <Link to={link.url} className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</Link>
                     ) : (
-                      <a href={link.url} className="inline-block py-2 md:py-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</a>
+                      <a href={link.url} className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</a>
                     )}
                   </li>
                 ))}
@@ -74,16 +74,16 @@ export default function Footer() {
             </nav>
             <div>
               <h2 className="text-text-main font-bold mb-3 text-base">Contact Info</h2>
-              <ul className="space-y-1 md:space-y-2.5">
+              <ul className="space-y-0 md:space-y-2.5">
                 {config.officeAddress && (
-                  <li className="text-text-muted flex items-center gap-3 text-sm">
+                  <li className="text-text-muted flex min-h-11 items-center gap-3 text-sm lg:min-h-0">
                     <MapPin className="w-4 h-4 text-accent/70 shrink-0" aria-hidden="true" />
                     {config.officeAddress}
                   </li>
                 )}
                 {config.contactEmail && (
                   <li>
-                    <a href={`mailto:${config.contactEmail}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group py-1.5 md:py-0">
+                    <a href={`mailto:${config.contactEmail}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
                       <Mail className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
                       {config.contactEmail}
                     </a>
@@ -91,7 +91,7 @@ export default function Footer() {
                 )}
                 {config.officePhone && (
                   <li>
-                    <a href={`tel:${phoneDigits}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group py-1.5 md:py-0">
+                    <a href={`tel:${phoneDigits}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
                       <Phone className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
                       {config.officePhone}
                     </a>
@@ -110,13 +110,13 @@ export default function Footer() {
         </div>
 
         <div className="pt-4 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
-          <p className="text-text-muted text-sm">{config.copyrightText}</p>
-          <ul className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
-            <li><Link to="/terms-of-service" className="inline-block py-2 md:py-0 text-text-muted hover:text-accent transition-colors">Terms of Service</Link></li>
-            <li aria-hidden="true" className="text-text-muted/40">•</li>
-            <li><Link to="/privacy-policy" className="inline-block py-2 md:py-0 text-text-muted hover:text-accent transition-colors">Privacy Policy</Link></li>
-            <li aria-hidden="true" className="text-text-muted/40">•</li>
-            <li><Link to="/refund-policy" className="inline-block py-2 md:py-0 text-text-muted hover:text-accent transition-colors">Refund Policy</Link></li>
+          <p className="text-text-muted text-sm text-center md:text-left">{config.copyrightText}</p>
+          <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-0 text-sm font-medium">
+            <li><Link to="/terms-of-service" className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors">Terms of Service</Link></li>
+            <li aria-hidden="true" className="hidden text-text-muted/40 sm:block">•</li>
+            <li><Link to="/privacy-policy" className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors">Privacy Policy</Link></li>
+            <li aria-hidden="true" className="hidden text-text-muted/40 sm:block">•</li>
+            <li><Link to="/refund-policy" className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors">Refund Policy</Link></li>
           </ul>
         </div>
       </div>
