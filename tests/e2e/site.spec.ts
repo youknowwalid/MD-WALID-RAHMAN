@@ -162,6 +162,26 @@ test.describe('logos and intro video', () => {
     await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(1);
   });
 
+  test('client logos replace the company names in the home strip and keep its height', async ({ page, request }) => {
+    const img = (n: string) => `${API}/storage/v1/object/public/site-media/images/${n}.png`;
+    await seed(request, 'global', { clientLogos: [
+      { name: 'Acme Studio', image: img('a'), url: 'https://acme.example', hidden: false },
+      { name: 'Northwind', image: img('n'), url: '', hidden: false },
+      { name: 'Hidden Co', image: img('h2'), url: '', hidden: true },
+    ] });
+    await page.goto(CONNECTED + '/');
+    // With only a few logos each half of the loop is repeated so the strip always reaches both screen edges.
+    const row = page.locator('.home-marquee-row').first();
+    await expect(row.locator('img[alt="Acme Studio"]').first()).toBeAttached();
+    await expect(row.locator('img[alt="Northwind"]').first()).toBeAttached();
+    await expect(row.locator('img[alt="Hidden Co"]')).toHaveCount(0);
+    await expect(row.getByRole('link', { name: 'Acme Studio' }).first()).toHaveAttribute('href', 'https://acme.example');
+    const box = await row.boundingBox();
+    expect(box!.height).toBeGreaterThan(23); // 24 px on phones, 28.5 px on desktop: the same as the text names
+    expect(box!.height).toBeLessThan(31); // same row height as the text names it replaces
+    await seed(request, 'global', { clientLogos: [] });
+  });
+
   test('without logos, no site-name text appears in the footer', async ({ page }) => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);

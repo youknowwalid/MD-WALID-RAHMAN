@@ -449,6 +449,10 @@ export default function Home() {
 
   // The places he has worked, taken from the résumé he keeps in the admin.
   const workedWith = Array.from(new Set(resume.map((r) => r.company).filter(Boolean)));
+  // Real logos uploaded in the admin replace the plain names. Each half of the loop is repeated until it
+  // is wider than any screen, so the strip never shows a gap.
+  const clientLogos = (config.clientLogos || []).filter((l) => l && l.image && !l.hidden);
+  const logoHalf = clientLogos.length ? Array.from({ length: Math.ceil(14 / clientLogos.length) }, () => clientLogos).flat() : [];
 
   const featuredProject = projects[0];
   const guide = products[0];
@@ -597,10 +601,33 @@ export default function Home() {
             </div>
           )}
 
-          {workedWith.length > 2 && (
+          {(logoHalf.length > 0 || workedWith.length > 2) && (
             <div className="absolute inset-x-0 bottom-3 z-[3] md:bottom-7">
               <p className="text-center text-[13px] text-[#4a5361] md:text-[15px]">{title('teams')}</p>
               <div className="home-marquee mt-2 md:mt-4">
+                {logoHalf.length > 0 ? (
+                  <div className="home-marquee-row flex w-max items-center gap-10 md:gap-14" style={{ animationDuration: `${Math.max(24, Math.round(logoHalf.length * 4.3))}s` }}>
+                    {[...logoHalf, ...logoHalf].map((logo, i) => {
+                      const copy = i >= logoHalf.length;
+                      const link = safeUrl(logo.url);
+                      const img = (
+                        <img
+                          src={logo.image}
+                          alt={copy ? '' : logo.name}
+                          decoding="async"
+                          draggable={false}
+                          className="block h-6 w-auto max-w-[132px] object-contain md:h-[28.5px] md:max-w-[150px]"
+                          referrerPolicy="no-referrer"
+                        />
+                      );
+                      return link ? (
+                        <a key={i} href={link} target="_blank" rel="noopener noreferrer" aria-label={logo.name} aria-hidden={copy ? 'true' : undefined} tabIndex={copy ? -1 : undefined} className="shrink-0">{img}</a>
+                      ) : (
+                        <span key={i} className="shrink-0" aria-hidden={copy ? 'true' : undefined}>{img}</span>
+                      );
+                    })}
+                  </div>
+                ) : (
                 <div className="home-marquee-row flex w-max gap-10 md:gap-14" style={{ animationDuration: '34s' }}>
                   {[...workedWith, ...workedWith].map((name, i) => (
                     <span
@@ -612,6 +639,7 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
+                )}
               </div>
             </div>
           )}
