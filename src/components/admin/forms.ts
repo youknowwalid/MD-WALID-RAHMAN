@@ -66,8 +66,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
     singular: 'service',
     fields: [
       { name: 'title', label: 'Service title', required: true },
-      { name: 'displayId', label: 'Number shown on the card (e.g. 01)', half: true },
-      { name: 'iconName', label: 'Icon', type: 'select', options: ['Palette', 'Braces', 'Megaphone', 'Laptop'], half: true },
+      { name: 'iconName', label: 'Icon (Auto picks one for you; if two services choose the same icon, the second gets a different one)', type: 'select', options: ['Auto', 'Palette', 'Braces', 'Megaphone', 'Laptop', 'Layers', 'PenTool', 'Compass', 'Sparkles', 'Camera', 'Code', 'Globe', 'LineChart', 'Rocket', 'Target', 'Video', 'ShoppingBag', 'Smartphone', 'Search', 'Briefcase', 'Lightbulb'], half: true },
       { name: 'description', label: 'Description', type: 'textarea', rows: 4, required: true },
       order,
     ],
@@ -162,7 +161,7 @@ const NEW_DEFAULTS: Partial<Record<FormCollection, Record<string, any>>> = {
   skills: { level: 80 },
   products: { published: true, featured: true },
   pricingPlans: { period: '/month', buttonText: 'Get Started' },
-  services: { iconName: 'Palette' },
+  services: { iconName: 'Auto' },
 };
 
 /** Database item -> string values for the form inputs. */

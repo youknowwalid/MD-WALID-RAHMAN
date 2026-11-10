@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   Laptop, Braces, Palette, Megaphone, Check, X, ArrowUpRight, ArrowUp,
   Mail, Phone, MapPin, Clock, Loader2, Layers, PenTool, Compass, Sparkles,
+  Camera, Code, Globe, LineChart, Rocket, Target, Video, ShoppingBag, Smartphone, Search, Briefcase, Lightbulb,
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
@@ -24,7 +25,10 @@ import Photo from './Photo';
 import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
 
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = { Palette, Braces, Megaphone, Laptop };
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles,
+  Camera, Code, Globe, LineChart, Rocket, Target, Video, ShoppingBag, Smartphone, Search, Briefcase, Lightbulb,
+};
 // Used when two services would otherwise share the same icon.
 const ICON_POOL = [Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles];
 
@@ -395,6 +399,8 @@ export default function Home() {
   }, [reduceMotion]);
 
   const title = (key: string) => (config.sectionTitles?.[key] || '').trim() || DEFAULT_SECTION_TITLES[key] || '';
+  const homeAccent = /^#[0-9a-fA-F]{6}$/.test(config.homeAccent || '') ? config.homeAccent : '';
+  const focusTitle = (config.currentFocusTitle || '').trim();
   const phoneDigits = config.officePhone.replace(/[^0-9+]/g, '');
   const ctaHref = safeUrl(config.globalCtaUrl) || (phoneDigits ? `https://wa.me/${phoneDigits.replace(/^\+/, '')}` : '/#contact');
   const ctaExternal = /^https?:/i.test(ctaHref);
@@ -458,7 +464,10 @@ export default function Home() {
   ].filter(Boolean) as { icon: React.ComponentType<{ className?: string }>; label: string; value: string; href: string }[];
 
   return (
-    <div className="home-v2 relative min-h-screen overflow-x-hidden bg-bg-dark selection:bg-accent/50 selection:text-[#0d1117]">
+    <div
+      className="home-v2 relative min-h-screen overflow-x-hidden bg-bg-dark selection:bg-accent/50 selection:text-[#0d1117]"
+      style={homeAccent ? ({ '--color-accent': homeAccent } as React.CSSProperties) : undefined}
+    >
       <Seo />
       <div className="home-progress" ref={progressRef} aria-hidden="true" />
       <Navbar />
@@ -476,9 +485,9 @@ export default function Home() {
           <div className="mx-auto grid w-full max-w-7xl items-end gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6">
             <div className="relative z-10 pb-4 text-center lg:pb-44 lg:text-left">
               <h1 className="text-[clamp(2.6rem,8vw,6.2rem)] font-medium leading-[1.03] tracking-[-0.045em] text-white">
-                Hello, I&apos;m <br />
+                {title('heroGreeting')} <br />
                 <span className="text-white/65">
-                  <Typewriter text="Walid Rahman." />
+                  <Typewriter text={title('heroName')} />
                 </span>
               </h1>
 
@@ -548,10 +557,10 @@ export default function Home() {
                 {/* The cut-out stands straight on the sky; the clouds in front of the lower body
                     (home-cloud-front) are what blend it in. */}
                 <picture>
-                  {/* Visitors who ask their device for less motion get the still portrait. */}
-                  <source media="(prefers-reduced-motion: reduce)" srcSet="/walid-cutout.webp" />
+                  {/* Visitors who ask their device for less motion get the still portrait (built-in portrait only). */}
+                  {!hero.heroPortrait && <source media="(prefers-reduced-motion: reduce)" srcSet="/walid-cutout.webp" />}
                   <img
-                    src="/walid-hero-animated-v2.webp"
+                    src={hero.heroPortrait || '/walid-hero-animated-v2.webp'}
                     alt="Portrait of Walid Rahman"
                     width={362}
                     height={482}
@@ -590,7 +599,7 @@ export default function Home() {
 
           {workedWith.length > 2 && (
             <div className="absolute inset-x-0 bottom-3 z-[3] md:bottom-7">
-              <p className="text-center text-[13px] text-[#4a5361] md:text-[15px]">Teams I have worked with</p>
+              <p className="text-center text-[13px] text-[#4a5361] md:text-[15px]">{title('teams')}</p>
               <div className="home-marquee mt-2 md:mt-4">
                 <div className="home-marquee-row flex w-max gap-10 md:gap-14" style={{ animationDuration: '34s' }}>
                   {[...workedWith, ...workedWith].map((name, i) => (
@@ -656,10 +665,12 @@ export default function Home() {
                       referrerPolicy="no-referrer"
                       loading="lazy"
                     />
-                    <div className="absolute inset-x-4 bottom-4 rounded-[16px] border border-white/15 bg-[#0d1117]/60 px-4 py-3 backdrop-blur-md">
-                      <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-accent">Current Focus</div>
-                      <div className="text-[17px] font-semibold tracking-[-0.02em] text-white">Strategic Brand Evolution</div>
-                    </div>
+                    {focusTitle && (
+                      <div className="absolute inset-x-4 bottom-4 rounded-[16px] border border-white/15 bg-[#0d1117]/60 px-4 py-3 backdrop-blur-md">
+                        <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-accent">Current Focus</div>
+                        <div className="text-[17px] font-semibold tracking-[-0.02em] text-white">{focusTitle}</div>
+                      </div>
+                    )}
                   </div>
                 </Reveal>
               )}
@@ -716,7 +727,7 @@ export default function Home() {
                     })()}
                   </h2>
                   <p className="mt-3 max-w-md text-[15px] leading-relaxed text-text-muted">
-                    Skills refined through years of practical application in demanding environments.
+                    {title('skillsIntro')}
                   </p>
                 </div>
                 <div className="grid gap-x-10 gap-y-3.5 sm:grid-cols-2">
@@ -739,7 +750,7 @@ export default function Home() {
                           whileInView={{ width: `${skill.level}%` }}
                           viewport={{ once: true }}
                           transition={{ duration: 1.1, delay: Math.min(i * 0.04, 0.3), ease: EASE }}
-                          className="h-full rounded-full bg-[linear-gradient(90deg,#8db4d8,#c3ed3a)]"
+                          className="h-full rounded-full bg-[linear-gradient(90deg,#8db4d8,var(--color-accent))]"
                         />
                       </div>
                     </div>
@@ -755,9 +766,9 @@ export default function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-6 md:mb-[70px]">
               <div>
-                <Reveal><Eyebrow>Portfolio</Eyebrow></Reveal>
+                <Reveal><Eyebrow>{title('projectsEyebrow')}</Eyebrow></Reveal>
                 <Reveal delay={0.07}>
-                  <h2 className="mt-5 text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] md:text-6xl">Featured Work</h2>
+                  <h2 className="mt-5 text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] md:text-6xl">{title('projects')}</h2>
                 </Reveal>
               </div>
             </div>
@@ -804,7 +815,7 @@ export default function Home() {
                   <div className="grid gap-7">
                     {guide ? (
                       <Reveal delay={0.12} className="hidden h-full lg:block">
-                        <div className="flex h-full flex-col justify-between rounded-[44px] bg-[linear-gradient(150deg,#e8f6c7,#c3ed3a)] p-9">
+                        <div className="flex h-full flex-col justify-between rounded-[44px] bg-[linear-gradient(150deg,color-mix(in_srgb,var(--color-accent)_28%,white),var(--color-accent))] p-9">
                           <div>
                             <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#0d1117]/60">Premium resource</span>
                             <h3 className="mt-3 text-[28px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#0d1117] md:text-[32px]">
@@ -845,19 +856,21 @@ export default function Home() {
                       </Reveal>
                     ) : null}
 
-                    <Reveal delay={0.22} className="hidden h-full lg:block">
-                      <div className="flex h-full flex-col justify-between rounded-[44px] bg-[linear-gradient(150deg,#e9e3fb,#c9d9fb)] p-9">
-                        <div>
-                          <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#0d1117]/60">Current focus</span>
-                          <h3 className="mt-3 text-[28px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#0d1117] md:text-[32px]">
-                            Strategic Brand Evolution
-                          </h3>
-                          <p className="mt-3 text-[16px] leading-relaxed text-[#0d1117]/75">
-                            {resume[0] ? `${resume[0].role} at ${resume[0].company}. ${resume[0].desc || ''}`.trim() : config.brandTagline}
-                          </p>
+                    {focusTitle && (
+                      <Reveal delay={0.22} className="hidden h-full lg:block">
+                        <div className="flex h-full flex-col justify-between rounded-[44px] bg-[linear-gradient(150deg,#e9e3fb,#c9d9fb)] p-9">
+                          <div>
+                            <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#0d1117]/60">Current focus</span>
+                            <h3 className="mt-3 text-[28px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#0d1117] md:text-[32px]">
+                              {focusTitle}
+                            </h3>
+                            <p className="mt-3 text-[16px] leading-relaxed text-[#0d1117]/75">
+                              {(config.currentFocusText || '').trim() || (resume[0] ? `${resume[0].role} at ${resume[0].company}. ${resume[0].desc || ''}`.trim() : config.brandTagline)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </Reveal>
+                      </Reveal>
+                    )}
                   </div>
                 </div>
 
@@ -1108,9 +1121,9 @@ export default function Home() {
               <div className="relative grid gap-8 lg:grid-cols-2 lg:gap-12">
                 <div>
                   <SectionHead
-                    label="Contact"
-                    title="Let's Build Something"
-                    lead="Have a project in mind or just want to say hi? I'm always open to discussing new opportunities and creative ideas."
+                    label={title('contactEyebrow')}
+                    title={title('contact')}
+                    lead={title('contactLead')}
                     onDark
                   />
                   <div className="-mt-10 space-y-4">

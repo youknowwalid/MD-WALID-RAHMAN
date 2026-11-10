@@ -34,15 +34,22 @@ export interface SiteConfig {
   privacyPolicy: string;
   refundPolicy: string;
   aboutVideoUrl: string;
-  /** Headings of the home-page sections, editable in the admin. */
+  /** Headings and short texts of the home page, editable in the admin. */
   sectionTitles: Record<string, string>;
+  /** Home page only: the brand colour of buttons, dots and highlights. */
+  homeAccent: string;
+  /** Home page header wordmark: the light part and the highlighted part. */
+  wordmarkLight: string;
+  wordmarkAccent: string;
+  /** The "Current focus" cards on the home page (leave the title empty to hide them). */
+  currentFocusTitle: string;
+  currentFocusText: string;
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
 export interface HeroConfig {
-  heroImage: string;
-  heroStatus: string;
-  heroAvailability: string;
+  /** Optional replacement for the built-in animated portrait on the home page. */
+  heroPortrait: string;
   cvUrl: string;
   resumeImage: string;
 }
@@ -89,19 +96,32 @@ export const DEFAULT_TERMS = 'The terms of service for this website are being pr
 export const DEFAULT_REFUND = 'The refund policy for digital products is being prepared. If you have a question about an order, please get in touch through the contact form.';
 
 export const DEFAULT_SECTION_TITLES: Record<string, string> = {
+  heroGreeting: "Hello, I'm",
+  heroName: 'Walid Rahman.',
+  teams: 'Teams I have worked with',
   about: 'Crafting Digital Excellence',
   resume: 'My Journey',
   services: 'My Specialities',
   skills: 'Technical Arsenal',
+  skillsIntro: 'Skills refined through years of practical application in demanding environments.',
   testimonials: 'Kind Words',
   pricing: 'Pricing Plans',
+  projectsEyebrow: 'Portfolio',
+  projects: 'Featured Work',
   blog: 'Latest Insights',
   resources: 'Premium Resources',
+  contactEyebrow: 'Contact',
+  contact: "Let's Build Something",
+  contactLead: "Have a project in mind or just want to say hi? I'm always open to discussing new opportunities and creative ideas.",
 };
 
+/** [key, label in the admin] — in the order they appear on the home page. */
 export const SECTION_TITLE_LABELS: [string, string][] = [
-  ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills'],
-  ['testimonials', 'Testimonials'], ['pricing', 'Pricing'], ['blog', 'Blog'], ['resources', 'Digital products'],
+  ['heroGreeting', 'Hero: greeting (before your name)'], ['heroName', 'Hero: your name (typed out)'], ['teams', 'Line above the client names'],
+  ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills (last word is dimmed)'],
+  ['skillsIntro', 'Skills: short line'], ['testimonials', 'Testimonials'], ['pricing', 'Pricing'],
+  ['projectsEyebrow', 'Projects: small label'], ['projects', 'Projects: heading'], ['blog', 'Blog'], ['resources', 'Digital products'],
+  ['contactEyebrow', 'Contact: small label'], ['contact', 'Contact: heading'], ['contactLead', 'Contact: short line'],
 ];
 
 export const DEFAULT_CONFIG: SiteConfig = {
@@ -139,12 +159,15 @@ export const DEFAULT_CONFIG: SiteConfig = {
   refundPolicy: DEFAULT_REFUND,
   aboutVideoUrl: '',
   sectionTitles: DEFAULT_SECTION_TITLES,
+  homeAccent: '#c3ed3a',
+  wordmarkLight: 'youknow',
+  wordmarkAccent: 'walid',
+  currentFocusTitle: 'Strategic Brand Evolution',
+  currentFocusText: '',
 };
 
 export const DEFAULT_HERO: HeroConfig = {
-  heroImage: '',
-  heroStatus: 'Active Now',
-  heroAvailability: 'Available for new projects',
+  heroPortrait: '',
   cvUrl: '',
   resumeImage: '',
 };

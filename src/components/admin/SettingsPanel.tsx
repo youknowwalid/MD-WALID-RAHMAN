@@ -10,7 +10,8 @@ interface Props { onToast: (type: 'success' | 'error', message: string) => void 
 
 type Form = {
   siteTitle: string; siteLogo: string; footerLogo: string; favicon: string;
-  heroImage: string; resumeImage: string; heroStatus: string; heroAvailability: string; cvUrl: string;
+  heroPortrait: string; resumeImage: string; cvUrl: string;
+  wordmarkLight: string; wordmarkAccent: string; currentFocusTitle: string; currentFocusText: string;
   brandTagline: string; globalCtaText: string; globalCtaUrl: string;
   heroStats: HeroStat[];
   aboutText: string; aboutTags: string; aboutVideoUrl: string;
@@ -70,7 +71,8 @@ export default function SettingsPanel({ onToast }: Props) {
     refresh().then(({ config: c, hero: h }) =>
       setF({
         siteTitle: c.siteTitle, siteLogo: c.siteLogo, footerLogo: c.footerLogo, favicon: c.favicon,
-        heroImage: h.heroImage, resumeImage: h.resumeImage, heroStatus: h.heroStatus, heroAvailability: h.heroAvailability, cvUrl: h.cvUrl,
+        heroPortrait: h.heroPortrait, resumeImage: h.resumeImage, cvUrl: h.cvUrl,
+        wordmarkLight: c.wordmarkLight, wordmarkAccent: c.wordmarkAccent, currentFocusTitle: c.currentFocusTitle, currentFocusText: c.currentFocusText,
         brandTagline: c.brandTagline, globalCtaText: c.globalCtaText, globalCtaUrl: c.globalCtaUrl,
         heroStats: c.heroStats,
         aboutText: c.aboutText, aboutTags: c.aboutTags.join(', '), aboutVideoUrl: c.aboutVideoUrl,
@@ -92,11 +94,11 @@ export default function SettingsPanel({ onToast }: Props) {
     setSaving(true);
     try {
       await patchSettings('hero', {
-        heroImage: f.heroImage, resumeImage: f.resumeImage, heroStatus: f.heroStatus.trim(),
-        heroAvailability: f.heroAvailability.trim(), cvUrl: f.cvUrl.trim(),
+        heroPortrait: f.heroPortrait, resumeImage: f.resumeImage, cvUrl: f.cvUrl.trim(),
       });
       await patchSettings('global', {
-        siteTitle: f.siteTitle.trim(), siteLogo: f.siteLogo, footerLogo: f.footerLogo, favicon: f.favicon,
+        siteTitle: f.siteTitle.trim(), wordmarkLight: f.wordmarkLight.trim(), wordmarkAccent: f.wordmarkAccent.trim(),
+        currentFocusTitle: f.currentFocusTitle.trim(), currentFocusText: f.currentFocusText.trim(), siteLogo: f.siteLogo, footerLogo: f.footerLogo, favicon: f.favicon,
         brandTagline: f.brandTagline.trim(), globalCtaText: f.globalCtaText.trim(), globalCtaUrl: f.globalCtaUrl.trim(),
         heroStats: f.heroStats.filter((s) => s.value.trim() || s.label.trim()),
         aboutText: f.aboutText.trim(), aboutTags: f.aboutTags.split(',').map((t) => t.trim()).filter(Boolean), aboutVideoUrl: f.aboutVideoUrl.trim(),
@@ -135,19 +137,22 @@ export default function SettingsPanel({ onToast }: Props) {
           </button>
         </div>
 
-        <Card title="Logos" hint="The website has exactly two logos: one in the header and one in the footer. No text name is shown next to them.">
-          <ImageField label="Header logo" value={f.siteLogo} onChange={set('siteLogo')} maxSide={600} />
+        <Card title="Logos and header" hint="The home page header shows the wordmark below (a turning star plus your name). The header logo image is used on the other pages: projects, blog posts, shop and checkout. The footer logo appears everywhere.">
+          <div className="grid sm:grid-cols-2 gap-6">
+            <Text id="s-wm1" label="Home header wordmark: light part" value={f.wordmarkLight} onChange={set('wordmarkLight')} placeholder="youknow" maxLength={24} />
+            <Text id="s-wm2" label="Home header wordmark: highlighted part (uses your home accent color)" value={f.wordmarkAccent} onChange={set('wordmarkAccent')} placeholder="walid" maxLength={24} />
+          </div>
+          <ImageField label="Header logo (other pages)" value={f.siteLogo} onChange={set('siteLogo')} maxSide={600} />
           <ImageField label="Footer logo" value={f.footerLogo} onChange={set('footerLogo')} maxSide={600} />
           <ImageField label="Browser tab icon (favicon)" value={f.favicon} onChange={set('favicon')} maxSide={256} compact />
-          <Text id="s-title" label="Site name (not shown on the page — only used by screen readers and as the logo's link description)" value={f.siteTitle} onChange={set('siteTitle')} />
+          <Text id="s-title" label="Site name (not shown on the page: only used by screen readers and as the logo's link description)" value={f.siteTitle} onChange={set('siteTitle')} />
         </Card>
 
         <Card title="Home page: hero">
-          <ImageField label="Your portrait photo" value={f.heroImage} onChange={set('heroImage')} maxSide={1000} hint="Square photos work best." />
+          <ImageField label="Your portrait (replaces the built-in animated one)" value={f.heroPortrait} onChange={set('heroPortrait')} maxSide={1000}
+            hint="Leave empty to keep the built-in animated portrait. For a replacement use a cut-out with a transparent background: PNG, WebP or an animated WebP/GIF, up to 5 MB, about 1000 px tall." />
           <Text id="s-tag" label="Line under your name" value={f.brandTagline} onChange={set('brandTagline')} />
           <div className="grid sm:grid-cols-2 gap-6">
-            <Text id="s-status" label="Status badge (e.g. Active Now)" value={f.heroStatus} onChange={set('heroStatus')} />
-            <Text id="s-avail" label="Availability text" value={f.heroAvailability} onChange={set('heroAvailability')} />
             <Text id="s-cta" label="Main button text" value={f.globalCtaText} onChange={set('globalCtaText')} />
             <Text id="s-ctaurl" label="Main button link (blank = WhatsApp using your phone number)" value={f.globalCtaUrl} onChange={set('globalCtaUrl')} placeholder="https://…" />
           </div>
@@ -160,11 +165,19 @@ export default function SettingsPanel({ onToast }: Props) {
           </div>
         </Card>
 
-        <Card title="Home page: section titles" hint="The big heading of each section on the home page. Leave one empty to use the original.">
+        <Card title="Home page: headings and short texts" hint="Every heading and short line of the home page, in the order they appear. Leave one empty to use the original.">
           <div className="grid gap-4 sm:grid-cols-2">
             {SECTION_TITLE_LABELS.map(([k, label]) => (
               <Text key={k} id={`s-title-${k}`} label={label} value={f.titles[k] ?? ''} onChange={(v) => setF((prev) => (prev ? { ...prev, titles: { ...prev.titles, [k]: v } } : prev))} placeholder={DEFAULT_SECTION_TITLES[k]} />
             ))}
+          </div>
+        </Card>
+
+        <Card title="Home page: current focus" hint="Two cards show it: the label on your resume picture and the purple card beside Featured Work. Empty title hides both.">
+          <Text id="s-focus" label="Current focus (title)" value={f.currentFocusTitle} onChange={set('currentFocusTitle')} placeholder="Strategic Brand Evolution" maxLength={80} />
+          <div>
+            <label htmlFor="s-focus-text" className={labelCls}>Short text under it (leave empty to use your latest resume entry)</label>
+            <textarea id="s-focus-text" rows={3} value={f.currentFocusText} onChange={(e) => set('currentFocusText')(e.target.value)} maxLength={300} className={inputCls} />
           </div>
         </Card>
 

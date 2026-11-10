@@ -5,6 +5,13 @@ export interface PrepareOptions {
   maxBytes?: number;
 }
 
+/** True when a WebP file is an animation (re-encoding it on a canvas would flatten it to one frame). */
+async function isAnimatedWebp(file: File): Promise<boolean> {
+  const b = new Uint8Array(await file.slice(0, 32).arrayBuffer());
+  const tag = (o: number) => String.fromCharCode(b[o], b[o + 1], b[o + 2], b[o + 3]);
+  return b.length >= 21 && tag(0) === 'RIFF' && tag(8) === 'WEBP' && tag(12) === 'VP8X' && (b[20] & 0x02) !== 0;
+}
+
 // Browsers cannot encode WebP larger than 16383 px on a side.
 const MAX_ENCODE_SIDE = 16000;
 
@@ -12,6 +19,7 @@ const MAX_ENCODE_SIDE = 16000;
 export async function prepareImage(file: File, maxSide = 1600, opts: PrepareOptions = {}): Promise<Blob> {
   if (!file.type.startsWith('image/')) throw new Error('Please choose an image file.');
   if (file.type === 'image/gif') return file; // keep animation
+  if (file.type === 'image/webp' && (await isAnimatedWebp(file))) return file; // keep animation
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxSide / (opts.fitWidth ? bitmap.width : Math.max(bitmap.width, bitmap.height)));
   const w = Math.max(1, Math.round(bitmap.width * scale));
