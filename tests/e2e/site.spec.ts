@@ -225,10 +225,10 @@ test.describe('brand colors', () => {
     const homeCta = await page.getByRole('link', { name: "Let's Discuss" }).first().evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(homeCta).toBe('rgb(195, 237, 58)');
 
-    // Every other page follows the admin.
+    // Every other public page shares the home page's brand colour too, so the whole site looks the same.
     await page.goto(CONNECTED + '/no-such-page');
-    const bg = await page.getByRole('link', { name: 'Back to the homepage' }).evaluate((el) => getComputedStyle(el).backgroundImage);
-    expect(bg).toContain('linear-gradient');
+    const other = await page.getByRole('link', { name: 'Back to the homepage' }).evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(other).toBe('rgb(195, 237, 58)');
   });
 
   test('solid mode still works (default look unchanged)', async ({ page }) => {
