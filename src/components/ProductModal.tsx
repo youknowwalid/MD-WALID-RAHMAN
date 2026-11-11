@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { m } from 'motion/react';
 import { X, CheckCircle, Shield } from 'lucide-react';
 import { Product } from '../types';
@@ -103,15 +104,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto" role="dialog" aria-modal="true" aria-label={product.title}>
+  // Drawn straight into <body>: inside the page sections the popup was trapped beneath the navbar and the contact block.
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto" role="dialog" aria-modal="true" aria-label={product.title}>
       {/* Backdrop with Blur */}
       <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100]"
       />
 
       {/* Modal Main Content Container */}
@@ -121,7 +123,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
         id={`product-modal-card-${product.id}`}
-        className="relative w-full max-w-5xl bg-neutral-950 rounded-3xl border border-white/10 shadow-[0_0_50px_var(--color-accent)]/15 z-50 overflow-hidden text-white flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
+        className="relative w-full max-w-5xl bg-neutral-950 rounded-3xl border border-white/10 shadow-[0_0_50px_var(--color-accent)]/15 z-[101] overflow-hidden text-white flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
       >
         
         {/* Close Button */}
@@ -316,6 +318,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         </div>
 
       </m.div>
-    </div>
+    </div>,
+    document.body,
   );
 }
