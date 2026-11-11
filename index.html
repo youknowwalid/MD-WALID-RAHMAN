@@ -6,7 +6,15 @@
     <script>
       // The home page is light, every other page is dark. Marking it here, before anything is painted,
       // keeps a first-time visitor (who waits for their saved settings) from seeing a dark flash first.
-      if (location.pathname === '/') document.documentElement.setAttribute('data-home', '');
+      if (location.pathname === '/') {
+        document.documentElement.setAttribute('data-home', '');
+        // Start downloading the portrait (the largest thing on the first screen) straight away, not once the page's scripts have run.
+        if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+          var l = document.createElement('link');
+          l.rel = 'preload'; l.as = 'image'; l.href = '/walid-hero-animated-v2.webp'; l.setAttribute('fetchpriority', 'high');
+          document.head.appendChild(l);
+        }
+      }
     </script>
 
     <script>
