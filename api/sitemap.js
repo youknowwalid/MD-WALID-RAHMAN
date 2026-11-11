@@ -5,6 +5,7 @@ import config from '../public-config.json' with { type: 'json' };
 const SITE = 'https://walidrahman.com';
 const PAGES = [
   { path: '/', priority: '1.0' },
+  { path: '/articles', priority: '0.7' },
   { path: '/resources', priority: '0.6' },
   { path: '/privacy-policy', priority: '0.2' },
   { path: '/terms-of-service', priority: '0.2' },

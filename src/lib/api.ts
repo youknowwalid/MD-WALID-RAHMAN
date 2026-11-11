@@ -54,11 +54,11 @@ async function request(path: string, init: RequestInit = {}, timeoutMs = 8000): 
  * Returns null when no backend is connected or it can't be reached (callers then show built-in content).
  * `columns` limits what is downloaded (e.g. list cards don't need the long article text).
  */
-export async function listRows<T = any>(collection: Collection, columns?: string[]): Promise<T[] | null> {
+export async function listRows<T = any>(collection: Collection, columns?: string[], limit?: number): Promise<T[] | null> {
   if (!backendConfigured) return null;
   try {
     const select = columns ? columns.join(',') : '*';
-    const res = await request(`${TABLES[collection]}?select=${select}&order=${ORDER[collection]}`, { headers: headers() });
+    const res = await request(`${TABLES[collection]}?select=${select}&order=${ORDER[collection]}${limit ? `&limit=${limit}` : ''}`, { headers: headers() });
     if (!res.ok) return null;
     const rows = (await res.json()) as Record<string, any>[];
     return rows.map((r) => fromRow<T>(collection, r));
