@@ -141,7 +141,7 @@ export function buildPageHtml(template, seoSettings, page, path) {
   const ldTag = `<script type="application/ld+json" id="seo-jsonld-schema">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
 
   return template
-    .replace(/<script\b[^>]*\bid\s*=\s*["']aeo-jsonld-home["'][^>]*>[\s\S]*?<\/script>\s*/i, '')
+    .replace(/<script\b[^>]*\bid\s*=\s*["']aeo-jsonld-home[^"']*["'][^>]*>[\s\S]*?<\/script>\s*/gi, '')
     .replace(/<main\b[^>]*\bid\s*=\s*["']static-content["'][^>]*>[\s\S]*?<\/main>\s*/i, '')
     .replace(/<title>[\s\S]*?<\/title>\s*/i, '')
     .replace(/<meta\b[^>]*\b(?:name|property)\s*=\s*["'](?:description|robots|og:[^"']*|twitter:[^"']*)["'][^>]*>\s*/gi, '')
