@@ -572,9 +572,9 @@ export default function Home() {
             </div>
 
             <m.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.8, ease: EASE }}
+              initial={{ y: 24 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.6, ease: EASE }}
               className="relative z-[1] flex min-w-0 justify-center lg:justify-end"
             >
               <div className="relative aspect-[4/5] w-[min(100%,440px)] md:w-[540px] lg:w-[min(108%,620px)]">
