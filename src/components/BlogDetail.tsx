@@ -53,7 +53,7 @@ export default function BlogDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-dark flex items-center justify-center">
+      <div className="home-v2 min-h-screen bg-bg-dark flex items-center justify-center">
         <m.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -70,7 +70,7 @@ export default function BlogDetail() {
   const baseLevel = Math.min(4, ...blocks.flatMap((b) => (b.type === 'h' ? [b.level] : [])));
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
+    <div className="home-v2 min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
       <Seo
         title={post.socialTitle || post.title}
         description={post.socialDescription || post.excerpt}
@@ -99,7 +99,7 @@ export default function BlogDetail() {
 
           {/* Header */}
           <div className="mb-12">
-            <div className="flex flex-wrap items-center gap-6 text-xs text-text-muted uppercase font-black mb-6">
+            <div className="flex flex-wrap items-center gap-6 text-xs text-text-muted uppercase font-semibold mb-6">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-accent" />
                 {post.date}
@@ -113,7 +113,7 @@ export default function BlogDetail() {
                 {readingMinutes(post.content || post.excerpt)} min read
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-black leading-tight tracking-tight mb-8">
+            <h1 className="text-4xl md:text-6xl font-semibold leading-tight tracking-tight mb-8">
               {post.title}
             </h1>
             <p className="text-xl text-text-muted italic border-l-4 border-accent pl-6 mb-12">
@@ -122,7 +122,7 @@ export default function BlogDetail() {
           </div>
 
           {/* Featured Image */}
-          {post.image && <div className="rounded-[40px] overflow-hidden border border-white/10 mb-16 shadow-2xl relative aspect-[16/9]">
+          {post.image && <div className="rounded-[40px] overflow-hidden border border-border-subtle mb-16 shadow-2xl relative aspect-[16/9]">
             <Photo src={post.image} widths={[640, 1080, 1600]} sizes="(min-width: 1024px) 900px, 100vw" alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" fetchPriority="high" />
           </div>}
 
@@ -133,8 +133,8 @@ export default function BlogDetail() {
                 {blocks.length === 0 && <p>Content coming soon...</p>}
                 {blocks.map((b, i) =>
                   b.type === 'h' ? (
-                    b.level - baseLevel + 2 <= 2 ? <h2 key={i} className="text-3xl font-black mt-10">{b.text}</h2>
-                    : b.level - baseLevel + 2 === 3 ? <h3 key={i} className="text-2xl font-black mt-8">{b.text}</h3>
+                    b.level - baseLevel + 2 <= 2 ? <h2 key={i} className="text-3xl font-semibold mt-10">{b.text}</h2>
+                    : b.level - baseLevel + 2 === 3 ? <h3 key={i} className="text-2xl font-semibold mt-8">{b.text}</h3>
                     : <h4 key={i} className="text-xl font-bold mt-6">{b.text}</h4>
                   ) : b.type === 'ul' ? (
                     <ul key={i} className="list-disc pl-6 space-y-2">{b.items.map((it, j) => <li key={j}>{it}</li>)}</ul>
@@ -158,16 +158,16 @@ export default function BlogDetail() {
 
             {/* Sidebar */}
             <div className="space-y-10">
-              <div className="p-8 bg-bg-card rounded-3xl border border-white/5 sticky top-32">
-                <h2 className="text-lg font-black mb-6">Share Article</h2>
+              <div className="p-8 bg-bg-card rounded-3xl border border-border-subtle sticky top-32">
+                <h2 className="text-lg font-semibold mb-6">Share Article</h2>
                 <div className="flex lg:flex-col gap-4">
                   {([['twitter', Twitter, 'Twitter'], ['facebook', Facebook, 'Facebook'], ['linkedin', Linkedin, 'LinkedIn']] as const).map(([net, Icon, label]) => (
-                    <button key={net} type="button" onClick={() => share(net)} aria-label={`Share on ${label}`} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-accent hover:text-black transition-all group w-full">
+                    <button key={net} type="button" onClick={() => share(net)} aria-label={`Share on ${label}`} className="flex items-center gap-3 p-3 bg-bg-card rounded-xl hover:bg-accent hover:text-[#0d1117] transition-all group w-full">
                       <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
                       <span className="text-xs font-bold hidden lg:inline">{label}</span>
                     </button>
                   ))}
-                  <button type="button" onClick={copyLink} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-accent hover:text-black transition-all group w-full" aria-label="Copy link">
+                  <button type="button" onClick={copyLink} className="flex items-center gap-3 p-3 bg-bg-card rounded-xl hover:bg-accent hover:text-[#0d1117] transition-all group w-full" aria-label="Copy link">
                     <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
                     <span className="text-xs font-bold hidden lg:inline" role="status">{copied ? 'Link copied!' : 'Copy Link'}</span>
                   </button>
