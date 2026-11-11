@@ -71,6 +71,14 @@ test.describe('public site (connected)', () => {
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   });
 
+  test('the articles page lists every article and each card opens its own page', async ({ page }) => {
+    await page.goto(CONNECTED + '/articles');
+    await expect(page.locator('h1')).toHaveText('Articles');
+    await page.locator('a[href="/blog/hello-world"]').click();
+    await expect(page).toHaveURL(/\/blog\/hello-world$/);
+    await expect(page.locator('h1')).toHaveText('Hello World');
+  });
+
   test('project page shows the case-study sections', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(CONNECTED + '/projects/brand-one');

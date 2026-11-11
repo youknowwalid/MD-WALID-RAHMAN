@@ -256,7 +256,8 @@ const MIN_FILL_MS = 3000;
 const loadHomeData = () => Promise.all([
   listRows('projects', ['id', 'slug', 'title', 'category', 'image', 'published']),
   listRows('services'),
-  listRows('blogPosts', ['id', 'slug', 'title', 'date', 'excerpt', 'image']),
+  // Only the newest few: the full list lives on the /articles page, so the home page stays small however many are published.
+  listRows('blogPosts', ['id', 'slug', 'title', 'date', 'excerpt', 'image'], 5),
   listRows('resume'),
   listRows('testimonials'),
   listRows('pricingPlans'),
@@ -287,7 +288,6 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error' | 'limited' | 'mailto'>('idle');
   const formShownAt = useRef(Date.now());
-  const [showAllPosts, setShowAllPosts] = useState(false);
   const [openPlans, setOpenPlans] = useState<Record<string, boolean>>({});
 
   // The first screen is drawn first; the sections below it are added in three quick steps right afterwards
@@ -1120,7 +1120,7 @@ export default function Home() {
             ) : (
               <>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {(showAllPosts ? blogPosts : blogPosts.slice(0, 4)).map((post, i) => (
+                  {blogPosts.slice(0, 4).map((post, i) => (
                     <Reveal key={post.id || post.title} delay={Math.min((i % 4) * 0.05, 0.15)}>
                       <article className="group h-full">
                         <Link
@@ -1151,14 +1151,12 @@ export default function Home() {
                 </div>
                 {blogPosts.length > 4 && (
                   <div className="mt-6 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setShowAllPosts((v) => !v)}
-                      aria-expanded={showAllPosts}
-                      className="home-btn border border-[#0d1117]/15 px-6 py-3 text-[15px] text-text-main hover:bg-[#0d1117] hover:text-white"
+                    <Link
+                      to="/articles"
+                      className="home-btn inline-flex border border-[#0d1117]/15 px-6 py-3 text-[15px] text-text-main hover:bg-[#0d1117] hover:text-white"
                     >
-                      {showAllPosts ? 'Show less' : 'See more'}
-                    </button>
+                      See more
+                    </Link>
                   </div>
                 )}
               </>
