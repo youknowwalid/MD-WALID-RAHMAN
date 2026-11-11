@@ -43,22 +43,22 @@ export default function ThankYou() {
   }, [orderId, token]);
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
+    <div className="home-v2 min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
       <Seo title="Your order" description="Your order status and download." noindex />
       <Navbar />
       <main className="min-h-[100svh] pt-32 pb-20 px-6 max-w-2xl mx-auto">
-        <div className="bg-bg-card border border-white/5 rounded-3xl p-8 md:p-10 shadow-xl text-center">
+        <div className="bg-bg-card border border-border-subtle rounded-3xl p-8 md:p-10 shadow-xl text-center">
           {state.kind === 'loading' && (
             <div role="status" aria-live="polite">
               <Loader2 className="w-10 h-10 text-accent mx-auto mb-5 animate-spin" aria-hidden="true" />
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-3">Loading your order…</h1>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">Loading your order…</h1>
             </div>
           )}
 
           {state.kind === 'checking' && (
             <div role="status" aria-live="polite">
               <Loader2 className="w-10 h-10 text-accent mx-auto mb-5 animate-spin" aria-hidden="true" />
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-3">Verifying your payment…</h1>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">Verifying your payment…</h1>
               <p className="text-text-muted text-sm mb-2">{state.order.name}</p>
               {!state.slow ? (
                 <p className="text-text-muted text-sm">This usually takes less than a minute. Please keep this page open.</p>
@@ -73,13 +73,13 @@ export default function ThankYou() {
           {state.kind === 'paid' && (
             <div>
               <CheckCircle className="w-12 h-12 text-accent mx-auto mb-5" aria-hidden="true" />
-              <h1 className="text-2xl md:text-4xl font-black tracking-tight mb-3">Payment confirmed. Thank you!</h1>
+              <h1 className="text-2xl md:text-4xl font-semibold tracking-tight mb-3">Payment confirmed. Thank you!</h1>
               <p className="text-text-muted text-sm mb-8">
                 {formatBdt(state.order.amount)} received. Your download is ready below.
               </p>
               <a
                 href={state.order.downloadUrl || '#'}
-                className="flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all"
+                className="flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all"
               >
                 <Download className="w-5 h-5 shrink-0" aria-hidden="true" />
                 <span>Download: {state.order.name}</span>
@@ -98,7 +98,7 @@ export default function ThankYou() {
           {state.kind === 'problem' && (
             <div>
               <AlertTriangle className="w-10 h-10 text-accent mx-auto mb-5" aria-hidden="true" />
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-3">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">
                 {state.reason === 'rejected' ? "We couldn't confirm this payment" : "We couldn't find this order"}
               </h1>
               <p className="text-text-muted text-sm mb-6">
@@ -106,7 +106,7 @@ export default function ThankYou() {
                   ? `Your transaction did not match a payment we received. If you did pay, email ${SUPPORT_EMAIL} with your transaction ID and we will fix it right away.`
                   : `The link looks incomplete or has expired. Use the link from your email, or contact ${SUPPORT_EMAIL} and we will help.`}
               </p>
-              <Link to="/#contact" className="inline-block bg-accent text-black font-extrabold py-3 px-6 rounded-2xl">Contact us</Link>
+              <Link to="/#contact" className="inline-block bg-accent text-black font-semibold py-3 px-6 rounded-2xl">Contact us</Link>
             </div>
           )}
         </div>

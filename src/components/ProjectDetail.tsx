@@ -136,7 +136,7 @@ const FullPageShot = ({ src, title }: { src: string; title: string }) => {
         id="full-page-shot"
         style={{ maxHeight, minHeight: loaded ? undefined : 320 }}
         onTransitionEnd={(e) => { if (open && e.propertyName === 'max-height') setSettled(true); }}
-        className="relative overflow-hidden rounded-[24px] border border-white/10 bg-bg-card transition-[max-height] duration-[900ms] ease-out motion-reduce:transition-none md:rounded-[32px]"
+        className="relative overflow-hidden rounded-[24px] border border-border-subtle bg-bg-card transition-[max-height] duration-[900ms] ease-out motion-reduce:transition-none md:rounded-[32px]"
       >
         <div ref={inner}>
           <img
@@ -158,7 +158,7 @@ const FullPageShot = ({ src, title }: { src: string; title: string }) => {
                 onClick={expand}
                 aria-expanded={false}
                 aria-controls="full-page-shot"
-                className="group inline-flex items-center gap-3 rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-white transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="group inline-flex items-center gap-3 rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-[#0d1117] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 View full page
                 <ArrowDown className="h-5 w-5 transition-transform duration-300 group-hover:translate-y-0.5" aria-hidden="true" />
@@ -174,7 +174,7 @@ const FullPageShot = ({ src, title }: { src: string; title: string }) => {
             onClick={collapse}
             aria-expanded={true}
             aria-controls="full-page-shot"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-text-main transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex items-center gap-2 rounded-full border border-[#0d1117]/15 px-6 py-3 text-sm font-semibold text-text-main transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             <ArrowUp className="h-4 w-4" aria-hidden="true" />
             Show less
@@ -234,7 +234,7 @@ const BackToTop = () => {
       aria-label="Back to top"
       aria-hidden={!show}
       tabIndex={show ? 0 : -1}
-      className={`fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-accent text-white shadow-lg shadow-black/40 transition-all duration-300 hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'}`}
+      className={`fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-accent text-[#0d1117] shadow-lg shadow-black/20 transition-all duration-300 hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'}`}
     >
       <ArrowUp className="h-5 w-5" aria-hidden="true" />
     </button>
@@ -267,7 +267,7 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-dark flex items-center justify-center" role="status" aria-label="Loading">
+      <div className="home-v2 min-h-screen bg-bg-dark flex items-center justify-center" role="status" aria-label="Loading">
         <m.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -300,7 +300,7 @@ export default function ProjectDetail() {
   const hasFeedback = Boolean(project.feedbackQuote?.trim());
   const ctaUrl = safeUrl(project.ctaButtonUrl) || '/#contact';
   const ctaText = project.ctaButtonText || 'Contact Us';
-  const ctaClass = 'group inline-flex items-center gap-3 rounded-full bg-accent px-8 py-4 text-lg font-semibold text-white transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
+  const ctaClass = 'group inline-flex items-center gap-3 rounded-full bg-accent px-8 py-4 text-lg font-semibold text-[#0d1117] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
   const ctaInner = (
     <>
       {ctaText}
@@ -315,7 +315,7 @@ export default function ProjectDetail() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="relative min-h-screen bg-bg-dark overflow-x-clip selection:bg-accent/30">
+      <div className="home-v2 relative min-h-screen bg-bg-dark overflow-x-clip selection:bg-accent/30">
         <Seo
           title={project.socialTitle || project.title}
           description={project.socialDescription || project.summary || lead}
@@ -339,7 +339,7 @@ export default function ProjectDetail() {
                 <aside aria-label="Tags" className="pointer-events-none absolute right-0 top-0 z-10 hidden h-full lg:block">
                   <ul className="sticky top-28 flex flex-col items-end gap-3">
                     {tags.map((t) => (
-                      <li key={t} className="rounded-full border border-white/25 bg-bg-dark/70 px-4 py-1.5 text-sm text-text-main backdrop-blur-md">{t}</li>
+                      <li key={t} className="rounded-full border border-[#0d1117]/15 bg-bg-dark/70 px-4 py-1.5 text-sm text-text-main backdrop-blur-md">{t}</li>
                     ))}
                   </ul>
                 </aside>
@@ -366,7 +366,7 @@ export default function ProjectDetail() {
               {tags.length > 0 && (
                 <ul className="mt-8 flex flex-wrap gap-2.5 lg:hidden" aria-label="Tags">
                   {tags.map((t) => (
-                    <li key={t} className="rounded-full border border-white/25 px-4 py-1.5 text-sm text-text-main">{t}</li>
+                    <li key={t} className="rounded-full border border-[#0d1117]/15 px-4 py-1.5 text-sm text-text-main">{t}</li>
                   ))}
                 </ul>
               )}
@@ -419,7 +419,7 @@ export default function ProjectDetail() {
           {/* 11. Prev / next */}
           {prev && next && (
             <div className={`${CONTAINER} mt-20 sm:mt-28`}>
-              <nav aria-label="Project navigation" className="grid gap-10 border-t border-white/10 pt-10 sm:grid-cols-2 sm:gap-8">
+              <nav aria-label="Project navigation" className="grid gap-10 border-t border-border-subtle pt-10 sm:grid-cols-2 sm:gap-8">
                 <Link to={projectPath(prev)} className="group min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
                   <span className="flex items-center gap-2 text-sm text-text-muted"><ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />Prev</span>
                   <span className="mt-3 block text-[clamp(1.5rem,3vw,2.75rem)] font-semibold leading-tight tracking-[-0.02em] text-text-main transition-colors group-hover:text-accent">{prev.title}</span>

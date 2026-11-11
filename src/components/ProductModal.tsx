@@ -106,7 +106,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   // Drawn straight into <body>: inside the page sections the popup was trapped beneath the navbar and the contact block.
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto" role="dialog" aria-modal="true" aria-label={product.title}>
+    <div className="font-tight [--color-accent:#c3ed3a] [--accent-gradient:none] fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto" role="dialog" aria-modal="true" aria-label={product.title}>
       {/* Backdrop with Blur */}
       <m.div
         initial={{ opacity: 0 }}
@@ -242,14 +242,14 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             </div>
 
             {/* Product Title */}
-            <h2 className="text-2xl sm:text-3xl font-sans font-black tracking-tight mb-4 text-white hover:text-accent transition-colors leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4 text-white hover:text-accent transition-colors leading-tight">
               {product.title}
             </h2>
 
             {/* Price Box */}
             <div className="flex items-baseline gap-2 mb-6 bg-neutral-900/40 p-3 rounded-xl border border-white/5 w-fit">
               <span className="text-xs text-neutral-400 font-medium">INVESTMENT:</span>
-              <span className="text-2xl font-black text-accent font-mono">{product.price}</span>
+              <span className="text-2xl font-semibold text-accent font-mono">{product.price}</span>
             </div>
 
             {/* Divider */}
@@ -260,7 +260,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 Overview & Value
               </h3>
-              <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap font-sans max-w-md">
+              <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap max-w-md">
                 {product.description}
               </p>
             </div>
@@ -290,7 +290,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               <Link
                 id={`buy-now-btn-${product.id}`}
                 to={`/checkout/${edition}`}
-                className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
+                className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
               >
                 Buy Now
               </Link>
@@ -300,7 +300,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 href={checkoutHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
+                className="group flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 text-black font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5"
               >
                 Buy Now
               </a>

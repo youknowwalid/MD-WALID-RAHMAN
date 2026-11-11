@@ -40,61 +40,61 @@ export default function ArticlesPage() {
   const shown = filtered.slice(0, visible);
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-bg-dark text-text-main relative z-10 font-sans">
+    <div className="home-v2 min-h-screen overflow-x-clip bg-bg-dark text-text-main relative z-10 ">
       <Seo title="Articles" description="Articles and insights on brand, marketing, web and AI by Walid Rahman." noindex={!loading && posts.length === 0} />
       <Navbar />
 
       <main className="min-h-[100svh] max-w-7xl mx-auto px-6 pt-32 pb-24 md:pt-40 md:pb-32">
-        <a href="/#blog" className="mb-8 flex min-h-11 w-fit items-center text-xs font-semibold uppercase tracking-widest text-neutral-400 transition-colors hover:text-[#f45901]">
+        <a href="/#blog" className="mb-8 flex min-h-11 w-fit items-center text-xs font-semibold uppercase tracking-widest text-text-muted transition-colors hover:text-[color-mix(in_srgb,var(--color-accent)_55%,#000)]">
           ← Back to Portfolio
         </a>
 
-        <div className="mb-12 flex flex-col justify-between gap-8 border-b border-white/10 pb-12 lg:flex-row lg:items-end">
+        <div className="mb-12 flex flex-col justify-between gap-8 border-b border-border-subtle pb-12 lg:flex-row lg:items-end">
           <div>
-            <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight text-white md:text-6xl">Articles</h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
+            <h1 className="mb-4 text-4xl font-semibold leading-tight tracking-tight text-text-main md:text-6xl">Articles</h1>
+            <p className="max-w-2xl text-sm leading-relaxed text-text-muted md:text-base">
               Everything I have written on brand, marketing, web and AI, newest first.
             </p>
           </div>
           <div className="relative w-full lg:max-w-sm">
-            <span className="absolute inset-y-0 left-4 flex items-center text-neutral-400"><Search className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="absolute inset-y-0 left-4 flex items-center text-text-muted"><Search className="h-4 w-4" aria-hidden="true" /></span>
             <input
               type="search"
               aria-label="Search articles"
               placeholder="Search articles..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-full border border-white/10 bg-neutral-900/50 py-3.5 pl-11 pr-4 text-base font-medium text-white placeholder-neutral-500 outline-none transition-all hover:bg-neutral-900 focus:border-[#f45901] md:text-sm"
+              className="w-full rounded-full border border-border-subtle bg-bg-card py-3.5 pl-11 pr-4 text-base font-medium text-text-main placeholder-[#5b6270] outline-none transition-all hover:bg-white focus:border-accent md:text-sm"
             />
           </div>
         </div>
 
         {loading ? (
           <div role="status" aria-label="Loading articles" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2].map((i) => <div key={i} aria-hidden="true" className="h-56 animate-pulse rounded-3xl bg-neutral-900/60 motion-reduce:animate-none" />)}
+            {[0, 1, 2].map((i) => <div key={i} aria-hidden="true" className="h-56 animate-pulse rounded-3xl bg-bg-card motion-reduce:animate-none" />)}
           </div>
         ) : posts.length === 0 ? (
-          <p className="py-24 text-center text-neutral-400">New articles are on their way.</p>
+          <p className="py-24 text-center text-text-muted">New articles are on their way.</p>
         ) : filtered.length === 0 ? (
-          <p className="py-24 text-center text-neutral-400">No articles match "{query}".</p>
+          <p className="py-24 text-center text-text-muted">No articles match "{query}".</p>
         ) : (
           <>
-            <p className="mb-6 text-sm text-neutral-500" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'article' : 'articles'}</p>
+            <p className="mb-6 text-sm text-text-muted" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'article' : 'articles'}</p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {shown.map((post, i) => (
                 <article key={post.id || post.slug || post.title} className="group h-full">
                   <Link
                     to={`/blog/${post.slug || post.id}`}
-                    className="flex h-full min-h-56 flex-col justify-between rounded-3xl border border-white/5 bg-neutral-950 p-6 transition-all hover:-translate-y-1 hover:border-white/15"
+                    className="flex h-full min-h-56 flex-col justify-between rounded-3xl border border-border-subtle bg-bg-card p-6 transition-all hover:-translate-y-1 hover:border-[#0d1117]/15"
                   >
                     <div>
-                      <span className="text-[12px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                      <span className="text-[12px] font-semibold uppercase tracking-[0.14em] text-text-muted">
                         {post.date || String(i + 1).padStart(2, '0')}
                       </span>
-                      <h2 className="mt-2 line-clamp-3 text-xl font-semibold leading-tight tracking-tight text-white">{post.title}</h2>
-                      <p className="mt-3 line-clamp-3 text-sm leading-snug text-neutral-400">{post.excerpt}</p>
+                      <h2 className="mt-2 line-clamp-3 text-xl font-semibold leading-tight tracking-tight text-text-main">{post.title}</h2>
+                      <p className="mt-3 line-clamp-3 text-sm leading-snug text-text-muted">{post.excerpt}</p>
                     </div>
-                    <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-white">
+                    <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-text-main">
                       <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-[#0d1117]" aria-hidden="true"><ArrowUpRight className="h-3.5 w-3.5" /></span>
                       Read article
                     </span>
@@ -107,7 +107,7 @@ export default function ArticlesPage() {
                 <button
                   type="button"
                   onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                  className="min-h-11 rounded-full border border-white/15 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-white hover:text-black"
+                  className="min-h-11 rounded-full border border-[#0d1117]/15 px-8 py-3 text-sm font-medium text-text-main transition-colors hover:bg-white hover:text-black"
                 >
                   Load more
                 </button>

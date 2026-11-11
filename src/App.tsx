@@ -18,6 +18,11 @@ const NotFound = lazy(() => import('./components/NotFound'));
 /** Scrolls to the top on page changes, or to the section named in the URL (e.g. /#contact). */
 const ScrollManager = () => {
   const { pathname, hash } = useLocation();
+  // Light page background for every public page except the home page (which has its own) and the admin.
+  useEffect(() => {
+    const light = pathname !== '/' && !pathname.startsWith('/admin');
+    document.documentElement.toggleAttribute('data-light', light);
+  }, [pathname]);
   useEffect(() => {
     if (!hash) { window.scrollTo(0, 0); return; }
     const id = decodeURIComponent(hash.slice(1));

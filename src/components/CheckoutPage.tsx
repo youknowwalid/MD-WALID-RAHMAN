@@ -9,8 +9,8 @@ import {
   EDITIONS, PRICE_BDT, SUPPORT_EMAIL, WALLETS, WalletId, editionOf, formatBdt, isEdition, submitErrorMessage, submitOrder,
 } from '../lib/payments';
 
-const field = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-base text-white placeholder:text-neutral-500 focus:border-accent outline-none transition-colors';
-const label = 'block text-sm font-semibold text-neutral-200 mb-2';
+const field = 'w-full bg-bg-card border border-border-subtle rounded-xl px-4 py-3.5 text-base text-text-main placeholder:text-text-muted focus:border-accent outline-none transition-colors';
+const label = 'block text-sm font-semibold text-text-main mb-2';
 
 function CopyButton({ value, name }: { value: string; name: string }) {
   const [copied, setCopied] = useState(false);
@@ -35,7 +35,7 @@ function CopyButton({ value, name }: { value: string; name: string }) {
     <button
       type="button"
       onClick={copy}
-      className="shrink-0 flex items-center gap-2 bg-accent text-black font-extrabold text-sm px-4 min-h-11 rounded-xl hover:opacity-90 transition-opacity"
+      className="shrink-0 flex items-center gap-2 bg-accent text-black font-semibold text-sm px-4 min-h-11 rounded-xl hover:opacity-90 transition-opacity"
       aria-label={`Copy ${name} number`}
     >
       {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Copy className="w-4 h-4" aria-hidden="true" />}
@@ -61,12 +61,12 @@ export default function CheckoutPage() {
 
   if (!edition) {
     return (
-      <div className="min-h-screen bg-bg-dark text-text-main">
+      <div className="home-v2 min-h-screen bg-bg-dark text-text-main">
         <Seo title="Checkout" noindex />
         <Navbar />
         <main className="pt-32 pb-20 px-6 max-w-xl mx-auto text-center">
-          <h1 className="text-3xl font-black mb-4">We couldn&apos;t find that book</h1>
-          <Link to="/resources" className="inline-block bg-accent text-black font-extrabold py-3 px-6 rounded-2xl">Back to the books</Link>
+          <h1 className="text-3xl font-semibold mb-4">We couldn&apos;t find that book</h1>
+          <Link to="/resources" className="inline-block bg-accent text-black font-semibold py-3 px-6 rounded-2xl">Back to the books</Link>
         </main>
         <Footer />
       </div>
@@ -92,40 +92,40 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
+    <div className="home-v2 min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
       <Seo title="Checkout" description="Pay with bKash or Nagad and download your book." noindex />
       <Navbar />
       <main className="pt-28 pb-20 px-6 max-w-2xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">Checkout</h1>
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">Checkout</h1>
         <p className="text-text-muted mb-8">{title}</p>
 
-        <div className="bg-bg-card border border-white/5 rounded-3xl p-6 sm:p-8 mb-6">
+        <div className="bg-bg-card border border-border-subtle rounded-3xl p-6 sm:p-8 mb-6">
           <div className="flex items-baseline justify-between gap-4 mb-6">
-            <span className="text-sm font-semibold text-neutral-300">Amount to send</span>
-            <span className="text-3xl font-black text-accent font-mono">{formatBdt(PRICE_BDT)}</span>
+            <span className="text-sm font-semibold text-text-main">Amount to send</span>
+            <span className="text-3xl font-semibold text-accent font-mono">{formatBdt(PRICE_BDT)}</span>
           </div>
 
-          <h2 className="text-lg font-black mb-1"><span className="text-accent">1.</span> Send the money</h2>
+          <h2 className="text-lg font-semibold mb-1"><span className="text-accent">1.</span> Send the money</h2>
           <p className="text-sm text-text-muted mb-5">
-            Open your bKash or Nagad app, choose <strong className="text-white">Send Money</strong> (not Payment or Cash Out), and send exactly{' '}
-            <strong className="text-white">{formatBdt(PRICE_BDT)}</strong> to one of these numbers.
+            Open your bKash or Nagad app, choose <strong className="text-text-main">Send Money</strong> (not Payment or Cash Out), and send exactly{' '}
+            <strong className="text-text-main">{formatBdt(PRICE_BDT)}</strong> to one of these numbers.
           </p>
           <ul className="space-y-3 mb-2">
             {WALLETS.map((w) => (
-              <li key={w.id} className="flex items-center justify-between gap-3 bg-black/30 border border-white/10 rounded-2xl p-4">
+              <li key={w.id} className="flex items-center justify-between gap-3 bg-bg-card border border-border-subtle rounded-2xl p-4">
                 <div className="min-w-0">
-                  <p className="text-xs uppercase tracking-widest text-neutral-400 font-bold">{w.name} · Send Money</p>
-                  <p className="text-xl sm:text-2xl font-black font-mono tracking-wide text-white select-all" data-testid={`wallet-${w.id}`}>{w.number}</p>
+                  <p className="text-xs uppercase tracking-widest text-text-muted font-bold">{w.name} · Send Money</p>
+                  <p className="text-xl sm:text-2xl font-semibold font-mono tracking-wide text-text-main select-all" data-testid={`wallet-${w.id}`}>{w.number}</p>
                 </div>
                 <CopyButton value={w.number} name={w.name} />
               </li>
             ))}
           </ul>
-          <p className="text-xs text-neutral-400">After sending, you will get an SMS from the app with a <strong className="text-neutral-200">Transaction ID (TrxID)</strong>. You need it for the next step.</p>
+          <p className="text-xs text-text-muted">After sending, you will get an SMS from the app with a <strong className="text-text-main">Transaction ID (TrxID)</strong>. You need it for the next step.</p>
         </div>
 
-        <form onSubmit={submit} className="bg-bg-card border border-white/5 rounded-3xl p-6 sm:p-8" noValidate>
-          <h2 className="text-lg font-black mb-1"><span className="text-accent">2.</span> Confirm your payment</h2>
+        <form onSubmit={submit} className="bg-bg-card border border-border-subtle rounded-3xl p-6 sm:p-8" noValidate>
+          <h2 className="text-lg font-semibold mb-1"><span className="text-accent">2.</span> Confirm your payment</h2>
           <p className="text-sm text-text-muted mb-6">We check your payment automatically, usually within a minute, and you can download the book right away.</p>
 
           <div className="space-y-5">
@@ -138,7 +138,7 @@ export default function CheckoutPage() {
               <legend className={label}>Which wallet did you pay with?</legend>
               <div className="grid grid-cols-2 gap-3">
                 {WALLETS.map((w) => (
-                  <label key={w.id} className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold cursor-pointer transition-colors ${wallet === w.id ? 'border-accent bg-accent/10 text-white' : 'border-white/10 text-neutral-300 hover:border-white/30'}`}>
+                  <label key={w.id} className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold cursor-pointer transition-colors ${wallet === w.id ? 'border-accent bg-accent/10 text-text-main' : 'border-border-subtle text-text-main hover:border-white/30'}`}>
                     <input type="radio" name="wallet" value={w.id} checked={wallet === w.id} onChange={() => setWallet(w.id)} className="h-5 w-5 accent-accent" />
                     {w.name}
                   </label>
@@ -172,15 +172,15 @@ export default function CheckoutPage() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-6 flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 disabled:opacity-60 text-black font-extrabold py-4 px-6 rounded-2xl shadow-lg transition-all"
+            className="mt-6 flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 disabled:opacity-60 text-black font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all"
           >
             {busy && <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />}
             {busy ? 'Checking…' : "I've paid, verify my payment"}
           </button>
 
-          <p className="mt-5 flex items-start gap-2 text-xs text-neutral-400">
+          <p className="mt-5 flex items-start gap-2 text-xs text-text-muted">
             <ShieldCheck className="w-4 h-4 shrink-0 text-accent" aria-hidden="true" />
-            <span>Your payment is matched with the SMS from the {selected.name} app. If something does not match, we confirm it by hand and email you. Questions? <a className="underline hover:text-white" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></span>
+            <span>Your payment is matched with the SMS from the {selected.name} app. If something does not match, we confirm it by hand and email you. Questions? <a className="underline hover:text-text-main" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></span>
           </p>
         </form>
       </main>
