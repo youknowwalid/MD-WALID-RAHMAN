@@ -29,7 +29,8 @@ describe('page meta: project and blog link previews', () => {
     expect(content(html, 'property', 'og:url')).toBe('https://walidrahman.com/projects/replyme-io');
     expect(html).toContain('<link rel="canonical" href="https://walidrahman.com/projects/replyme-io" />');
     expect(html).not.toContain('og-image.png'); // neither in a tag nor in the home page's structured data
-    expect(html).not.toContain('seo-jsonld-schema');
+    expect(html).not.toContain('"jobTitle"');
+    expect(html).toContain('"@type":"CreativeWork"');
   });
 
   it('leaves exactly one of each tag, so a crawler cannot pick the old home-page one', () => {

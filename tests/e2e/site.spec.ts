@@ -243,7 +243,7 @@ test.describe('first visit on a new device (no flash of old content)', () => {
       const w = window as any;
       w.__looks = [];
       const look = () => {
-        if (document.querySelector('h1')) {
+        if (document.querySelector('#home h1')) {
           const tag = document.querySelector('#home p.text-text-muted')?.textContent ?? '';
           const accent = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
           const key = `${accent}|${tag}`;
@@ -256,7 +256,7 @@ test.describe('first visit on a new device (no flash of old content)', () => {
     // Slow the settings request down so a premature paint would be easy to catch.
     await page.route('**/rest/v1/site_settings*', async (route) => { await new Promise((r) => setTimeout(r, 400)); await route.continue(); });
     await page.goto(CONNECTED + '/');
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('#home h1')).toBeVisible();
     await page.waitForTimeout(300);
     const looks = await page.evaluate(() => (window as any).__looks as string[]);
     expect(looks).toEqual(['#12a4ff|Saved tagline from the database.']);

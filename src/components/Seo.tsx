@@ -72,6 +72,8 @@ export default function Seo({ title, description, image, type = 'website', noind
     canonical.href = url;
 
     document.getElementById('seo-jsonld-schema')?.remove();
+    // The home page's extra crawler data (organisation, FAQ) only describes the home page.
+    if (pathname !== '/') document.getElementById('aeo-jsonld-home')?.remove();
     const data = ld
       ? JSON.parse(ld)
       : pathname === '/'

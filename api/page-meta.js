@@ -29,7 +29,7 @@ const SEO_ALLOW_EMPTY = ['ogImage', 'twitterHandle', 'titleTemplate'];
 
 const COLUMNS = {
   project: 'id,slug,title,social_title,social_description,social_image,summary,content,hero_image,image',
-  blog: 'id,slug,title,social_title,social_description,social_image,excerpt,image',
+  blog: 'id,slug,title,social_title,social_description,social_image,excerpt,image,created_at,updated_at,author',
 };
 const TABLES = { project: 'projects', blog: 'blog_posts' };
 const PATHS = { project: '/projects/', blog: '/blog/' };
@@ -65,6 +65,9 @@ export function pickPage(kind, row) {
       description: row.social_description || row.excerpt,
       image: row.social_image || row.image,
       type: 'article',
+      published: row.created_at,
+      modified: row.updated_at,
+      author: row.author,
     };
   }
   const lead = (row.content || '').split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean)[0];
@@ -121,13 +124,31 @@ export function buildPageHtml(template, seoSettings, page, path) {
     ...(seo.twitterHandle ? [meta('name', 'twitter:site', seo.twitterHandle)] : []),
   ].join('\n    ');
 
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': page.type === 'article' ? 'Article' : 'CreativeWork',
+    headline: page.title || seo.siteName,
+    name: page.title || seo.siteName,
+    description,
+    image: [image],
+    url,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    ...(page.published ? { datePublished: page.published } : {}),
+    ...(page.modified || page.published ? { dateModified: page.modified || page.published } : {}),
+    author: { '@type': 'Person', name: page.author || 'Walid Rahman', url: `${base}/` },
+    publisher: { '@type': 'Organization', name: seo.siteName, url: `${base}/`, logo: { '@type': 'ImageObject', url: `${base}/apple-touch-icon.png` } },
+  };
+  const ldTag = `<script type="application/ld+json" id="seo-jsonld-schema">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
+
   return template
+    .replace(/<script\b[^>]*\bid\s*=\s*["']aeo-jsonld-home["'][^>]*>[\s\S]*?<\/script>\s*/i, '')
+    .replace(/<main\b[^>]*\bid\s*=\s*["']static-content["'][^>]*>[\s\S]*?<\/main>\s*/i, '')
     .replace(/<title>[\s\S]*?<\/title>\s*/i, '')
     .replace(/<meta\b[^>]*\b(?:name|property)\s*=\s*["'](?:description|robots|og:[^"']*|twitter:[^"']*)["'][^>]*>\s*/gi, '')
     .replace(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>\s*/gi, '')
     // The home page's "Person" data does not describe this page; Seo.tsx removes it on these pages too.
     .replace(/<script\b[^>]*\bid\s*=\s*["']seo-jsonld-schema["'][^>]*>[\s\S]*?<\/script>\s*/i, '')
-    .replace(/<\/head>/i, () => `    ${tags}\n  </head>`);
+    .replace(/<\/head>/i, () => `    ${tags}\n    ${ldTag}\n  </head>`);
 }
 
 async function fetchRows(path) {
