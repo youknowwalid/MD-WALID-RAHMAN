@@ -24,6 +24,8 @@ import Footer from './Footer';
 import Photo from './Photo';
 import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
+import { PROJECTS_HIDDEN } from '../lib/flags';
+import ProjectsLocked from './ProjectsLocked';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles,
@@ -828,7 +830,9 @@ export default function Home() {
               </div>
             </div>
 
-            {projects.length === 0 ? (
+            {PROJECTS_HIDDEN ? (
+              <Reveal><ProjectsLocked /></Reveal>
+            ) : projects.length === 0 ? (
               loaded && <EmptyNote>Selected projects will be shown here soon.</EmptyNote>
             ) : (
               <>
