@@ -1,4 +1,5 @@
 import { expect, test, Page } from '@playwright/test';
+import { PROJECTS_HIDDEN } from '../../src/lib/flags';
 import AxeBuilder from '@axe-core/playwright';
 
 const CONNECTED = 'http://127.0.0.1:4174';
@@ -55,20 +56,36 @@ test.describe('public site (connected)', () => {
     await expect(page.getByRole('link', { name: 'Resources' })).toHaveCount(0);
   });
 
-  test('project and blog pages open from the home page and back-navigation works', async ({ page }) => {
+  test('blog pages open from the home page and back-navigation works', async ({ page }) => {
     await page.goto(CONNECTED + '/');
-    await page.locator('a[href="/projects/brand-one"]').first().click();
-    await expect(page).toHaveURL(/\/projects\/brand-one$/);
-    await expect(page.locator('h1')).toHaveText('Brand One');
-    await expect(page).toHaveTitle('Brand One | Walid Rahman');
-    await page.getByRole('link', { name: 'All Projects' }).click();
-    await expect(page).toHaveURL(/\/#projects$/);
+    if (!PROJECTS_HIDDEN) {
+      await page.locator('a[href="/projects/brand-one"]').first().click();
+      await expect(page).toHaveURL(/\/projects\/brand-one$/);
+      await expect(page.locator('h1')).toHaveText('Brand One');
+      await expect(page).toHaveTitle('Brand One | Walid Rahman');
+      await page.getByRole('link', { name: 'All Projects' }).click();
+      await expect(page).toHaveURL(/\/#projects$/);
+    }
 
     await page.locator('a[href="/blog/hello-world"]').first().click();
     await expect(page.locator('h1')).toHaveText('Hello World');
     await expect(page.getByRole('heading', { name: 'A heading' })).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: 'one' }).first()).toBeVisible();
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
+  });
+
+  test('while projects are hidden, home and project pages show the region notice and no project', async ({ page }) => {
+    test.skip(!PROJECTS_HIDDEN, 'projects are shown');
+    await page.goto(CONNECTED + '/');
+    const section = page.locator('#projects');
+    await expect(section.getByRole('heading', { name: 'Not available in your region' })).toBeVisible();
+    await expect(section.getByRole('link', { name: 'Request a private look' })).toHaveAttribute('href', '/#contact');
+    await expect(page.locator('a[href^="/projects/"]')).toHaveCount(0);
+
+    await page.goto(CONNECTED + '/projects/brand-one');
+    await expect(page.getByRole('heading', { name: 'Not available in your region' })).toBeVisible();
+    await expect(page.getByText('Brand One')).toHaveCount(0);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   });
 
   test('the articles page lists every article and each card opens its own page', async ({ page }) => {
@@ -80,6 +97,7 @@ test.describe('public site (connected)', () => {
   });
 
   test('project page shows the case-study sections', async ({ page }) => {
+    test.skip(PROJECTS_HIDDEN, 'projects are hidden');
     const errors = watchErrors(page);
     await page.goto(CONNECTED + '/projects/brand-one');
     await expect(page.locator('h1')).toHaveText('Brand One');
@@ -106,7 +124,7 @@ test.describe('public site (connected)', () => {
   });
 
   test('unknown pages show a 404 that is not indexed', async ({ page }) => {
-    await page.goto(CONNECTED + '/projects/does-not-exist');
+    await page.goto(CONNECTED + '/no-such-page');
     await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   });
@@ -350,9 +368,11 @@ test.describe('admin panel', () => {
     await expect(page.getByText('Changes saved.')).toBeVisible();
 
     // public site shows it (with an automatic page address)
+    if (!PROJECTS_HIDDEN) {
     await page.goto(CONNECTED + '/projects/shiny-new-project');
     await expect(page.locator('h1')).toHaveText('Shiny New Project');
     await expect(page.getByText('Web App').first()).toBeVisible();
+    }
 
     await page.goto(CONNECTED + '/admin');
     page.once('dialog', (d) => d.accept());
@@ -384,6 +404,7 @@ test.describe('admin panel', () => {
     await page.getByRole('button', { name: 'Save changes' }).click();
     await expect(page.getByText('Changes saved.')).toBeVisible();
 
+    if (PROJECTS_HIDDEN) return; // the public project page is hidden for now
     await page.goto(CONNECTED + '/projects/brand-one');
     await expect(page.getByText('Edited intro line.')).toBeVisible();
     await expect(page.getByText('Globex', { exact: true })).toBeVisible();

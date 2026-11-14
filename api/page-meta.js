@@ -221,6 +221,13 @@ export default async function handler(req, res) {
     return res.status(200).send(template);
   }
 
+  if (kind === 'project') {
+    // Projects are hidden for now (PROJECTS_HIDDEN in src/lib/flags.ts): no project details in the page, and not indexed.
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    res.setHeader('Cache-Control', 'public, s-maxage=300');
+    return res.status(200).send(template);
+  }
+
   const [row, seoSettings] = await Promise.all([fetchPage(kind, key), fetchSeoSettings()]);
   if (!row) {
     // Unknown address or database unreachable: serve the page as before, so the app still loads (and shows its own "not found").

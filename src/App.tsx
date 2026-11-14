@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useEffect } from 'react';
+import { PROJECTS_HIDDEN } from './lib/flags';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LazyMotion, domAnimation } from 'motion/react';
 
@@ -8,6 +9,7 @@ import Home from './components/Home';
 const ProjectDetail = lazy(() => import('./components/ProjectDetail'));
 const BlogDetail = lazy(() => import('./components/BlogDetail'));
 const ArticlesPage = lazy(() => import('./components/ArticlesPage'));
+const ProjectsHiddenPage = lazy(() => import('./components/ProjectsHiddenPage'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const ResourcesPage = lazy(() => import('./components/ResourcesPage'));
 const PolicyPage = lazy(() => import('./components/PolicyPage'));
@@ -54,7 +56,7 @@ export default function App() {
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/projects/:projectId" element={<ProjectDetail />} />
+            <Route path="/projects/:projectId" element={PROJECTS_HIDDEN ? <ProjectsHiddenPage /> : <ProjectDetail />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/blog" element={<Navigate to="/articles" replace />} />
             <Route path="/blog/:blogId" element={<BlogDetail />} />

@@ -39,7 +39,8 @@ export function buildSitemap(entries) {
 export default async function handler(req, res) {
   const [projects, posts] = await Promise.all([fetchRows('projects'), fetchRows('blog_posts')]);
   const dynamic = [
-    ...projects.map((r) => ({ path: `/projects/${encodeURIComponent(r.slug || r.id)}`, lastmod: r.updated_at, priority: '0.7' })),
+    // Projects are hidden for now (see PROJECTS_HIDDEN in src/lib/flags.ts), so they are left out of the sitemap.
+    ...[].map((r) => ({ path: `/projects/${encodeURIComponent(r.slug || r.id)}`, lastmod: r.updated_at, priority: '0.7' })),
     ...posts.map((r) => ({ path: `/blog/${encodeURIComponent(r.slug || r.id)}`, lastmod: r.updated_at, priority: '0.6' })),
   ];
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
