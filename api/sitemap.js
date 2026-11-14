@@ -14,6 +14,23 @@ const PAGES = [
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+async function projectsHidden() {
+  const url = (process.env.VITE_SUPABASE_URL || config.supabaseUrl || '').replace(/\/+$/, '');
+  const key = process.env.VITE_SUPABASE_ANON_KEY || config.supabaseAnonKey || '';
+  if (!url || !key) return true;
+  try {
+    const res = await fetch(`${url}/rest/v1/site_settings?select=value&key=eq.global&limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return true;
+    const rows = await res.json();
+    return rows[0]?.value?.projectsHidden !== false;
+  } catch {
+    return true;
+  }
+}
+
 async function fetchRows(table) {
   const url = (process.env.VITE_SUPABASE_URL || config.supabaseUrl || '').replace(/\/+$/, '');
   const key = process.env.VITE_SUPABASE_ANON_KEY || config.supabaseAnonKey || '';
@@ -37,10 +54,10 @@ export function buildSitemap(entries) {
 }
 
 export default async function handler(req, res) {
-  const [projects, posts] = await Promise.all([fetchRows('projects'), fetchRows('blog_posts')]);
+  const [hidden, projects, posts] = await Promise.all([projectsHidden(), fetchRows('projects'), fetchRows('blog_posts')]);
   const dynamic = [
-    // Projects are hidden for now (see PROJECTS_HIDDEN in src/lib/flags.ts), so they are left out of the sitemap.
-    ...[].map((r) => ({ path: `/projects/${encodeURIComponent(r.slug || r.id)}`, lastmod: r.updated_at, priority: '0.7' })),
+    // While the admin's projects switch is on, projects are left out of the sitemap.
+    ...(hidden ? [] : projects).map((r) => ({ path: `/projects/${encodeURIComponent(r.slug || r.id)}`, lastmod: r.updated_at, priority: '0.7' })),
     ...posts.map((r) => ({ path: `/blog/${encodeURIComponent(r.slug || r.id)}`, lastmod: r.updated_at, priority: '0.6' })),
   ];
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');

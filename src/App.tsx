@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect } from 'react';
-import { PROJECTS_HIDDEN } from './lib/flags';
+import { useSiteConfig } from './context/SiteConfigContext';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LazyMotion, domAnimation } from 'motion/react';
 
@@ -41,6 +41,12 @@ const ScrollManager = () => {
   return null;
 };
 
+/** A project page, or the "not available in your region" notice while the admin's projects switch is on. */
+const ProjectRoute = () => {
+  const { config } = useSiteConfig();
+  return config.projectsHidden ? <ProjectsHiddenPage /> : <ProjectDetail />;
+};
+
 const Loading = () => (
   <div className="min-h-screen bg-bg-dark flex items-center justify-center" role="status" aria-label="Loading">
     <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
@@ -56,7 +62,7 @@ export default function App() {
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/projects/:projectId" element={PROJECTS_HIDDEN ? <ProjectsHiddenPage /> : <ProjectDetail />} />
+            <Route path="/projects/:projectId" element={<ProjectRoute />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/blog" element={<Navigate to="/articles" replace />} />
             <Route path="/blog/:blogId" element={<BlogDetail />} />

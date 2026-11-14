@@ -48,6 +48,8 @@ export interface SiteConfig {
   currentFocusText: string;
   /** Logos of the businesses he has worked with (stored under site_settings.global). */
   clientLogos: ClientLogo[];
+  /** While on, the home page and project pages show the "not available in your region" notice instead of the projects. */
+  projectsHidden: boolean;
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
@@ -169,6 +171,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   currentFocusTitle: 'Strategic Brand Evolution',
   currentFocusText: '',
   clientLogos: [],
+  projectsHidden: true,
 };
 
 export const DEFAULT_HERO: HeroConfig = {

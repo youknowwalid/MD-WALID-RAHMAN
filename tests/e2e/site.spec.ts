@@ -1,5 +1,6 @@
 import { expect, test, Page } from '@playwright/test';
-import { PROJECTS_HIDDEN } from '../../src/lib/flags';
+/** The sample database starts with the admin's projects switch on (the default). */
+const PROJECTS_HIDDEN = true;
 import AxeBuilder from '@axe-core/playwright';
 
 const CONNECTED = 'http://127.0.0.1:4174';
@@ -379,6 +380,27 @@ test.describe('admin panel', () => {
     await page.getByRole('button', { name: 'Delete Shiny New Project' }).click();
     await expect(page.getByText('Deleted.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Shiny New Project' })).toHaveCount(0);
+  });
+
+  test('the admin switch shows or hides the projects on the public site', async ({ page }) => {
+    await login(page);
+    const toggle = page.getByRole('switch', { name: 'Hide projects from visitors' });
+    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await toggle.click();
+    await expect(page.getByText('Projects are now visible on your site.')).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('a[href="/projects/brand-one"]').first()).toBeVisible();
+    await expect(page.getByText('Not available in your region')).toHaveCount(0);
+    await page.goto(CONNECTED + '/projects/brand-one');
+    await expect(page.locator('h1')).toHaveText('Brand One');
+
+    await page.goto(CONNECTED + '/admin');
+    await page.getByRole('switch', { name: 'Hide projects from visitors' }).click();
+    await expect(page.getByText('Projects are now hidden on your site.')).toBeVisible();
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('#projects').getByRole('heading', { name: 'Not available in your region' })).toBeVisible();
   });
 
   test('every field of the project page can be edited, drafts are hidden and an empty quote hides the feedback', async ({ page }) => {

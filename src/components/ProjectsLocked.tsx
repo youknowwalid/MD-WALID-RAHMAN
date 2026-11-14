@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { GlobeLock } from 'lucide-react';
 
-/** Stands in for the projects while they are hidden (see PROJECTS_HIDDEN). Light, casual, one clear way to reach out. */
+/** Stands in for the projects while they are hidden (the admin's projects switch). Light, casual, one clear way to reach out. */
 export default function ProjectsLocked() {
   return (
     <div className="rounded-[28px] border border-border-subtle bg-bg-card px-5 py-10 text-center md:rounded-[44px] md:px-10 md:py-16">
