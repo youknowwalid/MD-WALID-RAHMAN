@@ -185,6 +185,16 @@ async function fetchSeoSettings() {
   }
 }
 
+/** Whether the admin's projects switch is on. Defaults to hidden when the setting is missing or the database is unreachable. */
+async function fetchProjectsHidden() {
+  try {
+    const rows = await fetchRows('site_settings?select=value&key=eq.global&limit=1');
+    return rows[0]?.value?.projectsHidden !== false;
+  } catch {
+    return true;
+  }
+}
+
 /** The built index.html: bundled with this function (see "functions" in vercel.json), else fetched from this deployment. */
 async function loadTemplate() {
   try {
@@ -221,10 +231,10 @@ export default async function handler(req, res) {
     return res.status(200).send(template);
   }
 
-  if (kind === 'project') {
-    // Projects are hidden for now (PROJECTS_HIDDEN in src/lib/flags.ts): no project details in the page, and not indexed.
+  if (kind === 'project' && (await fetchProjectsHidden())) {
+    // The admin's projects switch is on: no project details in the page, and not indexed.
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-    res.setHeader('Cache-Control', 'public, s-maxage=300');
+    res.setHeader('Cache-Control', 'public, s-maxage=60');
     return res.status(200).send(template);
   }
 

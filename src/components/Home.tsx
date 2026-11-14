@@ -24,7 +24,6 @@ import Footer from './Footer';
 import Photo from './Photo';
 import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
-import { PROJECTS_HIDDEN } from '../lib/flags';
 import ProjectsLocked from './ProjectsLocked';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -830,7 +829,7 @@ export default function Home() {
               </div>
             </div>
 
-            {PROJECTS_HIDDEN ? (
+            {config.projectsHidden ? (
               <Reveal><ProjectsLocked /></Reveal>
             ) : projects.length === 0 ? (
               loaded && <EmptyNote>Selected projects will be shown here soon.</EmptyNote>

@@ -12,6 +12,7 @@ import SettingsPanel from './admin/SettingsPanel';
 import ClientLogos from './admin/ClientLogos';
 import Inquiries from './admin/Inquiries';
 import Orders from './admin/Orders';
+import ProjectsSwitch from './admin/ProjectsSwitch';
 import { GalleryField, ImageField, Toast, inputCls, labelCls, useToast } from './admin/fields';
 import { FORMS, FormCollection, friendlyError, toFormValues, toPayload } from './admin/forms';
 import { backendConfigured } from '../lib/config';
@@ -193,6 +194,7 @@ function Dashboard({ email }: { email: string }) {
           )}
         </div>
 
+        {activeTab === 'projects' && <ProjectsSwitch onToast={show} />}
         {activeTab === 'orders' && <Orders onToast={show} />}
         {activeTab === 'settings' && <SettingsPanel onToast={show} />}
         {activeTab === 'clientLogos' && <ClientLogos onToast={show} />}
