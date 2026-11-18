@@ -2,8 +2,8 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { m, useInView, useReducedMotion } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Laptop, Braces, Palette, Megaphone, Check, X, ArrowUpRight, ArrowUp,
-  Mail, Phone, MapPin, Clock, Loader2, Layers, PenTool, Compass, Sparkles,
+  Laptop, Braces, Palette, Megaphone, ArrowUpRight, ArrowUp,
+  Mail, Phone, MapPin, Loader2, Layers, PenTool, Compass, Sparkles,
   Camera, Code, Globe, LineChart, Rocket, Target, Video, ShoppingBag, Smartphone, Search, Briefcase, Lightbulb,
 } from 'lucide-react';
 
@@ -12,13 +12,13 @@ import { listRows, submitContact } from '../lib/api';
 import { backendConfigured } from '../lib/config';
 import { DEFAULT_SECTION_TITLES, FALLBACK_RESUME, FALLBACK_SERVICES } from '../lib/defaults';
 import {
-  normalizePricingPlan, normalizeProject, normalizeBlogPost, normalizeService,
+  normalizeProject, normalizeBlogPost, normalizeService,
   normalizeTestimonial, normalizeResumeItem,
 } from '../lib/schema-defaults';
 import { safeUrl } from '../lib/text';
 import { useProducts } from '../lib/products';
 import { useSiteConfig } from '../context/SiteConfigContext';
-import { Project, BlogPost, Service, Skill, Testimonial, PricingPlan, ResumeItem } from '../types';
+import { Project, BlogPost, Service, Skill, Testimonial, ResumeItem } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import Photo from './Photo';
@@ -26,6 +26,7 @@ import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
 import ProjectsLocked from './ProjectsLocked';
 import TeamDeck from './TeamDeck';
+import WorkWithMe from './WorkWithMe';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles,
@@ -262,7 +263,6 @@ const loadHomeData = () => Promise.all([
   listRows('blogPosts', ['id', 'slug', 'title', 'date', 'excerpt', 'image'], 5),
   listRows('resume'),
   listRows('testimonials'),
-  listRows('pricingPlans'),
   listRows('skills'),
 ]);
 
@@ -282,7 +282,6 @@ export default function Home() {
   const [loaded, setLoaded] = useState(!backendConfigured);
   const [services, setServices] = useState<Service[]>(backendConfigured ? [] : FALLBACK_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [resume, setResume] = useState<ResumeItem[]>(backendConfigured ? [] : FALLBACK_RESUME);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -290,7 +289,6 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error' | 'limited' | 'mailto'>('idle');
   const formShownAt = useRef(Date.now());
-  const [openPlans, setOpenPlans] = useState<Record<string, boolean>>({});
 
   // The first screen is drawn first; the sections below it are added in three quick steps right afterwards
   // (all at once if the visitor scrolls or taps, or arrives at a #section link). Same page, same look: it only
@@ -320,7 +318,7 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [proj, serv, blog, res, test, pric, skill] = await takeHomeData();
+      const [proj, serv, blog, res, test, skill] = await takeHomeData();
       if (cancelled) return;
       // null = no backend / unreachable: show built-in content. [] = the owner removed everything on purpose.
       if (proj) setProjects(proj.map(normalizeProject));
@@ -328,7 +326,6 @@ export default function Home() {
       if (blog) setBlogPosts(blog.map(normalizeBlogPost));
       setResume(res ? res.map(normalizeResumeItem) : FALLBACK_RESUME);
       if (test) setTestimonials(test.map(normalizeTestimonial));
-      if (pric) setPricingPlans(pric.map(normalizePricingPlan));
       if (skill) setSkills(skill as Skill[]);
       setLoaded(true);
     })();
@@ -1032,102 +1029,8 @@ export default function Home() {
           );
         })()}
 
-        {/* PRICING SECTION */}
-        {pricingPlans.length > 0 && (
-          <section id="pricing" className="px-6 py-10 md:py-14">
-            <div className="mx-auto max-w-7xl">
-              <Reveal><h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('pricing')}</h2></Reveal>
-              <div className="grid items-stretch gap-4 lg:grid-cols-3">
-                {pricingPlans.map((plan, i) => {
-                  const rawPrice = String(plan.price ?? '').trim();
-                  const needsCurrency = /^\d/.test(rawPrice);
-                  const planKey = String(plan.id || plan.name);
-                  const open = !!openPlans[planKey];
-                  const canCollapse = (plan.features || []).length > 5 || (plan.unavailableFeatures || []).length > 0;
-                  return (
-                    <Reveal key={plan.id || plan.name} delay={Math.min(i * 0.1, 0.25)} className={cn('h-full', plan.accent && 'order-first lg:order-none')}>
-                      <div
-                        className={cn(
-                          'relative flex h-full flex-col rounded-[24px] p-6',
-                          plan.accent
-                            ? 'home-plan-pop home-on-dark'
-                            : 'border border-border-subtle bg-bg-card transition-[transform,box-shadow] duration-500 hover:-translate-y-2 hover:shadow-[0_44px_70px_-40px_rgba(13,17,23,0.45)]',
-                        )}
-                      >
-                        {plan.accent && (
-                          <span className="absolute right-5 top-5 rounded-lg bg-accent px-2.5 py-1 text-xs font-bold uppercase tracking-[0.1em] text-[#0d1117]">
-                            Most Popular
-                          </span>
-                        )}
-                        <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-text-muted">{plan.name}</div>
-                        <div className="mt-2 flex items-start gap-1">
-                          {needsCurrency && <span className="mt-1 text-[20px] font-medium text-text-main">$</span>}
-                          <span className="text-[40px] font-semibold leading-[0.95] tracking-[-0.045em] text-text-main">
-                            <CountText raw={rawPrice} />
-                          </span>
-                          {plan.period && <span className="mt-auto mb-1 text-[15px] text-text-muted">{plan.period}</span>}
-                        </div>
-
-                        {plan.showPriorityBox && (
-                          <div className="mt-4 flex items-center gap-3">
-                            <div className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg', plan.accent ? 'bg-white/10' : 'bg-white')}>
-                              <Clock className="h-5 w-5 text-text-main" aria-hidden="true" />
-                            </div>
-                            <div>
-                              <div className="text-[15px] font-medium text-text-main">{plan.priorityTitle || 'N/A'}</div>
-                              <div className={cn('text-xs font-semibold uppercase tracking-[0.12em]', plan.accent ? 'text-accent' : 'text-[#15803d]')}>
-                                {plan.prioritySubtitle || 'Daily Priority Access'}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        <hr className={cn('my-4 h-px border-0', plan.accent ? 'bg-white/15' : 'bg-[#0d1117]/10')} />
-
-                        <h3 className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-text-muted md:text-[10px] md:tracking-[0.18em]">What&apos;s included</h3>
-                        <ul className="flex-grow space-y-1.5">
-                          {(plan.features || []).map((f, fi) => (
-                            <li key={f} className={cn('items-start gap-3 text-[14px] leading-snug text-text-main', open || fi < 5 ? 'flex' : 'hidden lg:flex')}>
-                              <Check className={cn('mt-0.5 h-3.5 w-3.5 shrink-0', plan.accent ? 'text-accent' : 'text-[#15803d]')} aria-hidden="true" />
-                              <span>{f}</span>
-                            </li>
-                          ))}
-                          {(plan.unavailableFeatures || []).map((f) => (
-                            <li key={f} className={cn('items-start gap-3 text-[14px] leading-snug text-text-muted/70', open ? 'flex' : 'hidden lg:flex')}>
-                              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden="true" />
-                              <span className="line-through"><span className="sr-only">Not included: </span>{f}</span>
-                            </li>
-                          ))}
-                        </ul>
-
-                        {canCollapse && (
-                          <button
-                            type="button"
-                            onClick={() => setOpenPlans((o) => ({ ...o, [planKey]: !o[planKey] }))}
-                            aria-expanded={open}
-                            className="mt-3 inline-flex min-h-11 items-center self-start text-[14px] font-medium text-text-main underline underline-offset-4 lg:hidden"
-                          >
-                            {open ? 'Show fewer features' : 'See all features'}
-                          </button>
-                        )}
-                        <a
-                          href={safeUrl(plan.buttonUrl) || '/#contact'}
-                          {...(/^https?:/i.test(plan.buttonUrl || '') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                          className={cn(
-                            'home-btn home-mag mt-5 w-full px-6 py-3 text-[15px]',
-                            plan.accent ? 'bg-accent text-[#0d1117]' : 'border border-[#0d1117]/15 text-text-main hover:bg-[#0d1117] hover:text-white',
-                          )}
-                        >
-                          {plan.buttonText || 'Get Started'}
-                        </a>
-                      </div>
-                    </Reveal>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
+        {/* WORK WITH ME */}
+        <WorkWithMe offers={config.hireOffers || []} heading={title('hire')} lead={title('hireLead')} />
 
         </>)}
 

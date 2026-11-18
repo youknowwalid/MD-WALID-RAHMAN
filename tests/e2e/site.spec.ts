@@ -2,6 +2,7 @@ import { expect, test, Page } from '@playwright/test';
 /** The sample database starts with the admin's projects switch on (the default). */
 const PROJECTS_HIDDEN = true;
 import AxeBuilder from '@axe-core/playwright';
+import { DEFAULT_HIRE_OFFERS } from '../../src/lib/defaults';
 
 const CONNECTED = 'http://127.0.0.1:4174';
 const PLAIN = 'http://127.0.0.1:4175';
@@ -230,6 +231,26 @@ test.describe('logos and intro video', () => {
     await seed(request, 'global', { teamMembers: [] });
   });
 
+  test('work with me: the two default offers show, and a hidden one disappears', async ({ page, request }) => {
+    await page.goto(CONNECTED + '/');
+    const hire = page.locator('#hire');
+    await expect(hire.getByRole('heading', { name: 'Work With Me', level: 2 })).toBeVisible();
+    await expect(hire.getByRole('heading', { name: 'Project-Based' })).toBeVisible();
+    await expect(hire.getByRole('heading', { name: 'Fractional CMO / CBO' })).toBeVisible();
+    await expect(hire.getByRole('link', { name: 'Request Proposal' })).toHaveAttribute('href', '/#contact');
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    await expect(page.getByText('Pricing Plans')).toHaveCount(0);
+    await seed(request, 'global', { hireOffers: [
+      { name: 'Only Offer', tag: 'Custom', description: 'd', features: ['One', 'Two'], buttonText: 'Talk', buttonUrl: '/#contact', dark: false, hidden: false },
+      { name: 'Secret Offer', tag: '', description: '', features: [], buttonText: '', buttonUrl: '', dark: true, hidden: true },
+    ] });
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('#hire').getByRole('heading', { name: 'Only Offer' })).toBeVisible();
+    await expect(page.locator('#hire').getByText('Secret Offer')).toHaveCount(0);
+    await seed(request, 'global', { hireOffers: DEFAULT_HIRE_OFFERS });
+  });
+
   test('team section shows a plain list with reduced motion and is absent with no members', async ({ page, request }) => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('#team')).toHaveCount(0);
@@ -404,6 +425,19 @@ test.describe('admin panel', () => {
     await expect(page.getByText('Team saved and published.')).toBeVisible();
     await page.goto(CONNECTED + '/');
     await expect(page.locator('#team').getByText('Nadia Karim')).toBeVisible();
+  });
+
+  test('admin: edit a Work With Me offer and see it on the site', async ({ page, request }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'Work With Me' }).click();
+    await page.getByLabel('Title').first().fill('Brand Sprint');
+    await page.getByLabel('Button text').first().fill('Start the sprint');
+    await page.getByRole('button', { name: /Save & Publish/ }).click();
+    await expect(page.getByText('Work With Me saved and published.')).toBeVisible();
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('#hire').getByRole('heading', { name: 'Brand Sprint' })).toBeVisible();
+    await expect(page.locator('#hire').getByRole('link', { name: 'Start the sprint' })).toBeVisible();
+    await request.post(`${API}/__seed-settings`, { data: { key: 'global', value: { hireOffers: DEFAULT_HIRE_OFFERS } } });
   });
 
   test('create, edit and delete a project; changes appear on the public site', async ({ page }) => {
