@@ -3,7 +3,7 @@
  * This file is only loaded on /admin, so visitors never download the SDK.
  */
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import { SUPABASE_ANON_KEY, SUPABASE_URL, backendConfigured } from './config';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, SUPABASE_ANON_KEY, SUPABASE_URL, backendConfigured } from './config';
 import { Collection, ORDER, TABLES, fromRow, toRow } from './rows';
 import { prepareImage } from './image';
 import type { SettingsKey } from './api';
@@ -135,19 +135,27 @@ const MAX_BYTES = 5 * 1024 * 1024;
 const FULL_PAGE_MAX_BYTES = 10 * 1024 * 1024;
 const extFor = (type: string) => ({ 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'application/pdf': 'pdf' } as Record<string, string>)[type] || 'bin';
 
-async function upload(blob: Blob, folder: string, maxBytes = MAX_BYTES): Promise<string> {
+/** Sends a file to Cloudinary and returns its public https address (that address is what gets saved). */
+async function upload(blob: Blob, kind: 'image' | 'raw', maxBytes = MAX_BYTES): Promise<string> {
   if (blob.size > maxBytes) throw new Error(`This file is larger than ${Math.round(maxBytes / 1024 / 1024)} MB. Please choose a smaller one.`);
-  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extFor(blob.type)}`;
-  const bucket = getClient().storage.from('site-media');
-  const { error } = await bucket.upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false });
-  fail(error);
-  return bucket.getPublicUrl(path).data.publicUrl;
+  const body = new FormData();
+  body.append('file', blob, `upload-${Date.now()}.${extFor(blob.type)}`);
+  body.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  let res: Response;
+  try {
+    res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${kind}/upload`, { method: 'POST', body });
+  } catch {
+    throw new Error('Could not reach the file storage. Check your internet connection and try again.');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || typeof data.secure_url !== 'string') throw new Error(data?.error?.message || 'The file could not be uploaded. Please try again.');
+  return data.secure_url;
 }
 export const uploadImage = async (file: File, maxSide = 1600, fullPage = false) =>
   fullPage
-    ? upload(await prepareImage(file, maxSide, { fitWidth: true, maxBytes: FULL_PAGE_MAX_BYTES }), 'images', FULL_PAGE_MAX_BYTES)
-    : upload(await prepareImage(file, maxSide), 'images');
+    ? upload(await prepareImage(file, maxSide, { fitWidth: true, maxBytes: FULL_PAGE_MAX_BYTES }), 'image', FULL_PAGE_MAX_BYTES)
+    : upload(await prepareImage(file, maxSide), 'image');
 export const uploadPdf = async (file: File) => {
   if (file.type !== 'application/pdf') throw new Error('Only PDF files are allowed.');
-  return upload(file, 'documents');
+  return upload(file, 'raw');
 };
