@@ -4,6 +4,9 @@ export interface HeaderLink { label: string; url: string }
 export interface SocialLink { platform: string; url: string }
 /** One logo in the home page's "Teams I have worked with" strip. */
 export interface ClientLogo { name: string; image: string; url: string; hidden: boolean }
+/** One person in the home page's team section (stored under site_settings.global). */
+export interface TeamMember { name: string; role: string; photo: string; quote: string; hidden: boolean }
+export const TEAM_QUOTE_MAX = 100;
 export interface HeroStat { value: string; unit: string; label: string }
 
 /** Branding, contact details and page texts (stored under site_settings.global). */
@@ -50,6 +53,8 @@ export interface SiteConfig {
   clientLogos: ClientLogo[];
   /** While on, the home page and project pages show the "not available in your region" notice instead of the projects. */
   projectsHidden: boolean;
+  /** The people shown in the team section under the testimonials. */
+  teamMembers: TeamMember[];
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
@@ -111,6 +116,8 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
   skills: 'Technical Arsenal',
   skillsIntro: 'Skills refined through years of practical application in demanding environments.',
   testimonials: 'Kind Words',
+  teamEyebrow: 'Team',
+  team: 'The people behind the work',
   pricing: 'Pricing Plans',
   projectsEyebrow: 'Portfolio',
   projects: 'Featured Work',
@@ -125,7 +132,7 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
 export const SECTION_TITLE_LABELS: [string, string][] = [
   ['heroGreeting', 'Hero: greeting (before your name)'], ['heroName', 'Hero: your name (typed out)'], ['teams', 'Line above the client names'],
   ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills (last word is dimmed)'],
-  ['skillsIntro', 'Skills: short line'], ['testimonials', 'Testimonials'], ['pricing', 'Pricing'],
+  ['skillsIntro', 'Skills: short line'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['pricing', 'Pricing'],
   ['projectsEyebrow', 'Projects: small label'], ['projects', 'Projects: heading'], ['blog', 'Blog'], ['resources', 'Digital products'],
   ['contactEyebrow', 'Contact: small label'], ['contact', 'Contact: heading'], ['contactLead', 'Contact: short line'],
 ];
@@ -172,6 +179,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   currentFocusText: '',
   clientLogos: [],
   projectsHidden: true,
+  teamMembers: [],
 };
 
 export const DEFAULT_HERO: HeroConfig = {
