@@ -7,6 +7,22 @@ export interface ClientLogo { name: string; image: string; url: string; hidden: 
 /** One person in the home page's team section (stored under site_settings.global). */
 export interface TeamMember { name: string; role: string; photo: string; quote: string; hidden: boolean }
 export const TEAM_QUOTE_MAX = 100;
+/** One card of the "Work with me" section (stored under site_settings.global). */
+export interface HireOffer { name: string; tag: string; description: string; features: string[]; buttonText: string; buttonUrl: string; dark: boolean; hidden: boolean }
+export const DEFAULT_HIRE_OFFERS: HireOffer[] = [
+  {
+    name: 'Project-Based', tag: 'Fixed Cost',
+    description: 'Best for websites, brand systems, campaigns, funnels, and one-off growth projects.',
+    features: ['Defined scope & timeline', 'Milestone-based delivery', 'Custom quote per project', 'Ideal for one-time builds'],
+    buttonText: 'Request Proposal', buttonUrl: '/#contact', dark: false, hidden: false,
+  },
+  {
+    name: 'Fractional CMO / CBO', tag: 'Fixed Monthly Salary',
+    description: 'Best for founders who need ongoing marketing, brand, growth, and business leadership.',
+    features: ['Strategic leadership', 'Weekly collaboration', 'Monthly fixed engagement', 'Ideal for ongoing growth'],
+    buttonText: 'Book a Call', buttonUrl: '/#contact', dark: true, hidden: false,
+  },
+];
 export interface HeroStat { value: string; unit: string; label: string }
 
 /** Branding, contact details and page texts (stored under site_settings.global). */
@@ -55,6 +71,8 @@ export interface SiteConfig {
   projectsHidden: boolean;
   /** The people shown in the team section under the testimonials. */
   teamMembers: TeamMember[];
+  /** The cards in the "Work with me" section (replaces the old pricing plans). */
+  hireOffers: HireOffer[];
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
@@ -118,7 +136,8 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
   testimonials: 'Kind Words',
   teamEyebrow: 'Team',
   team: 'The people behind the work',
-  pricing: 'Pricing Plans',
+  hire: 'Work With Me',
+  hireLead: 'Two ways to engage, based on what you need right now.',
   projectsEyebrow: 'Portfolio',
   projects: 'Featured Work',
   blog: 'Latest Insights',
@@ -132,7 +151,7 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
 export const SECTION_TITLE_LABELS: [string, string][] = [
   ['heroGreeting', 'Hero: greeting (before your name)'], ['heroName', 'Hero: your name (typed out)'], ['teams', 'Line above the client names'],
   ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills (last word is dimmed)'],
-  ['skillsIntro', 'Skills: short line'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['pricing', 'Pricing'],
+  ['skillsIntro', 'Skills: short line'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['hire', 'Work with me: heading'], ['hireLead', 'Work with me: short line'],
   ['projectsEyebrow', 'Projects: small label'], ['projects', 'Projects: heading'], ['blog', 'Blog'], ['resources', 'Digital products'],
   ['contactEyebrow', 'Contact: small label'], ['contact', 'Contact: heading'], ['contactLead', 'Contact: short line'],
 ];
@@ -180,6 +199,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   clientLogos: [],
   projectsHidden: true,
   teamMembers: [],
+  hireOffers: DEFAULT_HIRE_OFFERS,
 };
 
 export const DEFAULT_HERO: HeroConfig = {
