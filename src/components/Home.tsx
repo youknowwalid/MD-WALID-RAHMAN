@@ -25,6 +25,7 @@ import Photo from './Photo';
 import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
 import ProjectsLocked from './ProjectsLocked';
+import TeamDeck from './TeamDeck';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles,
@@ -1009,6 +1010,23 @@ export default function Home() {
                 <div className="home-marquee-row flex w-max gap-5 px-2.5" style={{ animationDuration: '90s' }}>
                   {[...half, ...half].map((t, i) => card(t, `${t.id}-${i}`, 'w-[350px]', i >= half.length))}
                 </div>
+              </div>
+            </section>
+          );
+        })()}
+
+        {/* TEAM */}
+        {(() => {
+          const team = (config.teamMembers || []).filter((m) => m && m.name && !m.hidden);
+          if (!team.length) return null;
+          return (
+            <section id="team" className="px-6 py-10 md:py-14" aria-label="Team">
+              <div className="mx-auto max-w-7xl">
+                <Reveal>
+                  <Eyebrow>{title('teamEyebrow')}</Eyebrow>
+                  <h2 className="mb-6 mt-4 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('team')}</h2>
+                  <div className="rounded-[28px] bg-bg-card px-5 py-8 md:rounded-[44px] md:px-12 md:py-12"><TeamDeck members={team} /></div>
+                </Reveal>
               </div>
             </section>
           );

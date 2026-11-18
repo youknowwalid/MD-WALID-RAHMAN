@@ -209,6 +209,58 @@ test.describe('logos and intro video', () => {
     await seed(request, 'global', { clientLogos: [] });
   });
 
+  test('team section: members from the admin show as a looping deck with a 3-line limit', async ({ page, request }) => {
+    await seed(request, 'global', { teamMembers: [
+      { name: 'Ayesha Noor', role: 'Designer', photo: '', quote: 'Shapes every brand into something people remember. '.repeat(2).trim(), hidden: false },
+      { name: 'Rafi Hasan', role: 'Developer', photo: '', quote: 'Builds it fast.', hidden: false },
+      { name: 'Hidden Person', role: 'x', photo: '', quote: '', hidden: true },
+    ] });
+    await page.goto(CONNECTED + '/');
+    const team = page.locator('#team');
+    await expect(team.getByText('Ayesha Noor')).toBeVisible();
+    await expect(team.getByText('Hidden Person')).toHaveCount(0);
+    const lines = await team.locator('p.line-clamp-3').evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
+    expect(lines).toBeLessThanOrEqual(3);
+    await team.getByRole('button', { name: 'Next team member' }).click();
+    await expect(team.getByText('Rafi Hasan')).toBeVisible();
+    await team.getByRole('button', { name: 'Next team member' }).click();
+    await expect(team.getByText('Ayesha Noor')).toBeVisible(); // loops back
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    await seed(request, 'global', { teamMembers: [] });
+  });
+
+  test('team section shows a plain list with reduced motion and is absent with no members', async ({ page, request }) => {
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('#team')).toHaveCount(0);
+    await seed(request, 'global', { teamMembers: [
+      { name: 'Ayesha Noor', role: 'Designer', photo: '', quote: 'One', hidden: false },
+      { name: 'Rafi Hasan', role: 'Developer', photo: '', quote: 'Two', hidden: false },
+    ] });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('#team').getByText('Ayesha Noor')).toBeVisible();
+    await expect(page.locator('#team').getByText('Rafi Hasan')).toBeVisible();
+    await expect(page.locator('#team').getByRole('button', { name: 'Next team member' })).toHaveCount(0);
+    await seed(request, 'global', { teamMembers: [] });
+  });
+
+  test('admin: add a team member with a 100-character limit and see it on the site', async ({ page }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'Team' }).click();
+    await page.getByRole('button', { name: 'Add a member' }).click();
+    await page.getByLabel('Name').fill('Nadia Karim');
+    await page.getByLabel('Role').fill('Strategist');
+    const quote = page.getByLabel(/Short line/);
+    await quote.fill('x'.repeat(150));
+    await expect(quote).toHaveValue('x'.repeat(100));
+    await quote.fill('Plans the work so it lands.');
+    await page.getByRole('button', { name: /Save & Publish/ }).click();
+    await expect(page.getByText('Team saved and published.')).toBeVisible();
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('#team').getByText('Nadia Karim')).toBeVisible();
+  });
+
   test('without logos, no site-name text appears in the footer', async ({ page }) => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
