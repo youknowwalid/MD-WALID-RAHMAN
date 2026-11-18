@@ -526,6 +526,12 @@ test.describe('admin panel', () => {
   });
 
   test('uploading an image stores a link, not the picture, in the database', async ({ page, request }) => {
+    // Pictures go to Cloudinary; the test answers in its place and checks what the browser sends.
+    let sentPreset = '';
+    await page.route('https://api.cloudinary.com/**', async (route) => {
+      sentPreset = route.request().postData()?.includes('walidrahman_site') ? 'walidrahman_site' : '';
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ secure_url: 'https://res.cloudinary.com/du9aqtws/image/upload/v1/walidrahman/pic.webp' }) });
+    });
     await login(page);
     await page.getByRole('button', { name: 'Add new' }).click();
     await page.getByLabel('Project title').fill('With Image');
@@ -537,7 +543,8 @@ test.describe('admin panel', () => {
     await expect(page.getByText('Item created.')).toBeVisible();
     const db = await (await request.get(`${API}/__db`)).json();
     const saved = db.projects.find((p: any) => p.title === 'With Image');
-    expect(saved.image).toMatch(/^http:\/\/127\.0\.0\.1:54321\/storage\/v1\/object\/public\/site-media\/images\/.+\.webp$/);
+    expect(sentPreset).toBe('walidrahman_site');
+    expect(saved.image).toBe('https://res.cloudinary.com/du9aqtws/image/upload/v1/walidrahman/pic.webp');
     expect(saved.image.length).toBeLessThan(200);
   });
 
