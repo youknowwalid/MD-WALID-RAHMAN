@@ -245,22 +245,6 @@ test.describe('logos and intro video', () => {
     await seed(request, 'global', { teamMembers: [] });
   });
 
-  test('admin: add a team member with a 100-character limit and see it on the site', async ({ page }) => {
-    await login(page);
-    await page.getByRole('button', { name: 'Team' }).click();
-    await page.getByRole('button', { name: 'Add a member' }).click();
-    await page.getByLabel('Name').fill('Nadia Karim');
-    await page.getByLabel('Role').fill('Strategist');
-    const quote = page.getByLabel(/Short line/);
-    await quote.fill('x'.repeat(150));
-    await expect(quote).toHaveValue('x'.repeat(100));
-    await quote.fill('Plans the work so it lands.');
-    await page.getByRole('button', { name: /Save & Publish/ }).click();
-    await expect(page.getByText('Team saved and published.')).toBeVisible();
-    await page.goto(CONNECTED + '/');
-    await expect(page.locator('#team').getByText('Nadia Karim')).toBeVisible();
-  });
-
   test('without logos, no site-name text appears in the footer', async ({ page }) => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
@@ -404,6 +388,22 @@ test.describe('admin panel', () => {
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page.getByRole('alert')).toHaveText('Incorrect e-mail or password.');
     await expect(page.getByRole('heading', { name: 'Admin Access' })).toBeVisible();
+  });
+
+  test('admin: add a team member with a 100-character limit and see it on the site', async ({ page }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'Team' }).click();
+    await page.getByRole('button', { name: 'Add a member' }).click();
+    await page.getByLabel('Name').fill('Nadia Karim');
+    await page.getByLabel('Role').fill('Strategist');
+    const quote = page.getByLabel(/Short line/);
+    await quote.fill('x'.repeat(150));
+    await expect(quote).toHaveValue('x'.repeat(100));
+    await quote.fill('Plans the work so it lands.');
+    await page.getByRole('button', { name: /Save & Publish/ }).click();
+    await expect(page.getByText('Team saved and published.')).toBeVisible();
+    await page.goto(CONNECTED + '/');
+    await expect(page.locator('#team').getByText('Nadia Karim')).toBeVisible();
   });
 
   test('create, edit and delete a project; changes appear on the public site', async ({ page }) => {
