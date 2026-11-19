@@ -35,6 +35,15 @@ export interface SiteConfig {
   socialLinks: SocialLink[];
   copyrightText: string;
   footerPortrait: string;
+  /** The founder card in the footer: small label, quote, name, role, button text, and the story shown in the popup (blank line = new paragraph). */
+  founderLabel: string;
+  founderQuote: string;
+  founderName: string;
+  founderRole: string;
+  founderButton: string;
+  founderStory: string;
+  founderCtaText: string;
+  founderCtaUrl: string;
   officeAddress: string;
   contactEmail: string;
   officePhone: string;
@@ -166,6 +175,19 @@ export const DEFAULT_CONFIG: SiteConfig = {
   socialLinks: [],
   copyrightText: '© 2026 Md. Walid Rahman Swapnil. All rights reserved.',
   footerPortrait: '',
+  founderLabel: 'A word from the founder',
+  founderQuote: 'I only put my name on work I would be proud to show my own family.',
+  founderName: 'Md. Walid Rahman Swapnil',
+  founderRole: 'Founder',
+  founderButton: 'Read my story',
+  founderStory: [
+    "I'm Walid, a brand developer and designer working from Dhaka.",
+    "I'm the founder and CEO of De Jure Academy, where I design the book covers, the branding and the app screens, lead the marketing, and teach our students technology, office software and how to use AI in their work.",
+    'I also freelance for global brands like JBL, building digital campaigns made to convert, from a fully equipped home studio, and I am happy to work US Pacific hours.',
+    "If you have a brand, a website or a growth plan that needs someone who treats it as their own, let's talk.",
+  ].join('\n\n'),
+  founderCtaText: "Let's work together",
+  founderCtaUrl: '/#contact',
   officeAddress: 'Nikunja 2, Dhaka 1229',
   contactEmail: 'info@walidrahman.com',
   officePhone: '+880 1744 588 644',

@@ -18,6 +18,7 @@ type Form = {
   contactEmail: string; officePhone: string; officeAddress: string;
   socialLinks: SocialLink[]; headerLinks: HeaderLink[];
   footerPortrait: string; copyrightText: string;
+  founderLabel: string; founderQuote: string; founderName: string; founderRole: string; founderButton: string; founderStory: string; founderCtaText: string; founderCtaUrl: string;
   termsOfService: string; privacyPolicy: string; refundPolicy: string;
   titles: Record<string, string>;
 };
@@ -79,6 +80,8 @@ export default function SettingsPanel({ onToast }: Props) {
         contactEmail: c.contactEmail, officePhone: c.officePhone, officeAddress: c.officeAddress,
         socialLinks: c.socialLinks, headerLinks: c.headerLinks,
         footerPortrait: c.footerPortrait, copyrightText: c.copyrightText,
+        founderLabel: c.founderLabel, founderQuote: c.founderQuote, founderName: c.founderName, founderRole: c.founderRole, founderButton: c.founderButton,
+        founderStory: c.founderStory, founderCtaText: c.founderCtaText, founderCtaUrl: c.founderCtaUrl,
         termsOfService: c.termsOfService, privacyPolicy: c.privacyPolicy, refundPolicy: c.refundPolicy,
         titles: { ...DEFAULT_SECTION_TITLES, ...(c.sectionTitles || {}) },
       }),
@@ -106,6 +109,8 @@ export default function SettingsPanel({ onToast }: Props) {
         socialLinks: f.socialLinks.filter((s) => s.url.trim()).map((s) => ({ platform: s.platform.trim() || 'Link', url: s.url.trim() })),
         headerLinks: f.headerLinks.filter((l) => l.label.trim() && l.url.trim()),
         footerPortrait: f.footerPortrait, copyrightText: f.copyrightText.trim(),
+        founderLabel: f.founderLabel.trim(), founderQuote: f.founderQuote.trim(), founderName: f.founderName.trim(), founderRole: f.founderRole.trim(), founderButton: f.founderButton.trim(),
+        founderStory: f.founderStory.trim(), founderCtaText: f.founderCtaText.trim(), founderCtaUrl: f.founderCtaUrl.trim(),
         termsOfService: f.termsOfService, privacyPolicy: f.privacyPolicy, refundPolicy: f.refundPolicy,
         sectionTitles: Object.fromEntries(SECTION_TITLE_LABELS.map(([k]) => [k, (f.titles[k] || '').trim() || DEFAULT_SECTION_TITLES[k]])),
       });
@@ -214,7 +219,29 @@ export default function SettingsPanel({ onToast }: Props) {
 
         <Card title="Footer">
           <Text id="s-copy" label="Copyright line" value={f.copyrightText} onChange={set('copyrightText')} />
-          <ImageField label="Footer portrait (transparent PNG, optional)" value={f.footerPortrait} onChange={set('footerPortrait')} maxSide={900} />
+          <ImageField label="Footer portrait (shown on the founder card and in its story popup)" value={f.footerPortrait} onChange={set('footerPortrait')} maxSide={900}
+            hint="A close-up of your face and shoulders works best: it is cropped to fit a tall card, so keep your head near the top of the picture." />
+        </Card>
+
+        <Card title="Footer: founder card" hint="The card beside your contact details. The button opens a popup with your story. Leave the story empty to hide the button.">
+          <div className="grid sm:grid-cols-2 gap-6">
+            <Text id="s-fc-label" label="Small label" value={f.founderLabel} onChange={set('founderLabel')} maxLength={40} />
+            <Text id="s-fc-button" label="Button text" value={f.founderButton} onChange={set('founderButton')} maxLength={30} />
+            <Text id="s-fc-name" label="Name" value={f.founderName} onChange={set('founderName')} maxLength={60} />
+            <Text id="s-fc-role" label="Role (shown after the name)" value={f.founderRole} onChange={set('founderRole')} maxLength={40} />
+          </div>
+          <div>
+            <label htmlFor="s-fc-quote" className={labelCls}>Quote (keep it to one or two sentences)</label>
+            <textarea id="s-fc-quote" rows={2} value={f.founderQuote} onChange={(e) => set('founderQuote')(e.target.value)} maxLength={160} className={inputCls} />
+          </div>
+          <div>
+            <label htmlFor="s-fc-story" className={labelCls}>Your story (leave a blank line between paragraphs)</label>
+            <textarea id="s-fc-story" rows={9} value={f.founderStory} onChange={(e) => set('founderStory')(e.target.value)} maxLength={2500} className={inputCls} />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-6">
+            <Text id="s-fc-cta" label="Popup button text (empty = no button)" value={f.founderCtaText} onChange={set('founderCtaText')} maxLength={40} />
+            <Text id="s-fc-ctaurl" label="Popup button link" value={f.founderCtaUrl} onChange={set('founderCtaUrl')} placeholder="/#contact" />
+          </div>
         </Card>
 
         <Card title="Legal pages" hint="Plain text. The Privacy Policy starts from a short, accurate description of what this site collects — please review it.">
