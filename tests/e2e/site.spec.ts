@@ -1,4 +1,4 @@
-import { expect, test, Page } from '@playwright/test';
+import { expect, test, Locator, Page } from '@playwright/test';
 /** The sample database starts with the admin's projects switch on (the default). */
 const PROJECTS_HIDDEN = true;
 import AxeBuilder from '@axe-core/playwright';
@@ -539,6 +539,38 @@ test.describe('zero-configuration mode (no database connected)', () => {
 });
 
 test.describe('admin panel', () => {
+  // The formatting boxes in the admin are live "what you see is what you get" boxes, not plain text areas.
+  async function typeRich(page: Page, box: Locator, text: string) {
+    await box.click();
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Delete');
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (i > 0) await page.keyboard.press('Enter');
+      if (lines[i]) await page.keyboard.insertText(lines[i]);
+    }
+  }
+  async function selectIn(box: Locator, needle: string) {
+    await box.evaluate((el, n) => {
+      (el as HTMLElement).focus();
+      const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = w.nextNode())) {
+        const i = (node.nodeValue || '').indexOf(n);
+        if (i >= 0) {
+          const r = document.createRange();
+          r.setStart(node, i);
+          r.setEnd(node, i + n.length);
+          const sel = window.getSelection()!;
+          sel.removeAllRanges();
+          sel.addRange(r);
+          return;
+        }
+      }
+      throw new Error('text not found: ' + n);
+    }, needle);
+  }
+
   async function login(page: Page) {
     await page.goto(CONNECTED + '/admin');
     await page.getByLabel('E-mail').fill(ADMIN.email);
@@ -563,10 +595,11 @@ test.describe('admin panel', () => {
     await page.getByRole('button', { name: 'Add a member' }).click();
     await page.getByLabel('Name').fill('Nadia Karim');
     await page.getByLabel('Role').fill('Strategist');
-    const quote = page.getByLabel(/Short line/);
-    await quote.fill('x'.repeat(150));
-    await expect(quote).toHaveValue('x'.repeat(100));
-    await quote.fill('Plans the work so it lands.');
+    const quote = page.getByRole('textbox', { name: /Short line/ });
+    await quote.click();
+    await page.keyboard.insertText('x'.repeat(150));
+    await expect(quote).toHaveText('x'.repeat(100));
+    await typeRich(page, quote, 'Plans the work so it lands.');
     await page.getByRole('button', { name: /Save & Publish/ }).click();
     await expect(page.getByText('Team saved and published.')).toBeVisible();
     await page.goto(CONNECTED + '/');
@@ -590,25 +623,31 @@ test.describe('admin panel', () => {
     await page.getByRole('button', { name: 'Add new' }).click();
     await page.getByLabel('Post title').fill('Styled post');
     await page.getByLabel('Short summary').fill('A summary.');
-    const article = page.getByLabel('Full article');
-    await article.fill('Hello brave new world\n\nSecond paragraph here');
-    const select = (from: number, to: number) => article.evaluate((el, [a, b]) => {
-      const t = el as HTMLTextAreaElement; t.focus(); t.setSelectionRange(a as number, b as number);
-    }, [from, to]);
-    await select(6, 11); // "brave"
+    const article = page.getByRole('textbox', { name: 'Full article' });
+    const saved = page.getByTestId('f-content-value'); // the text exactly as it will be saved
+    await typeRich(page, article, 'Hello brave new world\n\nSecond paragraph here');
+    await expect(saved).toHaveValue('Hello brave new world\n\nSecond paragraph here');
+
+    await selectIn(article, 'brave');
     await page.getByRole('button', { name: 'Bold', exact: true }).click();
-    await expect(article).toHaveValue('Hello **brave** new world\n\nSecond paragraph here');
+    await expect(article.locator('b', { hasText: 'brave' })).toBeVisible(); // bold right away, inside the box
+    await expect(saved).toHaveValue('Hello **brave** new world\n\nSecond paragraph here');
     await page.getByRole('button', { name: 'Italic', exact: true }).click(); // the selection is kept, so buttons can follow each other
-    await expect(article).toHaveValue('Hello ***brave*** new world\n\nSecond paragraph here');
+    await expect(article.locator('i', { hasText: 'brave' })).toBeVisible();
+    await expect(saved).toHaveValue('Hello ***brave*** new world\n\nSecond paragraph here');
     await page.getByRole('button', { name: /^Regular/ }).click();
-    await expect(article).toHaveValue('Hello brave new world\n\nSecond paragraph here');
-    await select(6, 11);
+    await expect(saved).toHaveValue('Hello brave new world\n\nSecond paragraph here');
+    await expect(article.locator('b, i')).toHaveCount(0);
+
+    await selectIn(article, 'brave');
     await page.getByRole('button', { name: 'Bold', exact: true }).click();
     await page.getByRole('button', { name: 'Align right' }).click();
-    await select(40, 40); // inside the second paragraph
+    await expect(article.locator('div', { hasText: /^Hello brave new world$/ })).toHaveCSS('text-align', 'right'); // moves right away, inside the box
+    await selectIn(article, 'Second');
     await page.getByRole('button', { name: 'Align box (justified)' }).click();
-    await expect(article).toHaveValue('[right] Hello **brave** new world\n\n[justify] Second paragraph here');
-    await expect(page.getByText('Preview', { exact: true })).toBeVisible();
+    await expect(article.locator('div', { hasText: /^Second paragraph here$/ })).toHaveCSS('text-align', 'justify');
+    await expect(saved).toHaveValue('[right] Hello **brave** new world\n\n[justify] Second paragraph here');
+    await expect(article).not.toContainText('[right]'); // no marks are shown in the box
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Item created.')).toBeVisible();
 
@@ -694,10 +733,10 @@ test.describe('admin panel', () => {
     await page.getByLabel('Designer').fill('Walid');
     await page.getByLabel('Tags shown as pills (comma separated)').fill('Alpha, Beta');
     await page.getByLabel('Challenge section title').fill('The brief');
-    await page.getByLabel(/^Challenge text/).fill('Lead sentence here.\n\nBody paragraph here.');
+    await typeRich(page, page.getByRole('textbox', { name: /^Challenge text/ }), 'Lead sentence here.\n\nBody paragraph here.');
     await page.getByLabel('Solution section title').fill('The answer');
-    await page.getByLabel(/^Solution text/).fill('Solution paragraph here.');
-    await page.getByLabel('Quote', { exact: true }).fill('A glowing review.');
+    await typeRich(page, page.getByRole('textbox', { name: /^Solution text/ }), 'Solution paragraph here.');
+    await typeRich(page, page.getByRole('textbox', { name: 'Quote', exact: true }), 'A glowing review.');
     await page.getByLabel('Name of the person').fill('John Smith');
     await page.getByLabel('Their role / company').fill('CTO, Globex');
     await page.getByLabel(/^Heading \(default/).fill('Start something new');
@@ -725,7 +764,7 @@ test.describe('admin panel', () => {
     // empty quote: the feedback section disappears
     await page.goto(CONNECTED + '/admin');
     await page.getByRole('button', { name: 'Edit Brand One' }).click();
-    await page.getByLabel('Quote', { exact: true }).fill('');
+    await typeRich(page, page.getByRole('textbox', { name: 'Quote', exact: true }), '');
     await page.getByRole('button', { name: 'Save changes' }).click();
     await expect(page.getByText('Changes saved.')).toBeVisible();
     await page.goto(CONNECTED + '/projects/brand-one');
