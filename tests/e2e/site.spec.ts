@@ -596,14 +596,14 @@ test.describe('admin panel', () => {
       const t = el as HTMLTextAreaElement; t.focus(); t.setSelectionRange(a as number, b as number);
     }, [from, to]);
     await select(6, 11); // "brave"
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await page.getByRole('button', { name: 'Bold', exact: true }).click();
     await expect(article).toHaveValue('Hello **brave** new world\n\nSecond paragraph here');
-    await page.getByRole('button', { name: 'Italic' }).click(); // the selection is kept, so buttons can follow each other
+    await page.getByRole('button', { name: 'Italic', exact: true }).click(); // the selection is kept, so buttons can follow each other
     await expect(article).toHaveValue('Hello ***brave*** new world\n\nSecond paragraph here');
     await page.getByRole('button', { name: /^Regular/ }).click();
     await expect(article).toHaveValue('Hello brave new world\n\nSecond paragraph here');
     await select(6, 11);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await page.getByRole('button', { name: 'Bold', exact: true }).click();
     await page.getByRole('button', { name: 'Align right' }).click();
     await select(40, 40); // inside the second paragraph
     await page.getByRole('button', { name: 'Align box (justified)' }).click();
