@@ -7,9 +7,10 @@ import { DEFAULT_SECTION_TITLES } from '../lib/defaults';
 import { useProducts } from '../lib/products';
 import { Product } from '../types';
 import ProductModal from './ProductModal';
+import { stripFormatting } from '../lib/richtext';
 
 /** Product text may carry list/markdown marks; the card shows it as plain prose. */
-const plain = (text: string) => String(text || '').replace(/[#*_`>]/g, '').replace(/\s*\n\s*/g, ' ').replace(/(^|\s)[-•]\s+/g, '$1').trim();
+const plain = (text: string) => stripFormatting(String(text || '')).replace(/[#*_`>]/g, '').replace(/\s*\n\s*/g, ' ').replace(/(^|\s)[-•]\s+/g, '$1').trim();
 
 export default function ResourcesSection() {
   const { products, loading } = useProducts();

@@ -21,6 +21,8 @@ import { useSiteConfig } from '../context/SiteConfigContext';
 import { Project, BlogPost, Service, Skill, Testimonial, ResumeItem } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import { RichClamp, RichText } from './RichText';
+import { stripFormatting } from '../lib/richtext';
 import Photo from './Photo';
 import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
@@ -253,7 +255,7 @@ const TimelineItem = ({ item, last, delay }: { item: ResumeItem; last: boolean; 
       <span className="text-[12px] font-medium uppercase tracking-[0.14em] text-text-muted">{item.year}</span>
       <h3 className="mt-0.5 text-[19px] font-semibold uppercase leading-tight tracking-[-0.02em] text-text-main md:text-[21px]">{item.role}</h3>
       <div className="mt-0.5 text-[15px] font-medium text-text-main/80">{item.company}</div>
-      {item.desc && <p className="mt-1 max-w-xl text-[14px] leading-snug text-text-muted">{item.desc}</p>}
+      {item.desc && <RichText text={item.desc} className="mt-1 max-w-xl text-[14px] leading-snug text-text-muted" />}
     </m.div>
   );
 };
@@ -675,7 +677,7 @@ export default function Home() {
             <div className={cn('grid items-center gap-8 md:gap-12', aboutVideo && 'lg:grid-cols-2')}>
               <Reveal from="left">
                 <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('about')}</h2>
-                <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-text-muted">{config.aboutText}</p>
+                <RichText text={config.aboutText} className="mt-4 max-w-2xl text-[17px] leading-relaxed text-text-muted" />
               </Reveal>
 
               {aboutVideo && (
@@ -763,7 +765,7 @@ export default function Home() {
                           </div>
                           <div className="relative min-w-0">
                             <h3 className="text-[15px] font-semibold leading-tight tracking-[-0.02em] text-text-main md:text-[17px]">{service.title}</h3>
-                            <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-text-muted md:text-[14px]">{service.description}</p>
+                            <RichClamp text={service.description} className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-text-muted md:text-[14px]" />
                           </div>
                         </div>
                       </Reveal>
@@ -901,7 +903,7 @@ export default function Home() {
                             <h3 className="mt-3 text-[28px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#0d1117] md:text-[32px]">
                               {guide.shortTitle || guide.title}
                             </h3>
-                            <p className="mt-3 line-clamp-3 text-[16px] leading-relaxed text-[#0d1117]/75">{guide.description}</p>
+                            <RichClamp text={guide.description} className="mt-3 line-clamp-3 text-[16px] leading-relaxed text-[#0d1117]/75" />
                           </div>
                           <a href="#resources" className="home-btn home-mag mt-7 self-start bg-[#0d1117] px-6 py-3.5 text-[15px] text-white">
                             See the guide <span className="home-arrow" aria-hidden="true">↗</span>
@@ -945,7 +947,7 @@ export default function Home() {
                               {focusTitle}
                             </h3>
                             <p className="mt-3 text-[16px] leading-relaxed text-[#0d1117]/75">
-                              {(config.currentFocusText || '').trim() || (resume[0] ? `${resume[0].role} at ${resume[0].company}. ${resume[0].desc || ''}`.trim() : config.brandTagline)}
+                              {(config.currentFocusText || '').trim() || (resume[0] ? `${resume[0].role} at ${resume[0].company}. ${stripFormatting(resume[0].desc || '')}`.trim() : config.brandTagline)}
                             </p>
                           </div>
                         </div>
@@ -1007,7 +1009,7 @@ export default function Home() {
               className={cn('m-0 flex shrink-0 flex-col rounded-[22px] border border-border-subtle bg-white p-5', cls)}
             >
               <div className="h-4 text-[38px] font-bold leading-[0.6] text-accent" aria-hidden="true">&ldquo;</div>
-              <blockquote className="m-0 line-clamp-4 text-[15px] leading-relaxed text-[#2d3440] md:line-clamp-3">{t.content}</blockquote>
+              <RichClamp as="blockquote" text={t.content} className="m-0 line-clamp-4 text-[15px] leading-relaxed text-[#2d3440] md:line-clamp-3" />
               <figcaption className="mt-4 flex items-center gap-3">
                 <Avatar src={t.avatar} name={t.name} className="h-9 w-9 shrink-0" />
                 <div className="min-w-0">

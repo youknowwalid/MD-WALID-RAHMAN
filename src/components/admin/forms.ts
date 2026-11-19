@@ -21,6 +21,7 @@ export interface Field {
   fullPage?: boolean; // tall full-page screenshot: resized by width (maxSide = max width), height is free
   section?: string; // renders a heading before this field
   mono?: boolean;
+  rich?: boolean; // shows the Bold / Italic / Regular and alignment buttons
 }
 
 const order: Field = { name: 'order', label: 'Display order (lower numbers come first)', type: 'number', half: true };
@@ -45,11 +46,11 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { name: 'tags', label: 'Tags shown as pills (comma separated)', type: 'tags' },
       { section: 'Cover image', name: 'heroImage', label: 'Large cover image at the top (defaults to the main image)', type: 'image', hint: 'Recommended: landscape, about 1920 × 1200 px.' },
       { section: 'Challenge section', name: 'introTitle', label: 'Challenge section title (default: Challenge)' },
-      { name: 'content', label: 'Challenge text (the first paragraph becomes the large lead sentence; separate paragraphs with a blank line)', type: 'textarea', rows: 8 },
+      { name: 'content', label: 'Challenge text (the first paragraph becomes the large lead sentence; separate paragraphs with a blank line)', type: 'textarea', rows: 8, rich: true },
       { section: 'Image grid', name: 'gallery', label: 'Grid images (shown two per row, alternating wide and narrow; an odd last image is shown full width)', type: 'gallery' },
       { section: 'Solution section', name: 'detailsTitle', label: 'Solution section title (default: Solution)' },
-      { name: 'detailsContent', label: 'Solution text (separate paragraphs with a blank line)', type: 'textarea', rows: 6 },
-      { section: 'Client feedback (hidden when the quote is empty)', name: 'feedbackQuote', label: 'Quote', type: 'textarea', rows: 4 },
+      { name: 'detailsContent', label: 'Solution text (separate paragraphs with a blank line)', type: 'textarea', rows: 6, rich: true },
+      { section: 'Client feedback (hidden when the quote is empty)', name: 'feedbackQuote', label: 'Quote', type: 'textarea', rows: 4, rich: true },
       { name: 'feedbackName', label: 'Name of the person', half: true },
       { name: 'feedbackRole', label: 'Their role / company', half: true },
       { section: 'Full website screenshot (optional, shown after the client feedback)', name: 'fullPageImage', label: 'Full-page screenshot of the finished website, top to bottom', type: 'image', fullPage: true, maxSide: 1920, hint: 'Export at exactly 1920 px wide; any height up to 16,000 px. Visitors see the first part with a “View full page” button.' },
@@ -67,7 +68,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
     fields: [
       { name: 'title', label: 'Service title', required: true },
       { name: 'iconName', label: 'Icon (Auto picks one for you; if two services choose the same icon, the second gets a different one)', type: 'select', options: ['Auto', 'Palette', 'Braces', 'Megaphone', 'Laptop', 'Layers', 'PenTool', 'Compass', 'Sparkles', 'Camera', 'Code', 'Globe', 'LineChart', 'Rocket', 'Target', 'Video', 'ShoppingBag', 'Smartphone', 'Search', 'Briefcase', 'Lightbulb'], half: true },
-      { name: 'description', label: 'Description', type: 'textarea', rows: 4, required: true },
+      { name: 'description', label: 'Description', type: 'textarea', rows: 4, required: true, rich: true },
       order,
     ],
   },
@@ -79,7 +80,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { name: 'author', label: 'Author', half: true },
       { name: 'slug', label: 'Page address (leave blank to create from the title)', placeholder: 'my-post' },
       { name: 'excerpt', label: 'Short summary', type: 'textarea', rows: 3, required: true },
-      { name: 'content', label: 'Full article', type: 'textarea', rows: 12, mono: true, hint: 'Tip: start a line with ### for a heading and with - for a bullet. Leave a blank line between paragraphs.' },
+      { name: 'content', label: 'Full article', type: 'textarea', rows: 12, mono: true, hint: 'Tip: start a line with ### for a heading and with - for a bullet. Leave a blank line between paragraphs.', rich: true },
       { name: 'tags', label: 'Tags (comma separated)', type: 'tags' },
       { name: 'image', label: 'Main image', type: 'image', hint: 'Recommended: landscape, about 1600 × 900 px.' },
       { section: 'Social sharing (optional)', name: 'socialTitle', label: 'Title when shared' },
@@ -94,7 +95,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { name: 'role', label: 'Role / title', required: true },
       { name: 'company', label: 'Company', required: true, half: true },
       { name: 'year', label: 'Years', required: true, half: true, placeholder: '2020 - 2022' },
-      { name: 'desc', label: 'Description', type: 'textarea', rows: 4 },
+      { name: 'desc', label: 'Description', type: 'textarea', rows: 4, rich: true },
       order,
     ],
   },
@@ -111,7 +112,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
     fields: [
       { name: 'name', label: 'Name', required: true },
       { name: 'role', label: 'Role / company', required: true },
-      { name: 'content', label: 'What they said', type: 'textarea', rows: 4, required: true },
+      { name: 'content', label: 'What they said', type: 'textarea', rows: 4, required: true, rich: true },
       { name: 'avatar', label: 'Photo (optional)', type: 'image', maxSide: 400 },
       order,
     ],
@@ -140,7 +141,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { name: 'shortTitle', label: 'Short title', half: true },
       { name: 'price', label: 'Price', half: true, placeholder: '৳2,999' },
       { name: 'paddleUrl', label: 'Checkout link, or edition (english / bangla)', required: true, placeholder: 'english, bangla, or https://…', hint: 'Type english or bangla to use the bKash / Nagad checkout, or paste a payment link.' },
-      { name: 'description', label: 'Description', type: 'textarea', rows: 4 },
+      { name: 'description', label: 'Description', type: 'textarea', rows: 4, rich: true },
       { name: 'thumbnail', label: 'Thumbnail (square / list view)', type: 'image', maxSide: 900 },
       { name: 'image', label: 'Main product image', type: 'image' },
       { name: 'gallery1', label: 'Extra image 1', type: 'image', maxSide: 1400 },

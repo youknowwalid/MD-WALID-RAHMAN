@@ -12,6 +12,8 @@ import NotFound from './NotFound';
 import Seo from './Seo';
 import ScrollFillText from './ScrollFillText';
 import Photo from './Photo';
+import { RichInline, RichText } from './RichText';
+import { splitAlign, stripFormatting } from '../lib/richtext';
 import { useOptimizedImage } from '../lib/img';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -23,6 +25,12 @@ const fadeUp = {
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: '-60px' },
   transition: { duration: 0.7, ease: EASE },
+};
+
+/** One formatted paragraph: bold, italic and its own alignment. */
+const Para = ({ text, className }: { text: string; className: string }) => {
+  const { align, text: body } = splitAlign(text);
+  return <p style={align ? { textAlign: align } : undefined} className={`whitespace-pre-line ${className}`}><RichInline text={body} /></p>;
 };
 
 const paragraphs = (text?: string) => (text || '').split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean);
@@ -83,9 +91,9 @@ const TextSection = ({ title, lead, body, titleClass }: { title: string; lead?: 
   <m.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
     <h2 className={`${SECTION_TITLE} ${titleClass ?? ''}`}>{title}</h2>
     <div className="max-w-3xl">
-      {lead && <p className="text-xl sm:text-2xl lg:text-[1.75rem] leading-[1.45] font-medium text-text-main">{lead}</p>}
+      {lead && <Para text={lead} className="text-xl sm:text-2xl lg:text-[1.75rem] leading-[1.45] font-medium text-text-main" />}
       {body.map((t, i) => (
-        <p key={i} className={`whitespace-pre-line text-lg leading-[1.75] text-text-muted ${lead || i > 0 ? 'mt-6' : ''}`}>{t}</p>
+        <React.Fragment key={i}><Para text={t} className={`text-lg leading-[1.75] text-text-muted ${lead || i > 0 ? 'mt-6' : ''}`} /></React.Fragment>
       ))}
     </div>
   </m.section>
@@ -318,7 +326,7 @@ export default function ProjectDetail() {
       <div className="home-v2 relative min-h-screen bg-bg-dark overflow-x-clip selection:bg-accent/30">
         <Seo
           title={project.socialTitle || project.title}
-          description={project.socialDescription || project.summary || lead}
+          description={project.socialDescription || project.summary || stripFormatting(lead || '')}
           image={project.socialImage || project.heroImage || project.image}
         />
         <Navbar />
@@ -395,7 +403,7 @@ export default function ProjectDetail() {
               <m.section {...fadeUp} className="grid gap-8 lg:grid-cols-[5fr_7fr] lg:gap-16">
                 <h2 className={`${SECTION_TITLE} max-w-[9ch]`}>Client&apos;s feedback</h2>
                 <div className="max-w-3xl">
-                  <blockquote className="whitespace-pre-line text-xl leading-[1.5] text-text-main sm:text-2xl lg:text-[1.75rem]">{project.feedbackQuote}</blockquote>
+                  <RichText as="blockquote" text={project.feedbackQuote || ''} className="text-xl leading-[1.5] text-text-main sm:text-2xl lg:text-[1.75rem]" />
                   {(project.feedbackName || project.feedbackRole) && (
                     <div className="mt-8">
                       {project.feedbackName && <p className="text-xl font-semibold text-text-main">{project.feedbackName}</p>}

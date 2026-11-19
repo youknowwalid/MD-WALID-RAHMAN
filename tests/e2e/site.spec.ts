@@ -191,6 +191,26 @@ test.describe('logos and intro video', () => {
     await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(1);
   });
 
+  test('formatted texts (founder story, legal pages) show bold, italic and alignment without the marks', async ({ page, request }) => {
+    await seed(request, 'global', {
+      founderStory: '[justify] The **first** paragraph.\n\n[right] The *second* one.',
+      privacyPolicy: '[right] Your **data** stays yours.',
+    });
+    await page.goto(CONNECTED + '/privacy-policy');
+    await expect(page.locator('p', { hasText: 'Your data stays yours.' })).toHaveCSS('text-align', 'right');
+    await expect(page.locator('span.font-bold', { hasText: 'data' })).toBeVisible();
+    await expect(page.locator('main')).not.toContainText('[right]');
+    await page.goto(CONNECTED + '/');
+    const card = page.locator('footer').getByTestId('founder-card');
+    await card.scrollIntoViewIfNeeded();
+    await card.getByRole('button', { name: 'Read my story' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Md. Walid Rahman Swapnil' });
+    await expect(dialog.locator('p', { hasText: 'The first paragraph.' })).toHaveCSS('text-align', 'justify');
+    await expect(dialog.locator('p', { hasText: 'The second one.' })).toHaveCSS('text-align', 'right');
+    await expect(dialog.locator('span.italic', { hasText: 'second' })).toBeVisible();
+    await expect(dialog).not.toContainText('*');
+  });
+
   test('footer: no Navigation column; the founder card opens the story popup and lines up with the left side', async ({ page, request }) => {
     await seed(request, 'global', {
       footerLogo: `${API}/storage/v1/object/public/site-media/images/f.png`,
@@ -551,6 +571,54 @@ test.describe('admin panel', () => {
     await expect(page.getByText('Team saved and published.')).toBeVisible();
     await page.goto(CONNECTED + '/');
     await expect(page.locator('#team').getByText('Nadia Karim')).toBeVisible();
+  });
+
+  test('admin wears the brand: Inter Tight, lime accent and dark text on the lime buttons', async ({ page }) => {
+    await login(page);
+    const style = (sel: string, prop: string) => page.locator(sel).first().evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), prop);
+    expect(await style('.admin-v2', 'font-family')).toContain('Inter Tight');
+    expect(await style('.admin-v2', 'background-color')).toBe('rgb(13, 17, 23)');
+    expect(await style('nav[aria-label="Admin sections"] [aria-current="page"]', 'background-color')).toBe('rgb(195, 237, 58)');
+    const addNew = page.getByRole('button', { name: 'Add new' });
+    expect(await addNew.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(195, 237, 58)');
+    expect(await addNew.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(13, 17, 23)'); // readable on lime
+  });
+
+  test('admin: bold, italic, regular and alignment buttons format an article, and the site shows it', async ({ page }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'Blog' }).click();
+    await page.getByRole('button', { name: 'Add new' }).click();
+    await page.getByLabel('Post title').fill('Styled post');
+    await page.getByLabel('Short summary').fill('A summary.');
+    const article = page.getByLabel('Full article');
+    await article.fill('Hello brave new world\n\nSecond paragraph here');
+    const select = (from: number, to: number) => article.evaluate((el, [a, b]) => {
+      const t = el as HTMLTextAreaElement; t.focus(); t.setSelectionRange(a as number, b as number);
+    }, [from, to]);
+    await select(6, 11); // "brave"
+    await page.getByRole('button', { name: 'Bold', exact: true }).click();
+    await expect(article).toHaveValue('Hello **brave** new world\n\nSecond paragraph here');
+    await page.getByRole('button', { name: 'Italic', exact: true }).click(); // the selection is kept, so buttons can follow each other
+    await expect(article).toHaveValue('Hello ***brave*** new world\n\nSecond paragraph here');
+    await page.getByRole('button', { name: /^Regular/ }).click();
+    await expect(article).toHaveValue('Hello brave new world\n\nSecond paragraph here');
+    await select(6, 11);
+    await page.getByRole('button', { name: 'Bold', exact: true }).click();
+    await page.getByRole('button', { name: 'Align right' }).click();
+    await select(40, 40); // inside the second paragraph
+    await page.getByRole('button', { name: 'Align box (justified)' }).click();
+    await expect(article).toHaveValue('[right] Hello **brave** new world\n\n[justify] Second paragraph here');
+    await expect(page.getByText('Preview', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Item created.')).toBeVisible();
+
+    await page.goto(CONNECTED + '/blog/styled-post');
+    const body = page.locator('article');
+    await expect(body.locator('span.font-bold', { hasText: 'brave' })).toBeVisible();
+    await expect(body.locator('p', { hasText: 'Hello brave new world' })).toHaveCSS('text-align', 'right');
+    await expect(body.locator('p', { hasText: 'Second paragraph here' })).toHaveCSS('text-align', 'justify');
+    await expect(body).not.toContainText('**');
+    await expect(body).not.toContainText('[right]');
   });
 
   test('admin: edit a Work With Me offer and see it on the site', async ({ page, request }) => {

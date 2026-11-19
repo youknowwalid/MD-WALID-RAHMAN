@@ -5,6 +5,7 @@ import { HireOffer } from '../../lib/defaults';
 import { patchSettings } from '../../lib/admin';
 import { inputCls, labelCls } from './fields';
 import { friendlyError } from './forms';
+import RichTextArea from './RichTextArea';
 
 interface Props { onToast: (type: 'success' | 'error', message: string) => void }
 
@@ -83,8 +84,7 @@ export default function HireOffers({ onToast }: Props) {
               </div>
             </div>
             <div>
-              <label htmlFor={`hire-desc-${i}`} className={labelCls}>Description</label>
-              <textarea id={`hire-desc-${i}`} rows={2} value={row.description} onChange={(e) => patch(i, { description: e.target.value })} className={inputCls} maxLength={220} />
+              <RichTextArea id={`hire-desc-${i}`} label="Description" rows={2} value={row.description} onChange={(t) => patch(i, { description: t })} maxLength={300} />
             </div>
             <div>
               <label htmlFor={`hire-features-${i}`} className={labelCls}>Checklist (one line per point)</label>

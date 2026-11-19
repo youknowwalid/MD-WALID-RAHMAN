@@ -70,7 +70,11 @@ export function pickPage(kind, row) {
       author: row.author,
     };
   }
-  const lead = (row.content || '').split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean)[0];
+  // The admin's bold / italic / alignment marks (see src/lib/richtext.ts) must not show up in a shared description.
+  const plain = (t) => t
+    .replace(/^\s*\[(?:left|justify|right)\][ \t]?/, '')
+    .replace(/\*\*\*(\S(?:[^*\n]*?\S)?)\*\*\*|\*\*(\S(?:[\s\S]*?\S)?)\*\*|\*(\S(?:[^*\n]*?\S)?)\*/g, (m, a, b, c) => a ?? b ?? c);
+  const lead = (row.content || '').split(/\n\s*\n/).map((t) => plain(t.trim())).filter(Boolean)[0];
   return {
     title: row.social_title || row.title,
     description: row.social_description || row.summary || lead,

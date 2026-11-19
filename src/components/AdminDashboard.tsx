@@ -15,6 +15,7 @@ import HireOffers from './admin/HireOffers';
 import Inquiries from './admin/Inquiries';
 import Orders from './admin/Orders';
 import ProjectsSwitch from './admin/ProjectsSwitch';
+import RichTextArea from './admin/RichTextArea';
 import { GalleryField, ImageField, Toast, inputCls, labelCls, useToast } from './admin/fields';
 import { FORMS, FormCollection, friendlyError, toFormValues, toPayload } from './admin/forms';
 import { backendConfigured } from '../lib/config';
@@ -53,7 +54,17 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** The whole admin wears the home page's brand: its lime accent, ink surfaces and the Inter Tight typeface (see .admin-v2 in index.css). */
 export default function AdminDashboard() {
+  const { config } = useSiteConfig();
+  return (
+    <div className="admin-v2" style={{ '--color-accent': config.homeAccent, '--accent-gradient': 'none' } as React.CSSProperties}>
+      <AdminGate />
+    </div>
+  );
+}
+
+function AdminGate() {
   const [auth, setAuth] = useState<'checking' | 'out' | 'denied' | 'admin'>('checking');
   const [email, setEmail] = useState('');
 
@@ -95,7 +106,7 @@ export default function AdminDashboard() {
 }
 
 function Dashboard({ email }: { email: string }) {
-  const { refresh } = useSiteConfig();
+  const { config, refresh } = useSiteConfig();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (TABS.some((t) => t.id === searchParams.get('tab')) ? searchParams.get('tab') : 'projects') as TabId;
   const setActiveTab = (tab: string) => { setSearchParams({ tab }); setEditing(null); };
@@ -164,7 +175,10 @@ function Dashboard({ email }: { email: string }) {
 
       <aside className="lg:w-64 bg-bg-card border-b lg:border-b-0 lg:border-r border-border-subtle p-4 lg:p-6 flex flex-col shrink-0 lg:min-h-screen">
         <div className="flex items-center justify-between lg:block">
-          <div className="text-xl font-black lg:mb-10 tracking-tighter">Admin<span className="text-accent">Panel</span></div>
+          <div className="lg:mb-10">
+            <div className="text-xl font-semibold tracking-[-0.04em]">{config.wordmarkLight}<span className="text-accent">{config.wordmarkAccent}</span></div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-text-muted">Admin panel</div>
+          </div>
           <div className="flex lg:hidden items-center gap-3 text-sm">
             <a href="/" className="inline-flex min-h-11 items-center text-gray-300 hover:text-white">View site</a>
             <button onClick={() => admin.signOut()} className="inline-flex min-h-11 items-center text-red-300 font-bold">Log out</button>
@@ -266,8 +280,12 @@ function Dashboard({ email }: { email: string }) {
                           </label>
                         ) : (
                           <>
-                            <label htmlFor={id} className={labelCls}>{f.label}{f.required && <span aria-hidden="true"> *</span>}</label>
-                            {f.type === 'textarea' || f.type === 'lines' ? (
+                            {f.rich ? (
+                              <RichTextArea id={id} label={f.label} value={v} onChange={(t) => setValue(f.name, t)} rows={f.rows} required={f.required} mono={f.mono} />
+                            ) : (
+                              <label htmlFor={id} className={labelCls}>{f.label}{f.required && <span aria-hidden="true"> *</span>}</label>
+                            )}
+                            {f.rich ? null : f.type === 'textarea' || f.type === 'lines' ? (
                               <textarea id={id} rows={f.rows ?? 4} value={v} onChange={(e) => setValue(f.name, e.target.value)} required={f.required} className={`${inputCls} resize-y ${f.mono ? 'font-mono' : ''}`} />
                             ) : f.type === 'select' ? (
                               <select id={id} value={v} onChange={(e) => setValue(f.name, e.target.value)} className={inputCls}>{f.options!.map((o) => <option key={o} value={o}>{o}</option>)}</select>
