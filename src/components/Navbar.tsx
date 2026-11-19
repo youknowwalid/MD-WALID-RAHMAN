@@ -18,16 +18,6 @@ const NavItem = ({ url, className, onClick, children, ...rest }: { url: string; 
 
 const sectionOf = (url: string) => url.replace('/#', '').replace('#', '');
 
-/** The four-square mark on the home page's menu button. */
-const GridIcon = () => (
-  <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]" aria-hidden="true">
-    <rect x="1.5" y="1.5" width="6" height="6" rx="2" />
-    <rect x="10.5" y="1.5" width="6" height="6" rx="2" />
-    <rect x="1.5" y="10.5" width="6" height="6" rx="2" />
-    <rect x="10.5" y="10.5" width="6" height="6" rx="2" />
-  </svg>
-);
-
 export default function Navbar() {
   const { config } = useSiteConfig();
   const { products } = useProducts();
@@ -172,7 +162,7 @@ export default function Navbar() {
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
           >
-            {isMenuOpen ? <X className="h-[18px] w-[18px]" aria-hidden="true" /> : styled ? <GridIcon /> : <Menu aria-hidden="true" />}
+            {isMenuOpen ? <X className="h-[18px] w-[18px]" aria-hidden="true" /> : <Menu className="h-[20px] w-[20px]" aria-hidden="true" />}
           </button>
         </div>
       </div>
