@@ -283,24 +283,36 @@ test.describe('logos and intro video', () => {
     await expect(page.getByRole('button', { name: 'Open menu' }).locator('svg.lucide-menu')).toHaveCount(1);
   });
 
-  test('phones: specialities sit two per row and the skills list folds after five', async ({ page }) => {
-    await page.route('**/rest/v1/services*', (route) => route.fulfill({ json: fakeRows(6, (i) => ({ display_id: `0${i}`, title: `Service ${i}`, description: 'Short text.', icon_name: 'Palette' })) }));
-    await page.route('**/rest/v1/skills*', (route) => route.fulfill({ json: fakeRows(8, (i) => ({ name: `Skill number ${i}`, level: 80 })) }));
+  test('phones: one "What I do" card with three items per tab, the same height on both tabs', async ({ page }) => {
+    await page.route('**/rest/v1/services*', (route) => route.fulfill({ json: fakeRows(6, (i) => ({ display_id: `0${i}`, title: `Service ${i}`, description: 'A long description that must be cut to a single line so no row grows taller than the others.', icon_name: 'Palette' })) }));
+    await page.route('**/rest/v1/skills*', (route) => route.fulfill({ json: fakeRows(8, (i) => ({ name: `Skill number ${i}`, level: 60 + i * 3 })) }));
     await page.goto(CONNECTED + '/');
-    const a = await page.locator('#services h3', { hasText: 'Service 0' }).boundingBox();
-    const b = await page.locator('#services h3', { hasText: 'Service 1' }).boundingBox();
-    if (isPhone(page)) expect(Math.abs(a!.y - b!.y)).toBeLessThan(8); // two in a row
-    const more = page.getByRole('button', { name: /Show all 8 skills/ });
-    const last = page.locator('#skills').getByText('Skill number 7', { exact: true });
-    if (isPhone(page)) {
-      await expect(last).toBeHidden();
-      await more.click();
-      await expect(last).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Show fewer skills' })).toBeVisible();
-    } else {
-      await expect(more).toBeHidden();
-      await expect(last).toBeVisible();
+    if (!isPhone(page)) {
+      await expect(page.getByRole('tablist')).toHaveCount(0); // larger screens keep the two full sections
+      await expect(page.locator('#skills')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'My Specialities' })).toBeVisible();
+      return;
     }
+    await expect(page.locator('#skills')).toBeHidden();
+    const card = page.locator('#services .home-on-dark');
+    const rows = page.locator('#whatido-panel > div');
+    await expect(rows).toHaveCount(3);
+    const closed = (await card.boundingBox())!.height;
+    for (const row of await rows.all()) expect(Math.round((await row.boundingBox())!.height)).toBe(60);
+    await page.getByRole('tab', { name: 'Skills' }).click();
+    await expect(rows).toHaveCount(3);
+    await expect(rows.first()).toContainText('Skill number 7'); // highest levels first
+    expect(Math.abs((await card.boundingBox())!.height - closed)).toBeLessThanOrEqual(1); // same height on both tabs
+    await page.getByRole('button', { name: 'Show all 8 skills' }).click();
+    await expect(rows).toHaveCount(8);
+    expect((await card.boundingBox())!.height).toBeGreaterThan(closed + 200);
+    await page.getByRole('button', { name: 'Show fewer skills' }).click();
+    await expect(rows).toHaveCount(3);
+    await page.getByRole('tab', { name: 'Specialities' }).click();
+    await page.getByRole('button', { name: 'Show all 6 specialities' }).click();
+    await expect(rows).toHaveCount(6);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 
   test('phones: testimonials move on by themselves, and stay still with reduced motion', async ({ page }) => {
