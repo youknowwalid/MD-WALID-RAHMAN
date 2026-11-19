@@ -343,8 +343,7 @@ export default function RichTextArea({ id, label, value, onChange, rows = 4, max
           className={`${inputCls} max-h-[32rem] resize-y overflow-y-auto leading-relaxed whitespace-pre-wrap break-words empty:before:text-gray-500 empty:before:content-[attr(data-placeholder)] ${mono ? 'font-mono' : ''}`}
         />
         {/* Lets the browser's own "please fill this in" check work for required boxes, and mirrors the saved text. */}
-        <input
-          type="text"
+        <textarea
           tabIndex={-1}
           aria-hidden="true"
           data-testid={`${id}-value`}
@@ -352,7 +351,7 @@ export default function RichTextArea({ id, label, value, onChange, rows = 4, max
           value={value}
           onChange={() => {}}
           onFocus={() => ref.current?.focus()}
-          className="pointer-events-none absolute bottom-0 left-1/2 h-px w-px opacity-0"
+          className="pointer-events-none absolute bottom-0 left-1/2 h-px w-px resize-none opacity-0"
         />
       </div>
       <p className="mt-1.5 text-xs text-gray-400">Select the words, then tap a button. Press Enter twice to start a new paragraph; alignment applies to the paragraph your cursor is in.</p>
