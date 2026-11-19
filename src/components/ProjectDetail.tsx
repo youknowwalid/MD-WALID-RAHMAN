@@ -93,7 +93,7 @@ const TextSection = ({ title, lead, body, titleClass }: { title: string; lead?: 
     <div className="max-w-3xl">
       {lead && <Para text={lead} className="text-xl sm:text-2xl lg:text-[1.75rem] leading-[1.45] font-medium text-text-main" />}
       {body.map((t, i) => (
-        <Para key={i} text={t} className={`text-lg leading-[1.75] text-text-muted ${lead || i > 0 ? 'mt-6' : ''}`} />
+        <React.Fragment key={i}><Para text={t} className={`text-lg leading-[1.75] text-text-muted ${lead || i > 0 ? 'mt-6' : ''}`} /></React.Fragment>
       ))}
     </div>
   </m.section>
