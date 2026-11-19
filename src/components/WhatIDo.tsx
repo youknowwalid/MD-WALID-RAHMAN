@@ -66,7 +66,7 @@ export default function WhatIDo({ heading, services, skills }: { heading: string
                   <s.Icon className="h-[17px] w-[17px]" />
                 </span>
                 <div className="min-w-0">
-                  <div className="truncate text-[14px] font-medium leading-tight">{s.title}</div>
+                  <h3 className="m-0 truncate text-[14px] font-medium leading-tight">{s.title}</h3>
                   <div className="mt-0.5 truncate text-[12px] leading-tight text-white/70">{s.description}</div>
                 </div>
               </div>
