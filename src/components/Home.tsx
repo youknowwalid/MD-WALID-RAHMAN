@@ -799,14 +799,16 @@ export default function Home() {
                     </div>
                   ))}
                   {skills.length > 5 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowAllSkills((v) => !v)}
-                      aria-expanded={showAllSkills}
-                      className="home-btn mt-1 min-h-[48px] w-full border border-white/25 px-6 py-3 text-[15px] text-white sm:hidden"
-                    >
-                      {showAllSkills ? 'Show fewer skills' : `Show all ${skills.length} skills`}
-                    </button>
+                    <div className="mt-1 sm:hidden">
+                      <button
+                        type="button"
+                        onClick={() => setShowAllSkills((v) => !v)}
+                        aria-expanded={showAllSkills}
+                        className="home-btn min-h-[48px] w-full border border-white/25 px-6 py-3 text-[15px] text-white"
+                      >
+                        {showAllSkills ? 'Show fewer skills' : `Show all ${skills.length} skills`}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
