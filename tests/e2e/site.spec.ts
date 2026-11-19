@@ -241,6 +241,17 @@ test.describe('logos and intro video', () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     await expect(page.getByText('Pricing Plans')).toHaveCount(0);
+    await expect(page.locator('i.home-dot')).toHaveCount(0); // the small section pills are gone
+    // The buttons sit clear of the checklist, on one line, at the bottom of both cards.
+    const tops: number[] = [];
+    for (const name of ['Request Proposal', 'Book a Call']) {
+      const btn = await page.locator('#hire').getByRole('link', { name }).boundingBox();
+      const lastItem = await page.locator('#hire article', { has: page.getByRole('link', { name }) }).locator('li').last().boundingBox();
+      expect(btn!.y - (lastItem!.y + lastItem!.height)).toBeGreaterThanOrEqual(24);
+      expect(btn!.height).toBeGreaterThanOrEqual(52);
+      tops.push(Math.round(btn!.y));
+    }
+    if (page.viewportSize()!.width >= 768) expect(Math.abs(tops[0] - tops[1])).toBeLessThanOrEqual(1);
     await seed(request, 'global', { hireOffers: [
       { name: 'Only Offer', tag: 'Custom', description: 'd', features: ['One', 'Two'], buttonText: 'Talk', buttonUrl: '/#contact', dark: false, hidden: false },
       { name: 'Secret Offer', tag: '', description: '', features: [], buttonText: '', buttonUrl: '', dark: true, hidden: true },
@@ -740,8 +751,18 @@ test.describe('checkout with bKash / Nagad', () => {
     await expect(page.getByText('Item created.')).toBeVisible();
     await page.goto(CONNECTED + '/resources');
     await page.getByRole('button', { name: 'View English guide' }).click();
+    const buy = await page.getByRole('link', { name: 'Buy Now' }).boundingBox();
+    expect(buy!.y + buy!.height).toBeLessThanOrEqual(page.viewportSize()!.height); // Buy Now is on screen without scrolling the popup
     await page.getByRole('link', { name: 'Buy Now' }).click();
     await expect(page).toHaveURL(/\/checkout\/english$/);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    for (const id of ['bkash', 'nagad']) {
+      const number = await page.getByTestId(`wallet-${id}`).boundingBox();
+      const copy = await page.getByRole('button', { name: new RegExp(`Copy ${id}`, 'i') }).boundingBox();
+      const apart = copy!.y >= number!.y + number!.height - 1 || copy!.x >= number!.x + number!.width;
+      expect(apart).toBe(true); // the number never touches its Copy button
+    }
     await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
   });
 });

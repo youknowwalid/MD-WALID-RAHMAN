@@ -115,25 +115,10 @@ const Reveal = ({ children, delay = 0, className, from = 'up' }: {
   </m.div>
 );
 
-const Eyebrow = ({ children, onDark = false }: { children: React.ReactNode; onDark?: boolean }) => (
-  <span
-    className={cn(
-      'inline-flex items-center gap-2.5 rounded-full border px-4 py-2 text-[13px] font-medium',
-      onDark ? 'border-white/30 bg-white/15 text-white backdrop-blur-sm' : 'border-border-subtle bg-white text-text-main',
-    )}
-  >
-    <i className="home-dot h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-    {children}
-  </span>
-);
-
-const SectionHead = ({ label, title, lead, onDark = false }: {
-  label: string; title: React.ReactNode; lead?: string; onDark?: boolean;
-}) => (
+const SectionHead = ({ title, lead }: { title: React.ReactNode; lead?: string }) => (
   <div className="mb-14 md:mb-[70px]">
-    <Reveal><Eyebrow onDark={onDark}>{label}</Eyebrow></Reveal>
     <Reveal delay={0.07}>
-      <h2 className="mt-5 max-w-4xl text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] md:text-6xl">{title}</h2>
+      <h2 className="max-w-4xl text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] md:text-6xl">{title}</h2>
     </Reveal>
     {lead && (
       <Reveal delay={0.13}>
@@ -820,9 +805,8 @@ export default function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-6 md:mb-[70px]">
               <div>
-                <Reveal><Eyebrow>{title('projectsEyebrow')}</Eyebrow></Reveal>
                 <Reveal delay={0.07}>
-                  <h2 className="mt-5 text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] md:text-6xl">{title('projects')}</h2>
+                  <h2 className="text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] md:text-6xl">{title('projects')}</h2>
                 </Reveal>
               </div>
             </div>
@@ -1020,8 +1004,7 @@ export default function Home() {
             <section id="team" className="px-6 py-10 md:py-14" aria-label="Team">
               <div className="mx-auto max-w-7xl">
                 <Reveal>
-                  <Eyebrow>{title('teamEyebrow')}</Eyebrow>
-                  <h2 className="mb-6 mt-4 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('team')}</h2>
+                  <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('team')}</h2>
                   <div className="rounded-[28px] bg-bg-card px-5 py-8 md:rounded-[44px] md:px-12 md:py-12"><TeamDeck members={team} /></div>
                 </Reveal>
               </div>
@@ -1101,10 +1084,8 @@ export default function Home() {
               <div className="relative grid gap-8 lg:grid-cols-2 lg:gap-12">
                 <div>
                   <SectionHead
-                    label={title('contactEyebrow')}
                     title={title('contact')}
                     lead={title('contactLead')}
-                    onDark
                   />
                   <div className="-mt-10 space-y-4">
                     {contactDetails.map((item, i) => (

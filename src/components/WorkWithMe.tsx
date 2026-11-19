@@ -79,16 +79,18 @@ export default function WorkWithMe({ offers, heading, lead }: { offers: HireOffe
                 )}
 
                 {o.buttonText && (
-                  <a
-                    href={href}
-                    className={cn(
-                      'home-btn mt-8 inline-flex min-h-[52px] w-full items-center justify-center gap-2 px-7 py-3.5 text-[16px] md:mt-auto md:w-auto md:self-start',
-                      o.dark ? 'bg-accent text-[#0d1117]' : 'bg-[#0d1117] text-white',
-                    )}
-                  >
-                    {o.buttonText}
-                    <ArrowUpRight className="home-arrow h-4 w-4" aria-hidden="true" />
-                  </a>
+                  <div className="mt-auto pt-9">
+                    <a
+                      href={href}
+                      className={cn(
+                        'home-btn flex min-h-[56px] w-full items-center justify-center gap-2.5 whitespace-nowrap px-8 py-4 text-[16px] font-semibold',
+                        o.dark ? 'bg-accent text-[#0d1117]' : 'bg-[#0d1117] text-white',
+                      )}
+                    >
+                      {o.buttonText}
+                      <ArrowUpRight className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                    </a>
+                  </div>
                 )}
               </article>
             );
