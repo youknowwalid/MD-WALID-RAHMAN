@@ -2,9 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, MapPin, Phone, Github, Twitter, Linkedin, Facebook, Instagram, Youtube, ArrowUpRight } from 'lucide-react';
 import { useSiteConfig } from '../context/SiteConfigContext';
-import { useProducts } from '../lib/products';
 import { safeUrl } from '../lib/text';
 import Photo from './Photo';
+import FounderCard from './FounderCard';
 
 const getSocialIcon = (platform: string) => {
   const p = platform.toLowerCase();
@@ -18,12 +18,8 @@ const getSocialIcon = (platform: string) => {
   return <ArrowUpRight className={cls} aria-hidden="true" />;
 };
 
-const sectionOf = (url: string) => url.replace('/#', '').replace('#', '');
-
 export default function Footer() {
   const { config } = useSiteConfig();
-  const { products } = useProducts();
-  const navLinks = config.headerLinks.filter((l) => products.length > 0 || sectionOf(l.url) !== 'resources');
   const phoneDigits = config.officePhone.replace(/[^0-9+]/g, '');
   const socials = config.socialLinks.filter((s) => safeUrl(s.url));
 
@@ -31,13 +27,15 @@ export default function Footer() {
     <footer className="bg-bg-dark border-t border-border-subtle relative z-10 pt-8 pb-20 md:pb-4 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 relative">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 mb-5 relative z-10">
-          <div className="md:col-span-4">
-            {config.footerLogo && (
-              <Link to="/" className="inline-flex min-h-11 items-center mb-1 hover:opacity-80 transition-opacity" aria-label={`${config.siteTitle} – home`}>
-                <Photo src={config.footerLogo} widths={[256]} sizes="100px" alt="" width={100} height={32} loading="lazy" decoding="async" className="h-8 w-auto" />
-              </Link>
-            )}
-            <p className="text-text-muted text-sm max-w-sm mb-3 leading-relaxed">{config.brandTagline}</p>
+          <div className="flex flex-col gap-3 md:col-span-6 md:justify-between lg:col-span-4">
+            <div>
+              {config.footerLogo && (
+                <Link to="/" className="inline-flex min-h-11 items-center mb-1 hover:opacity-80 transition-opacity md:mb-0 md:min-h-8" aria-label={`${config.siteTitle} – home`}>
+                  <Photo src={config.footerLogo} widths={[256]} sizes="100px" alt="" width={100} height={32} loading="lazy" decoding="async" className="h-8 w-auto" />
+                </Link>
+              )}
+              <p className="text-text-muted text-sm max-w-sm leading-relaxed md:[&:not(:first-child)]:mt-2">{config.brandTagline}</p>
+            </div>
 
             {socials.length > 0 && (
               <ul className="flex gap-3">
@@ -58,56 +56,35 @@ export default function Footer() {
             )}
           </div>
 
-          <div className="md:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <nav aria-label="Footer">
-              <h2 className="text-text-main font-bold mb-3 text-base">Navigation</h2>
-              <ul className="grid grid-cols-2 gap-y-0 gap-x-4 md:gap-y-2">
-                {navLinks.map((link) => (
-                  <li key={link.label}>
-                    {link.url.startsWith('/') ? (
-                      <Link to={link.url} className="inline-flex min-h-11 min-w-11 items-center lg:min-h-0 lg:min-w-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</Link>
-                    ) : (
-                      <a href={link.url} className="inline-flex min-h-11 min-w-11 items-center lg:min-h-0 lg:min-w-0 text-text-muted hover:text-accent transition-colors text-sm">{link.label}</a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            <div>
-              <h2 className="text-text-main font-bold mb-3 text-base">Contact Info</h2>
-              <ul className="space-y-0 md:space-y-2.5">
-                {config.officeAddress && (
-                  <li className="text-text-muted flex min-h-11 items-center gap-3 text-sm lg:min-h-0">
-                    <MapPin className="w-4 h-4 text-accent/70 shrink-0" aria-hidden="true" />
-                    {config.officeAddress}
-                  </li>
-                )}
-                {config.contactEmail && (
-                  <li>
-                    <a href={`mailto:${config.contactEmail}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
-                      <Mail className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
-                      {config.contactEmail}
-                    </a>
-                  </li>
-                )}
-                {config.officePhone && (
-                  <li>
-                    <a href={`tel:${phoneDigits}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
-                      <Phone className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
-                      {config.officePhone}
-                    </a>
-                  </li>
-                )}
-              </ul>
-            </div>
+          <div className="flex flex-col md:col-span-6 lg:col-span-3">
+            <h2 className="text-text-main font-bold mb-3 text-base">Contact Info</h2>
+            <ul className="flex flex-col md:flex-1 md:justify-between md:gap-2.5">
+              {config.officeAddress && (
+                <li className="text-text-muted flex min-h-11 items-center gap-3 text-sm lg:min-h-0">
+                  <MapPin className="w-4 h-4 text-accent/70 shrink-0" aria-hidden="true" />
+                  {config.officeAddress}
+                </li>
+              )}
+              {config.contactEmail && (
+                <li>
+                  <a href={`mailto:${config.contactEmail}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
+                    <Mail className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
+                    {config.contactEmail}
+                  </a>
+                </li>
+              )}
+              {config.officePhone && (
+                <li>
+                  <a href={`tel:${phoneDigits}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
+                    <Phone className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
+                    {config.officePhone}
+                  </a>
+                </li>
+              )}
+            </ul>
           </div>
 
-          {config.footerPortrait && (
-            <div className="hidden md:flex md:col-span-3 justify-end items-end relative">
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/10 blur-[60px] rounded-full pointer-events-none" />
-              <img src={config.footerPortrait} alt="" className="w-full max-w-[150px] h-auto object-contain object-bottom drop-shadow-2xl relative z-10" style={{ maxHeight: '150px' }} loading="lazy" referrerPolicy="no-referrer" />
-            </div>
-          )}
+          <FounderCard className="md:col-span-12 lg:col-span-5" />
         </div>
 
         <div className="pt-4 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">

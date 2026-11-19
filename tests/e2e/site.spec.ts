@@ -191,6 +191,52 @@ test.describe('logos and intro video', () => {
     await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(1);
   });
 
+  test('footer: no Navigation column; the founder card opens the story popup and lines up with the left side', async ({ page, request }) => {
+    await seed(request, 'global', {
+      footerLogo: `${API}/storage/v1/object/public/site-media/images/f.png`,
+      socialLinks: [{ platform: 'LinkedIn', url: 'https://linkedin.com/in/someone' }],
+    });
+    await page.goto(CONNECTED + '/');
+    const footer = page.locator('footer');
+    await expect(footer.getByRole('heading', { name: 'Navigation' })).toHaveCount(0);
+    await expect(footer.getByRole('navigation')).toHaveCount(0);
+    const card = footer.getByTestId('founder-card');
+    await card.scrollIntoViewIfNeeded();
+    await expect(card.getByText('A word from the founder')).toBeVisible();
+    await expect(card.getByText('Md. Walid Rahman Swapnil')).toBeVisible();
+    const c = (await card.boundingBox())!;
+    const width = page.viewportSize()!.width;
+    if (width >= 1024) {
+      // The card is exactly as tall as the left side: its top meets the logo, its bottom meets the social icons and the last contact line.
+      const logo = (await footer.locator('img[src$="f.png"]').boundingBox())!;
+      const social = (await footer.getByRole('link', { name: /LinkedIn/ }).boundingBox())!;
+      const phone = (await footer.locator('a[href^="tel:"]').boundingBox())!;
+      expect(Math.abs(c.y - logo.y)).toBeLessThanOrEqual(2);
+      expect(Math.abs(c.y + c.height - (social.y + social.height))).toBeLessThanOrEqual(2);
+      expect(Math.abs(c.y + c.height - (phone.y + phone.height))).toBeLessThanOrEqual(3);
+    } else if (width < 768) {
+      const b = (await card.getByRole('button', { name: 'Read my story' }).boundingBox())!;
+      expect(b.width).toBeGreaterThan(c.width - 40); // a full-width button on phones
+    }
+    await card.getByRole('button', { name: 'Read my story' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Md. Walid Rahman Swapnil' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("I'm Walid, a brand developer")).toBeVisible();
+    await expect(dialog.getByRole('link', { name: "Let's work together" })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+  });
+
+  test('footer: the founder card shows the texts saved in the admin, and no button without a story', async ({ page, request }) => {
+    await seed(request, 'global', { founderQuote: 'Quality over quantity, always.', founderRole: 'CEO', founderStory: ' ' });
+    await page.goto(CONNECTED + '/');
+    const card = page.locator('footer').getByTestId('founder-card');
+    await card.scrollIntoViewIfNeeded();
+    await expect(card.getByText('Quality over quantity, always.')).toBeVisible();
+    await expect(card.getByText('CEO')).toBeVisible();
+    await expect(card.getByRole('button')).toHaveCount(0);
+  });
+
   test('client logos replace the company names in the home strip and keep its height', async ({ page, request }) => {
     const img = (n: string) => `${API}/storage/v1/object/public/site-media/images/${n}.png`;
     await seed(request, 'global', { clientLogos: [
