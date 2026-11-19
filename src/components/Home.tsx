@@ -26,6 +26,7 @@ import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
 import ProjectsLocked from './ProjectsLocked';
 import TeamDeck from './TeamDeck';
+import AutoCarousel from './AutoCarousel';
 import WorkWithMe from './WorkWithMe';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -127,6 +128,13 @@ const SectionHead = ({ title, lead }: { title: React.ReactNode; lead?: string })
     )}
   </div>
 );
+
+/** The unit ("Yrs") belongs with the label underneath, so every number is the same size. */
+const statLabel = (stat: { unit?: string; label: string }) => {
+  const unit = (stat.unit || '').trim();
+  if (!unit) return stat.label;
+  return `${/^yrs?\.?$/i.test(unit) ? 'Years' : unit} ${stat.label}`;
+};
 
 const EmptyNote = ({ children }: { children: React.ReactNode }) => (
   <div className="rounded-[32px] border border-dashed border-border-subtle px-6 py-16 text-center text-text-muted">{children}</div>
@@ -268,6 +276,7 @@ export default function Home() {
   const [services, setServices] = useState<Service[]>(backendConfigured ? [] : FALLBACK_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [showAllSkills, setShowAllSkills] = useState(false);
   const [resume, setResume] = useState<ResumeItem[]>(backendConfigured ? [] : FALLBACK_RESUME);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
@@ -546,9 +555,8 @@ export default function Home() {
                     <div key={i}>
                       <dd className="text-[26px] font-semibold tracking-[-0.03em] text-white md:text-[42px]">
                         <CountText raw={stat.value} />
-                        {stat.unit && <> <span className="text-[0.55em] font-medium text-white/80">{stat.unit}</span></>}
                       </dd>
-                      <dt className="mt-2 text-[9px] uppercase leading-tight tracking-[0.16em] text-white/85 md:text-[11px]">{stat.label}</dt>
+                      <dt className="mt-2 text-[9px] uppercase leading-tight tracking-[0.16em] text-white/85 md:text-[11px]">{statLabel(stat)}</dt>
                     </div>
                   ))}
                 </m.dl>
@@ -596,9 +604,8 @@ export default function Home() {
                   <div key={i}>
                     <dd className="text-[24px] font-semibold tracking-[-0.03em] text-[#0d1117]">
                       <CountText raw={stat.value} />
-                      {stat.unit && <> <span className="text-[0.55em] font-medium text-[#4a5361]">{stat.unit}</span></>}
                     </dd>
-                    <dt className="mt-0.5 text-[12px] leading-tight text-[#4a5361]">{stat.label}</dt>
+                    <dt className="mt-0.5 text-[12px] leading-tight text-[#4a5361]">{statLabel(stat)}</dt>
                   </div>
                 ))}
               </dl>
@@ -721,7 +728,7 @@ export default function Home() {
               <Reveal>
                 <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('services')}</h2>
               </Reveal>
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-2 md:gap-3 lg:grid-cols-3">
                 {(() => {
                   const used = new Set<React.ComponentType<{ className?: string }>>();
                   return services.map((service, i) => {
@@ -730,13 +737,13 @@ export default function Home() {
                     used.add(Icon);
                     return (
                       <Reveal key={service.id} delay={Math.min((i % 3) * 0.05, 0.12)}>
-                        <div className="home-card group flex h-full items-center gap-4 rounded-[20px] border border-border-subtle bg-bg-card px-4 py-3.5 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-22px_rgba(13,17,23,0.4)]">
+                        <div className="home-card group flex h-full flex-col items-start gap-2.5 rounded-[20px] border border-border-subtle bg-bg-card px-3.5 py-3.5 md:flex-row md:items-center md:gap-4 md:px-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-22px_rgba(13,17,23,0.4)]">
                           <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#0d1117] text-white transition-colors duration-300 group-hover:bg-accent group-hover:text-[#0d1117]">
                             <Icon className="h-[18px] w-[18px]" />
                           </div>
                           <div className="relative min-w-0">
-                            <h3 className="text-[17px] font-semibold leading-tight tracking-[-0.02em] text-text-main">{service.title}</h3>
-                            <p className="mt-0.5 line-clamp-2 text-[14px] leading-snug text-text-muted">{service.description}</p>
+                            <h3 className="text-[15px] font-semibold leading-tight tracking-[-0.02em] text-text-main md:text-[17px]">{service.title}</h3>
+                            <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-text-muted md:text-[14px]">{service.description}</p>
                           </div>
                         </div>
                       </Reveal>
@@ -751,24 +758,24 @@ export default function Home() {
         {/* SKILLS SECTION */}
         {skills.length > 0 && (
           <section id="skills" className="px-3 py-6 md:px-6 md:py-8">
-            <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-5 py-8 md:rounded-[36px] md:px-12 md:py-10">
+            <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-5 py-6 md:rounded-[36px] md:px-12 md:py-10">
               <div className="home-skills-glow" aria-hidden="true" />
               <div className="relative grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">
                 <div>
-                  <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.4rem]">
+                  <h2 className="text-[1.75rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.4rem]">
                     {(() => {
                       const words = title('skills').split(' ');
                       const last = words.length > 1 ? words.pop() : '';
                       return <>{words.join(' ')}{last && <> <span className="text-white/45">{last}</span></>}</>;
                     })()}
                   </h2>
-                  <p className="mt-3 max-w-md text-[15px] leading-relaxed text-text-muted">
+                  <p className="mt-2 max-w-md text-[14px] leading-relaxed text-text-muted md:mt-3 md:text-[15px]">
                     {title('skillsIntro')}
                   </p>
                 </div>
-                <div className="grid gap-x-10 gap-y-3.5 sm:grid-cols-2">
+                <div className="grid gap-x-10 gap-y-3 sm:grid-cols-2 sm:gap-y-3.5">
                   {skills.map((skill, i) => (
-                    <div key={skill.id || skill.name}>
+                    <div key={skill.id || skill.name} className={i >= 5 && !showAllSkills ? 'hidden sm:block' : undefined}>
                       <div className="mb-1.5 flex items-baseline justify-between gap-3">
                         <span className="text-[14px] font-medium text-white">{skill.name}</span>
                         <span className="text-[13px] font-medium tabular-nums text-accent" aria-hidden="true">{skill.level}%</span>
@@ -791,6 +798,16 @@ export default function Home() {
                       </div>
                     </div>
                   ))}
+                  {skills.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllSkills((v) => !v)}
+                      aria-expanded={showAllSkills}
+                      className="home-btn mt-1 min-h-[48px] w-full border border-white/25 px-6 py-3 text-[15px] text-white sm:hidden"
+                    >
+                      {showAllSkills ? 'Show fewer skills' : `Show all ${skills.length} skills`}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -984,8 +1001,10 @@ export default function Home() {
               <div className="mx-auto mb-5 max-w-7xl px-6">
                 <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('testimonials')}</h2>
               </div>
-              <div tabIndex={0} role="region" aria-label="Testimonials, scroll sideways" className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:hidden">
-                {testimonials.map((t, i) => card(t, `m-${t.id}-${i}`, 'w-[82%] snap-center'))}
+              <div className="md:hidden">
+                <AutoCarousel label="Testimonials" className="gap-3 px-6 pb-1">
+                  {testimonials.map((t, i) => card(t, `m-${t.id}-${i}`, 'w-[82%] snap-center'))}
+                </AutoCarousel>
               </div>
               <div className="home-marquee hidden md:block">
                 <div className="home-marquee-row flex w-max gap-5 px-2.5" style={{ animationDuration: '90s' }}>

@@ -262,6 +262,62 @@ test.describe('logos and intro video', () => {
     await seed(request, 'global', { hireOffers: DEFAULT_HIRE_OFFERS });
   });
 
+  const isPhone = (page: Page) => page.viewportSize()!.width < 768;
+  const fakeRows = (n: number, make: (i: number) => object) =>
+    Array.from({ length: n }, (_, i) => ({ id: `00000000-0000-4000-8000-00000000${String(i + 10).padStart(4, '0')}`, sort_order: i, ...make(i) }));
+
+  test('hero numbers are the same size and the unit sits in the label', async ({ page }) => {
+    await page.goto(CONNECTED + '/');
+    const nums = page.locator('dd:visible');
+    await expect(nums).toHaveCount(3);
+    const sizes = await nums.evaluateAll((els) => els.map((e) => getComputedStyle(e).fontSize));
+    expect(new Set(sizes).size).toBe(1);
+    await expect(page.locator('dt:visible', { hasText: 'Years Experience' })).toBeVisible();
+    await expect(nums.first()).not.toContainText('Yrs');
+  });
+
+  test('the menu button shows three lines, not four squares', async ({ page }) => {
+    test.skip(!isPhone(page), 'the menu button is only on phones');
+    await page.goto(CONNECTED + '/');
+    await expect(page.getByRole('button', { name: 'Open menu' }).locator('svg.lucide-menu')).toHaveCount(1);
+  });
+
+  test('phones: specialities sit two per row and the skills list folds after five', async ({ page }) => {
+    await page.route('**/rest/v1/services*', (route) => route.fulfill({ json: fakeRows(6, (i) => ({ display_id: `0${i}`, title: `Service ${i}`, description: 'Short text.', icon_name: 'Palette' })) }));
+    await page.route('**/rest/v1/skills*', (route) => route.fulfill({ json: fakeRows(8, (i) => ({ name: `Skill number ${i}`, level: 80 })) }));
+    await page.goto(CONNECTED + '/');
+    const a = await page.locator('#services h3', { hasText: 'Service 0' }).boundingBox();
+    const b = await page.locator('#services h3', { hasText: 'Service 1' }).boundingBox();
+    if (isPhone(page)) expect(Math.abs(a!.y - b!.y)).toBeLessThan(8); // two in a row
+    const more = page.getByRole('button', { name: /Show all 8 skills/ });
+    const last = page.locator('#skills').getByText('Skill number 7', { exact: true });
+    if (isPhone(page)) {
+      await expect(last).toBeHidden();
+      await more.click();
+      await expect(last).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Show fewer skills' })).toBeVisible();
+    } else {
+      await expect(more).toBeHidden();
+      await expect(last).toBeVisible();
+    }
+  });
+
+  test('phones: testimonials move on by themselves, and stay still with reduced motion', async ({ page }) => {
+    test.skip(!isPhone(page), 'the automatic strip is the phone layout');
+    test.setTimeout(45_000);
+    await page.route('**/rest/v1/testimonials*', (route) => route.fulfill({ json: fakeRows(4, (i) => ({ name: `Client ${i}`, role: 'CEO', avatar: '', content: `Kind words number ${i}.` })) }));
+    await page.goto(CONNECTED + '/');
+    const strip = page.getByRole('region', { name: 'Testimonials', exact: true });
+    await strip.scrollIntoViewIfNeeded();
+    await expect.poll(() => strip.evaluate((el) => el.scrollLeft), { timeout: 12_000 }).toBeGreaterThan(40);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(CONNECTED + '/');
+    const still = page.getByRole('region', { name: 'Testimonials', exact: true });
+    await still.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(6500);
+    expect(await still.evaluate((el) => el.scrollLeft)).toBeLessThan(5);
+  });
+
   test('team section shows a plain list with reduced motion and is absent with no members', async ({ page, request }) => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('#team')).toHaveCount(0);
@@ -751,6 +807,15 @@ test.describe('checkout with bKash / Nagad', () => {
     await expect(page.getByText('Item created.')).toBeVisible();
     await page.goto(CONNECTED + '/resources');
     await page.getByRole('button', { name: 'View English guide' }).click();
+    if (page.viewportSize()!.width < 768) {
+      const stage = await page.getByRole('button', { name: 'Zoom in on this picture' }).boundingBox();
+      expect(stage!.height / page.viewportSize()!.height).toBeGreaterThanOrEqual(0.6); // the product takes most of the popup
+      const details = page.getByRole('button', { name: 'Details' });
+      await expect(details).toHaveAttribute('aria-expanded', 'false');
+      await details.click();
+      await expect(details).toHaveAttribute('aria-expanded', 'true');
+      await details.click();
+    }
     const buy = await page.getByRole('link', { name: 'Buy Now' }).boundingBox();
     expect(buy!.y + buy!.height).toBeLessThanOrEqual(page.viewportSize()!.height); // Buy Now is on screen without scrolling the popup
     await page.getByRole('link', { name: 'Buy Now' }).click();
