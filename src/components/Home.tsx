@@ -27,6 +27,7 @@ import Seo from './Seo';
 import ProjectsLocked from './ProjectsLocked';
 import TeamDeck from './TeamDeck';
 import AutoCarousel from './AutoCarousel';
+import WhatIDo from './WhatIDo';
 import WorkWithMe from './WorkWithMe';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -134,6 +135,17 @@ const statLabel = (stat: { unit?: string; label: string }) => {
   const unit = (stat.unit || '').trim();
   if (!unit) return stat.label;
   return `${/^yrs?\.?$/i.test(unit) ? 'Years' : unit} ${stat.label}`;
+};
+
+/** One icon per service, never the same one twice (the admin's choice first). */
+const iconsFor = (services: Service[]) => {
+  const used = new Set<React.ComponentType<{ className?: string }>>();
+  return services.map((service, i) => {
+    let Icon = ICON_MAP[service.iconName || ''] || ICON_POOL[i % ICON_POOL.length];
+    if (used.has(Icon)) Icon = ICON_POOL.find((c) => !used.has(c)) || Icon;
+    used.add(Icon);
+    return Icon;
+  });
 };
 
 const EmptyNote = ({ children }: { children: React.ReactNode }) => (
@@ -722,9 +734,17 @@ export default function Home() {
         </section>
 
         {/* SERVICES SECTION */}
-        {services.length > 0 && (
-          <section id="services" className="px-6 py-10 md:py-14">
-            <div className="mx-auto max-w-7xl">
+        {(services.length > 0 || skills.length > 0) && (
+          <section id="services" className="px-3 py-6 md:px-6 md:py-14">
+            <div className="md:hidden">
+              <WhatIDo
+                heading={title('whatIDo')}
+                services={(() => { const icons = iconsFor(services); return services.map((sv, i) => ({ title: sv.title, description: sv.description, Icon: icons[i] })); })()}
+                skills={skills.map((k) => ({ name: k.name, level: k.level }))}
+              />
+            </div>
+            {services.length > 0 && (
+            <div className="mx-auto hidden max-w-7xl md:block">
               <Reveal>
                 <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('services')}</h2>
               </Reveal>
@@ -752,12 +772,13 @@ export default function Home() {
                 })()}
               </div>
             </div>
+            )}
           </section>
         )}
 
-        {/* SKILLS SECTION */}
+        {/* SKILLS SECTION (larger screens; phones see it inside the "What I do" card above) */}
         {skills.length > 0 && (
-          <section id="skills" className="px-3 py-6 md:px-6 md:py-8">
+          <section id="skills" className="hidden px-3 py-6 md:block md:px-6 md:py-8">
             <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-5 py-6 md:rounded-[36px] md:px-12 md:py-10">
               <div className="home-skills-glow" aria-hidden="true" />
               <div className="relative grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">

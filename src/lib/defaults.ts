@@ -131,6 +131,7 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
   about: 'Crafting Digital Excellence',
   resume: 'My Journey',
   services: 'My Specialities',
+  whatIDo: 'What I do',
   skills: 'Technical Arsenal',
   skillsIntro: 'Skills refined through years of practical application in demanding environments.',
   testimonials: 'Kind Words',
@@ -151,7 +152,7 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
 export const SECTION_TITLE_LABELS: [string, string][] = [
   ['heroGreeting', 'Hero: greeting (before your name)'], ['heroName', 'Hero: your name (typed out)'], ['teams', 'Line above the client names'],
   ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills (last word is dimmed)'],
-  ['skillsIntro', 'Skills: short line'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['hire', 'Work with me: heading'], ['hireLead', 'Work with me: short line'],
+  ['skillsIntro', 'Skills: short line'], ['whatIDo', 'Phone card: Specialities and skills heading'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['hire', 'Work with me: heading'], ['hireLead', 'Work with me: short line'],
   ['projectsEyebrow', 'Projects: small label'], ['projects', 'Projects: heading'], ['blog', 'Blog'], ['resources', 'Digital products'],
   ['contactEyebrow', 'Contact: small label'], ['contact', 'Contact: heading'], ['contactLead', 'Contact: short line'],
 ];
