@@ -4,6 +4,7 @@ import { useSiteConfig } from '../../context/SiteConfigContext';
 import { DEFAULT_SECTION_TITLES, SECTION_TITLE_LABELS, DEFAULT_HEADER_LINKS, DEFAULT_REFUND, DEFAULT_TERMS, DEFAULT_PRIVACY_POLICY, HeaderLink, HeroStat, SocialLink } from '../../lib/defaults';
 import { changePassword, patchSettings } from '../../lib/admin';
 import { ImageField, PdfField, inputCls, labelCls } from './fields';
+import RichTextArea from './RichTextArea';
 import { friendlyError } from './forms';
 
 interface Props { onToast: (type: 'success' | 'error', message: string) => void }
@@ -187,10 +188,7 @@ export default function SettingsPanel({ onToast }: Props) {
         </Card>
 
         <Card title="About section">
-          <div>
-            <label htmlFor="s-about" className={labelCls}>About text</label>
-            <textarea id="s-about" rows={5} value={f.aboutText} onChange={(e) => set('aboutText')(e.target.value)} className={inputCls} />
-          </div>
+          <RichTextArea id="s-about" label="About text" rows={5} value={f.aboutText} onChange={set('aboutText')} />
           <div>
             <Text id="s-video" label="Intro video (YouTube link or direct .mp4 link — optional)" value={f.aboutVideoUrl} onChange={set('aboutVideoUrl')} placeholder="https://www.youtube.com/watch?v=…" />
             <p className="text-xs text-amber-300 mt-2">For an .mp4 file, export it as H.264 video + AAC audio. Other formats (for example H.265/HEVC from some phones and screen recorders) may play only the sound in many browsers.</p>
@@ -234,10 +232,7 @@ export default function SettingsPanel({ onToast }: Props) {
             <label htmlFor="s-fc-quote" className={labelCls}>Quote (keep it to one or two sentences)</label>
             <textarea id="s-fc-quote" rows={2} value={f.founderQuote} onChange={(e) => set('founderQuote')(e.target.value)} maxLength={160} className={inputCls} />
           </div>
-          <div>
-            <label htmlFor="s-fc-story" className={labelCls}>Your story (leave a blank line between paragraphs)</label>
-            <textarea id="s-fc-story" rows={9} value={f.founderStory} onChange={(e) => set('founderStory')(e.target.value)} maxLength={2500} className={inputCls} />
-          </div>
+          <RichTextArea id="s-fc-story" label="Your story (leave a blank line between paragraphs)" rows={9} maxLength={3500} value={f.founderStory} onChange={set('founderStory')} />
           <div className="grid sm:grid-cols-2 gap-6">
             <Text id="s-fc-cta" label="Popup button text (empty = no button)" value={f.founderCtaText} onChange={set('founderCtaText')} maxLength={40} />
             <Text id="s-fc-ctaurl" label="Popup button link" value={f.founderCtaUrl} onChange={set('founderCtaUrl')} placeholder="/#contact" />
@@ -247,8 +242,7 @@ export default function SettingsPanel({ onToast }: Props) {
         <Card title="Legal pages" hint="Plain text. The Privacy Policy starts from a short, accurate description of what this site collects — please review it.">
           {([['termsOfService', 'Terms of Service', DEFAULT_TERMS], ['privacyPolicy', 'Privacy Policy', DEFAULT_PRIVACY_POLICY], ['refundPolicy', 'Refund Policy', DEFAULT_REFUND]] as const).map(([key, label, fallback]) => (
             <div key={key}>
-              <label htmlFor={`s-${key}`} className={labelCls}>{label}</label>
-              <textarea id={`s-${key}`} rows={7} value={f[key]} onChange={(e) => set(key)(e.target.value)} className={inputCls} />
+              <RichTextArea id={`s-${key}`} label={label} rows={7} value={f[key]} onChange={set(key)} />
               <button type="button" className="text-xs text-gray-400 underline mt-1" onClick={() => set(key)(fallback)}>Restore the starting text</button>
             </div>
           ))}

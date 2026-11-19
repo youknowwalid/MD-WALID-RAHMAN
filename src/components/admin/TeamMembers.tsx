@@ -5,6 +5,7 @@ import { TEAM_QUOTE_MAX, TeamMember } from '../../lib/defaults';
 import { patchSettings } from '../../lib/admin';
 import { ImageField, inputCls, labelCls } from './fields';
 import { friendlyError } from './forms';
+import RichTextArea from './RichTextArea';
 
 interface Props { onToast: (type: 'success' | 'error', message: string) => void }
 
@@ -86,8 +87,7 @@ export default function TeamMembers({ onToast }: Props) {
               </div>
             </div>
             <div>
-              <label htmlFor={`team-quote-${i}`} className={labelCls}>Short line (shown in up to 3 lines)</label>
-              <textarea id={`team-quote-${i}`} rows={3} value={row.quote} onChange={(e) => patch(i, { quote: e.target.value })} className={inputCls} maxLength={TEAM_QUOTE_MAX} placeholder="What this person does and how they help your clients." />
+              <RichTextArea id={`team-quote-${i}`} label="Short line (shown in up to 3 lines)" rows={3} value={row.quote} onChange={(t) => patch(i, { quote: t })} maxLength={TEAM_QUOTE_MAX} placeholder="What this person does and how they help your clients." />
               <p className="text-xs text-gray-400 mt-1">{row.quote.length}/{TEAM_QUOTE_MAX} characters</p>
             </div>
             <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">

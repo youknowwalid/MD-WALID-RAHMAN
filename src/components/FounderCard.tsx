@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, X } from 'lucide-react';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { safeUrl } from '../lib/text';
+import { RichText } from './RichText';
 
 /** The founder's photo, or his first initial while no photo has been uploaded. It fills whatever box it is put in. */
 function Portrait({ src, name }: { src: string; name: string }) {
@@ -25,7 +26,6 @@ function StoryPopup({ onClose }: { onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   // The popup is drawn straight into <body>, outside the home page wrapper, so it brings its own font and accent there.
   const onHome = typeof document !== 'undefined' && !!document.querySelector('.home-v2');
-  const paragraphs = config.founderStory.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   const ctaUrl = safeUrl(config.founderCtaUrl);
 
   useEffect(() => {
@@ -87,9 +87,7 @@ function StoryPopup({ onClose }: { onClose: () => void }) {
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-accent">{config.founderLabel}</p>
           <h2 id="founder-story-title" className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">{config.founderName}</h2>
           {config.founderRole && <p className="mt-1 text-sm text-white/60">{config.founderRole}</p>}
-          <div className="mt-5 space-y-4 text-[15px] leading-relaxed text-white/75">
-            {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
-          </div>
+          <RichText text={config.founderStory} className="mt-5 text-[15px] leading-relaxed text-white/75" />
           {ctaUrl && config.founderCtaText && (
             <div className="mt-7">
               {ctaUrl.startsWith('/') ? (

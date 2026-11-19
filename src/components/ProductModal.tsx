@@ -7,6 +7,7 @@ import { Product } from '../types';
 import { safeUrl } from '../lib/text';
 import { Link } from 'react-router-dom';
 import { editionOf } from '../lib/payments';
+import { RichText } from './RichText';
 
 interface ProductModalProps {
   product: Product;
@@ -266,7 +267,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
             <div id={`product-details-${product.id}`} className={cn(detailsOpen ? 'block' : 'hidden', 'pb-2 md:block')}>
               <h3 className="mb-2 hidden text-xs font-semibold uppercase tracking-wider text-neutral-400 md:block">Overview & Value</h3>
-              <p className="mb-5 whitespace-pre-wrap text-sm leading-relaxed text-neutral-300">{product.description}</p>
+              <RichText text={product.description} className="mb-5 text-sm leading-relaxed text-neutral-300" />
               <div className="space-y-2 rounded-xl border border-white/5 bg-neutral-900/20 p-4">
                 <div className="flex items-start gap-2.5 text-xs text-neutral-400">
                   <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />

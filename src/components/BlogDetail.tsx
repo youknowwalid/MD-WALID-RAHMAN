@@ -6,6 +6,8 @@ import { ArrowLeft, Calendar, User, Clock, Share2, Facebook, Linkedin, Twitter }
 import { getRow } from '../lib/api';
 import { normalizeBlogPost } from '../lib/schema-defaults';
 import { parseContent, readingMinutes } from '../lib/text';
+import { RichInline } from './RichText';
+import { splitAlign } from '../lib/richtext';
 import { BlogPost } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -133,13 +135,13 @@ export default function BlogDetail() {
                 {blocks.length === 0 && <p>Content coming soon...</p>}
                 {blocks.map((b, i) =>
                   b.type === 'h' ? (
-                    b.level - baseLevel + 2 <= 2 ? <h2 key={i} className="text-3xl font-semibold mt-10">{b.text}</h2>
-                    : b.level - baseLevel + 2 === 3 ? <h3 key={i} className="text-2xl font-semibold mt-8">{b.text}</h3>
-                    : <h4 key={i} className="text-xl font-bold mt-6">{b.text}</h4>
+                    b.level - baseLevel + 2 <= 2 ? <h2 key={i} className="text-3xl font-semibold mt-10"><RichInline text={b.text} /></h2>
+                    : b.level - baseLevel + 2 === 3 ? <h3 key={i} className="text-2xl font-semibold mt-8"><RichInline text={b.text} /></h3>
+                    : <h4 key={i} className="text-xl font-bold mt-6"><RichInline text={b.text} /></h4>
                   ) : b.type === 'ul' ? (
-                    <ul key={i} className="list-disc pl-6 space-y-2">{b.items.map((it, j) => <li key={j}>{it}</li>)}</ul>
+                    <ul key={i} className="list-disc pl-6 space-y-2">{b.items.map((it, j) => <li key={j}><RichInline text={it} /></li>)}</ul>
                   ) : (
-                    <p key={i} className="whitespace-pre-wrap">{b.text}</p>
+                    <p key={i} style={splitAlign(b.text).align ? { textAlign: splitAlign(b.text).align } : undefined} className="whitespace-pre-wrap"><RichInline text={splitAlign(b.text).text} /></p>
                   ),
                 )}
               </article>

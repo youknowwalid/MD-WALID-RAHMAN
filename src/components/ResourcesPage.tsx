@@ -8,6 +8,8 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import ProductModal from './ProductModal';
 import Photo from './Photo';
+import { RichClamp } from './RichText';
+import { stripFormatting } from '../lib/richtext';
 
 export default function ResourcesPage() {
   const { products, loading } = useProducts();
@@ -19,7 +21,7 @@ export default function ResourcesPage() {
   // Filter based on search query
   const filteredProducts = products.filter(product => {
     const q = searchQuery.toLowerCase();
-    return product.title.toLowerCase().includes(q) || product.description.toLowerCase().includes(q) || (product.shortTitle || '').toLowerCase().includes(q);
+    return product.title.toLowerCase().includes(q) || stripFormatting(product.description).toLowerCase().includes(q) || (product.shortTitle || '').toLowerCase().includes(q);
   });
 
   return (
@@ -162,9 +164,7 @@ export default function ResourcesPage() {
                       <h2 className="text-lg md:text-xl font-semibold tracking-tight text-text-main mb-3 group-hover:text-[color-mix(in_srgb,var(--color-accent)_55%,#000)] transition-colors duration-300 leading-tight">
                         {product.title}
                       </h2>
-                      <p className="text-gray-400 text-xs md:text-sm line-clamp-3 leading-relaxed mb-6">
-                        {product.description}
-                      </p>
+                      <RichClamp text={product.description} className="text-gray-400 text-xs md:text-sm line-clamp-3 leading-relaxed mb-6" />
                     </div>
 
                     <div className="border-t border-border-subtle pt-4 flex items-center justify-between">

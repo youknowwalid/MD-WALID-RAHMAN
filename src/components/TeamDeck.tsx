@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Photo from './Photo';
+import { RichClamp } from './RichText';
 import { TeamMember } from '../lib/defaults';
 
 const initial = (name: string) => name.trim().charAt(0).toUpperCase() || '?';
@@ -24,7 +25,7 @@ function Details({ m }: { m: TeamMember }) {
     <>
       <div className="text-[1.5rem] font-medium leading-tight tracking-[-0.03em] text-text-main md:text-[1.75rem]">{m.name}</div>
       {m.role && <div className="mt-0.5 text-[14px] text-text-muted">{m.role}</div>}
-      {m.quote && <p className="mt-4 line-clamp-3 min-h-[4.5rem] text-[15px] leading-[1.6] text-[#2d3440]">{m.quote}</p>}
+      {m.quote && <RichClamp text={m.quote} className="mt-4 line-clamp-3 min-h-[4.5rem] text-[15px] leading-[1.6] text-[#2d3440]" />}
     </>
   );
 }

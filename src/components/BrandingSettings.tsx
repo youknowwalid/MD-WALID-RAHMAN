@@ -93,7 +93,7 @@ export const BrandingSettings: React.FC<{ onBack?: () => void; onToast?: (type: 
   return (
     <form onSubmit={save} className="space-y-8 max-w-5xl">
       <div className="flex justify-between items-center gap-4 bg-bg-card p-4 sm:p-6 rounded-2xl border border-white/5 flex-wrap">
-        <p className="text-sm text-gray-300">The <b>Home page accent</b> below colors the home page. The accent style and secondary color color every other page (projects, blog, shop, checkout) and this admin. Click Save to publish.</p>
+        <p className="text-sm text-gray-300">The <b>Home page accent</b> below colors the home page. The accent style and secondary color color every other page (projects, blog, shop, checkout). This admin always wears the Home page accent and the Inter Tight font. Click Save to publish.</p>
         <div className="flex gap-3">
           {dirty && <button type="button" onClick={discard} className="px-5 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-300 hover:bg-white/5">Discard</button>}
           <button type="submit" disabled={saving || !dirty} className="bg-accent text-white font-black px-6 py-2.5 rounded-xl flex items-center gap-2 disabled:opacity-50">

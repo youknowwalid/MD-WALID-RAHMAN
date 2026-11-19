@@ -2,6 +2,7 @@ import { ArrowUpRight, Check, Handshake, Layers } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { safeUrl } from '../lib/text';
 import type { HireOffer } from '../lib/defaults';
+import { RichText } from './RichText';
 
 /** "Work with me": two ways to hire, edited from the admin "Hire" tab. */
 export default function WorkWithMe({ offers, heading, lead }: { offers: HireOffer[]; heading: string; lead: string }) {
@@ -57,7 +58,7 @@ export default function WorkWithMe({ offers, heading, lead }: { offers: HireOffe
                 </div>
 
                 <h3 className="mt-6 text-[1.6rem] font-medium leading-tight tracking-[-0.03em] md:text-[2rem]">{o.name}</h3>
-                {o.description && <p className="mt-3 text-[15px] leading-relaxed text-text-muted md:text-[16px]">{o.description}</p>}
+                {o.description && <RichText text={o.description} className="mt-3 text-[15px] leading-relaxed text-text-muted md:text-[16px]" />}
 
                 {features.length > 0 && (
                   <ul className="mt-6 space-y-3">

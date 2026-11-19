@@ -648,3 +648,33 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
     font-size: max(16px, 1em);
   }
 }
+
+
+/* ============================================================================
+   ADMIN PANEL
+   Wears the same brand as the home page: lime accent (the Home accent chosen in
+   Branding Colors), ink surfaces and the Inter Tight typeface. Unlayered on purpose,
+   so these rules beat the Tailwind utilities used all over the admin screens.
+   ========================================================================== */
+.admin-v2 {
+  --color-bg-dark: #0d1117;
+  --color-bg-card: #151b24;
+  --color-text-main: #ffffff;
+  --color-text-muted: #a0a8b6;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  font-family: var(--font-tight);
+  color: #ffffff;
+  background: #0d1117;
+  min-height: 100vh;
+}
+.admin-v2 button,
+.admin-v2 input,
+.admin-v2 textarea,
+.admin-v2 select { font-family: inherit; }
+/* Inter Tight is loaded in 400 to 700, so the heaviest weights are set to its semibold, like the home headings. */
+.admin-v2 .font-black,
+.admin-v2 .font-bold { font-weight: 600; }
+.admin-v2 .font-black { letter-spacing: -0.02em; }
+/* Dark ink on the lime accent (the buttons were built for a dark orange). */
+.admin-v2 .bg-accent { color: #0d1117; }
+.admin-v2 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

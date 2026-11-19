@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, FileText, RotateCcw } from 'lucide-react';
 import { useSiteConfig, SiteConfig } from '../context/SiteConfigContext';
+import { RichText } from './RichText';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import Seo from './Seo';
@@ -36,7 +37,7 @@ export default function PolicyPage({ kind }: { kind: PolicyKind }) {
         </div>
 
         <div className="bg-bg-card border border-border-subtle rounded-3xl p-6 md:p-10 shadow-xl">
-          <div className="text-text-muted text-sm md:text-base leading-relaxed whitespace-pre-wrap ">{text}</div>
+          <RichText text={text} className="text-text-muted text-sm md:text-base leading-relaxed" />
         </div>
       </main>
       <Footer />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { stripFormatting } from '../lib/richtext';
 
 export interface WhatIDoService { title: string; description: string; Icon: React.ComponentType<{ className?: string }> }
 export interface WhatIDoSkill { name: string; level: number }
@@ -67,7 +68,7 @@ export default function WhatIDo({ heading, services, skills }: { heading: string
                 </span>
                 <div className="min-w-0">
                   <h3 className="m-0 truncate text-[14px] font-medium leading-tight">{s.title}</h3>
-                  <div className="mt-0.5 truncate text-[12px] leading-tight text-white/70">{s.description}</div>
+                  <div className="mt-0.5 truncate text-[12px] leading-tight text-white/70">{stripFormatting(s.description)}</div>
                 </div>
               </div>
             ))
