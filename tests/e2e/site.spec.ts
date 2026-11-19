@@ -146,6 +146,7 @@ test.describe('public site (connected)', () => {
   });
 
   test('contact form: bots (honeypot / too fast) are silently dropped', async ({ page, request }) => {
+    await page.clock.setFixedTime(new Date('2026-01-01T00:00:00Z')); // frozen clock: no time passes, however slow the machine is
     await page.goto(CONNECTED + '/#contact');
     await page.getByLabel('Name', { exact: true }).fill('Bot');
     await page.getByLabel('Email', { exact: true }).fill('bot@example.com');
