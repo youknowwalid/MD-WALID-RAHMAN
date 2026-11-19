@@ -102,7 +102,7 @@ export default function Navbar() {
           'mx-auto flex max-w-7xl items-center justify-between transition-all duration-300',
           styled && 'rounded-full border px-4 py-2.5 md:px-5 md:py-3',
           styled && onSky && 'border-white/30 bg-white/15 backdrop-blur-xl',
-          styled && !onSky && 'border-[#0d1117]/10 bg-white/90 shadow-[0_14px_40px_-22px_rgba(13,17,23,0.45)] backdrop-blur-xl',
+          styled && !onSky && 'border-[#0d1117]/10 bg-white shadow-[0_14px_40px_-22px_rgba(13,17,23,0.45)] md:bg-white/90 md:backdrop-blur-xl',
         )}
       >
         <Link to="/" className="flex min-h-11 min-w-11 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>

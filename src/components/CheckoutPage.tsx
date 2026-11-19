@@ -9,7 +9,7 @@ import {
   EDITIONS, PRICE_BDT, SUPPORT_EMAIL, WALLETS, WalletId, editionOf, formatBdt, isEdition, submitErrorMessage, submitOrder,
 } from '../lib/payments';
 
-const field = 'w-full bg-bg-card border border-border-subtle rounded-xl px-4 py-3.5 text-base text-text-main placeholder:text-text-muted focus:border-accent outline-none transition-colors';
+const field = 'w-full min-h-12 bg-white border border-border-subtle rounded-xl px-4 py-3.5 text-base text-text-main placeholder:text-text-muted focus:border-accent outline-none transition-colors';
 const label = 'block text-sm font-semibold text-text-main mb-2';
 
 function CopyButton({ value, name }: { value: string; name: string }) {
@@ -35,7 +35,7 @@ function CopyButton({ value, name }: { value: string; name: string }) {
     <button
       type="button"
       onClick={copy}
-      className="shrink-0 flex items-center gap-2 bg-accent text-black font-semibold text-sm px-4 min-h-11 rounded-xl hover:opacity-90 transition-opacity"
+      className="flex w-full items-center justify-center gap-2 bg-accent text-black font-semibold text-[15px] px-5 min-h-12 rounded-xl hover:opacity-90 transition-opacity sm:w-auto sm:shrink-0"
       aria-label={`Copy ${name} number`}
     >
       {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Copy className="w-4 h-4" aria-hidden="true" />}
@@ -99,23 +99,23 @@ export default function CheckoutPage() {
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">Checkout</h1>
         <p className="text-text-muted mb-8">{title}</p>
 
-        <div className="bg-bg-card border border-border-subtle rounded-3xl p-6 sm:p-8 mb-6">
+        <div className="mb-10 sm:mb-6 sm:bg-bg-card sm:border sm:border-border-subtle sm:rounded-3xl sm:p-8">
           <div className="flex items-baseline justify-between gap-4 mb-6">
             <span className="text-sm font-semibold text-text-main">Amount to send</span>
-            <span className="text-3xl font-semibold text-accent font-mono">{formatBdt(PRICE_BDT)}</span>
+            <span className="text-3xl font-semibold tracking-tight text-text-main tabular-nums">{formatBdt(PRICE_BDT)}</span>
           </div>
 
-          <h2 className="text-lg font-semibold mb-1"><span className="text-accent">1.</span> Send the money</h2>
+          <h2 className="mb-2 flex items-center gap-3 text-lg font-semibold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-[15px] text-[#0d1117]" aria-hidden="true">1</span>Send the money</h2>
           <p className="text-sm text-text-muted mb-5">
             Open your bKash or Nagad app, choose <strong className="text-text-main">Send Money</strong> (not Payment or Cash Out), and send exactly{' '}
             <strong className="text-text-main">{formatBdt(PRICE_BDT)}</strong> to one of these numbers.
           </p>
           <ul className="space-y-3 mb-2">
             {WALLETS.map((w) => (
-              <li key={w.id} className="flex items-center justify-between gap-3 bg-bg-card border border-border-subtle rounded-2xl p-4">
+              <li key={w.id} className="flex flex-col gap-3 bg-bg-card border border-border-subtle rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <p className="text-xs uppercase tracking-widest text-text-muted font-bold">{w.name} · Send Money</p>
-                  <p className="text-xl sm:text-2xl font-semibold font-mono tracking-wide text-text-main select-all" data-testid={`wallet-${w.id}`}>{w.number}</p>
+                  <p className="text-xs uppercase tracking-wider text-text-muted font-bold">{w.name} · Send Money</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums tracking-wide text-text-main select-all" data-testid={`wallet-${w.id}`}>{w.number}</p>
                 </div>
                 <CopyButton value={w.number} name={w.name} />
               </li>
@@ -124,8 +124,8 @@ export default function CheckoutPage() {
           <p className="text-xs text-text-muted">After sending, you will get an SMS from the app with a <strong className="text-text-main">Transaction ID (TrxID)</strong>. You need it for the next step.</p>
         </div>
 
-        <form onSubmit={submit} className="bg-bg-card border border-border-subtle rounded-3xl p-6 sm:p-8" noValidate>
-          <h2 className="text-lg font-semibold mb-1"><span className="text-accent">2.</span> Confirm your payment</h2>
+        <form onSubmit={submit} className="sm:bg-bg-card sm:border sm:border-border-subtle sm:rounded-3xl sm:p-8" noValidate>
+          <h2 className="mb-2 flex items-center gap-3 text-lg font-semibold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-[15px] text-[#0d1117]" aria-hidden="true">2</span>Confirm your payment</h2>
           <p className="text-sm text-text-muted mb-6">We check your payment automatically, usually within a minute, and you can download the book right away.</p>
 
           <div className="space-y-5">
@@ -138,7 +138,7 @@ export default function CheckoutPage() {
               <legend className={label}>Which wallet did you pay with?</legend>
               <div className="grid grid-cols-2 gap-3">
                 {WALLETS.map((w) => (
-                  <label key={w.id} className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold cursor-pointer transition-colors ${wallet === w.id ? 'border-accent bg-accent/10 text-text-main' : 'border-border-subtle text-text-main hover:border-white/30'}`}>
+                  <label key={w.id} className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-[15px] font-bold cursor-pointer transition-colors ${wallet === w.id ? 'border-accent bg-accent/10 text-text-main' : 'border-border-subtle text-text-main hover:border-white/30'}`}>
                     <input type="radio" name="wallet" value={w.id} checked={wallet === w.id} onChange={() => setWallet(w.id)} className="h-5 w-5 accent-accent" />
                     {w.name}
                   </label>
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
 
             <div>
               <label htmlFor="co-trx" className={label}>Transaction ID (TrxID) from the {selected.name} SMS</label>
-              <input id="co-trx" autoCapitalize="characters" autoCorrect="off" spellCheck={false} autoComplete="off" required value={trxId} onChange={(e) => setTrxId(e.target.value)} placeholder="e.g. 8N7A6D5CQ" className={`${field} font-mono uppercase`} />
+              <input id="co-trx" autoCapitalize="characters" autoCorrect="off" spellCheck={false} autoComplete="off" required value={trxId} onChange={(e) => setTrxId(e.target.value)} placeholder="e.g. 8N7A6D5CQ" className={`${field} uppercase placeholder:normal-case`} />
             </div>
 
             {/* Spam trap: invisible to people, tempting to bots. */}
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-6 flex items-center justify-center gap-3 w-full bg-accent hover:opacity-90 disabled:opacity-60 text-black font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all"
+            className="mt-6 flex items-center justify-center gap-3 w-full min-h-14 bg-accent hover:opacity-90 disabled:opacity-60 text-black font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all"
           >
             {busy && <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />}
             {busy ? 'Checking…' : "I've paid, verify my payment"}
