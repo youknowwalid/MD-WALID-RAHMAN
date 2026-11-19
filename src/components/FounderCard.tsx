@@ -42,7 +42,8 @@ function StoryPopup({ onClose }: { onClose: () => void }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { onClose(); return; }
       if (e.key !== 'Tab' || !dialogRef.current) return;
-      const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
+      const items: HTMLElement[] = [];
+      dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE).forEach((el) => items.push(el));
       if (items.length === 0) return;
       const first = items[0];
       const last = items[items.length - 1];
