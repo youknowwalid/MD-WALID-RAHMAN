@@ -353,7 +353,8 @@ test.describe('logos and intro video', () => {
     await page.goto(CONNECTED + '/');
     const card = page.locator('#services .home-on-dark');
     await card.scrollIntoViewIfNeeded();
-    await expect(card.getByRole('heading', { name: 'What I Can Do for Your Business' })).toBeVisible();
+    await expect(page.locator('#services').getByRole('heading', { name: 'What I Can Do for Your Business' })).toBeVisible();
+    await expect(card.getByRole('heading')).toHaveCount(0); // the title sits above the dark box, like the other section titles
     await expect(page.locator('#skills')).toHaveCount(0); // the old Specialities and Skills sections are gone
     await expect(page.getByRole('heading', { name: 'My Specialities' })).toHaveCount(0);
     const tabs = card.getByRole('tab');

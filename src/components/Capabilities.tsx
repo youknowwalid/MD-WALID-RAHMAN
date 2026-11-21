@@ -23,14 +23,15 @@ export default function Capabilities({ heading, eyebrow, groups }: { heading: st
   };
 
   return (
-    <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-3.5 pb-4 pt-[18px] text-white md:rounded-[36px] md:px-10 md:pb-6 md:pt-[22px]">
-      <div className="home-skills-glow" aria-hidden="true" />
-      <div className="relative flex items-baseline justify-between gap-4">
-        <h2 className="text-[1.5rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[1.75rem]">{heading}</h2>
-        {eyebrow && <span className="hidden text-[13px] tracking-[0.02em] text-white/60 md:block">{eyebrow}</span>}
+    <div className="mx-auto max-w-[1400px]">
+      <div className="mx-auto mb-5 flex max-w-7xl items-baseline justify-between gap-4 md:mb-6">
+        <h2 className="text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{heading}</h2>
+        {eyebrow && <span className="hidden text-[14px] tracking-[0.02em] text-text-muted md:block">{eyebrow}</span>}
       </div>
+    <div className="home-on-dark relative overflow-hidden rounded-[28px] bg-[#0d1117] px-3.5 py-3.5 text-white md:rounded-[36px] md:px-6 md:py-5">
+      <div className="home-skills-glow" aria-hidden="true" />
 
-      <div role="tablist" aria-label={heading} onKeyDown={onKey} className="relative mt-3 flex gap-1 rounded-full bg-white/[0.08] p-1 md:mt-3.5">
+      <div role="tablist" aria-label={heading} onKeyDown={onKey} className="relative flex gap-1 rounded-full bg-white/[0.08] p-1">
         {groups.map((g, i) => {
           const Icon = ICONS[i % ICONS.length];
           return (
@@ -76,6 +77,7 @@ export default function Capabilities({ heading, eyebrow, groups }: { heading: st
           );
         })}
       </div>
+    </div>
     </div>
   );
 }
