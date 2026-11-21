@@ -2,7 +2,7 @@ import { expect, test, Locator, Page } from '@playwright/test';
 /** The sample database starts with the admin's projects switch on (the default). */
 const PROJECTS_HIDDEN = true;
 import AxeBuilder from '@axe-core/playwright';
-import { DEFAULT_HIRE_OFFERS } from '../../src/lib/defaults';
+import { DEFAULT_CAPABILITY_GROUPS, DEFAULT_HIRE_OFFERS } from '../../src/lib/defaults';
 
 const CONNECTED = 'http://127.0.0.1:4174';
 const PLAIN = 'http://127.0.0.1:4175';
@@ -349,34 +349,40 @@ test.describe('logos and intro video', () => {
     await expect(page.getByRole('button', { name: 'Open menu' }).locator('svg.lucide-menu')).toHaveCount(1);
   });
 
-  test('phones: one "What I do" card with three items per tab, the same height on both tabs', async ({ page }) => {
-    await page.route('**/rest/v1/services*', (route) => route.fulfill({ json: fakeRows(6, (i) => ({ display_id: `0${i}`, title: `Service ${i}`, description: 'A long description that must be cut to a single line so no row grows taller than the others.', icon_name: 'Palette' })) }));
-    await page.route('**/rest/v1/skills*', (route) => route.fulfill({ json: fakeRows(8, (i) => ({ name: `Skill number ${i}`, level: 60 + i * 3 })) }));
+  test('"What I can do": category tabs with small chips, one compact card, a chip only highlights', async ({ page }) => {
     await page.goto(CONNECTED + '/');
-    if (!isPhone(page)) {
-      await expect(page.getByRole('tablist')).toHaveCount(0); // larger screens keep the two full sections
-      await expect(page.locator('#skills')).toBeVisible();
-      await expect(page.getByRole('heading', { name: 'My Specialities' })).toBeVisible();
-      return;
-    }
-    await expect(page.locator('#skills')).toBeHidden();
     const card = page.locator('#services .home-on-dark');
-    const rows = page.locator('#whatido-panel > div');
-    await expect(rows).toHaveCount(3);
-    const closed = (await card.boundingBox())!.height;
-    for (const row of await rows.all()) expect(Math.round((await row.boundingBox())!.height)).toBe(60);
-    await page.getByRole('tab', { name: 'Skills' }).click();
-    await expect(rows).toHaveCount(3);
-    await expect(rows.first()).toContainText('Skill number 7'); // highest levels first
-    expect(Math.abs((await card.boundingBox())!.height - closed)).toBeLessThanOrEqual(1); // same height on both tabs
-    await page.getByRole('button', { name: 'Show all 8 skills' }).click();
-    await expect(rows).toHaveCount(8);
-    expect((await card.boundingBox())!.height).toBeGreaterThan(closed + 200);
-    await page.getByRole('button', { name: 'Show fewer skills' }).click();
-    await expect(rows).toHaveCount(3);
-    await page.getByRole('tab', { name: 'Specialities' }).click();
-    await page.getByRole('button', { name: 'Show all 6 specialities' }).click();
-    await expect(rows).toHaveCount(6);
+    await card.scrollIntoViewIfNeeded();
+    await expect(card.getByRole('heading', { name: 'What I Can Do for Your Business' })).toBeVisible();
+    await expect(page.locator('#skills')).toHaveCount(0); // the old Specialities and Skills sections are gone
+    await expect(page.getByRole('heading', { name: 'My Specialities' })).toHaveCount(0);
+    const tabs = card.getByRole('tab');
+    await expect(tabs).toHaveCount(3);
+    const chips = card.getByRole('tabpanel').getByRole('button');
+    await expect(chips).toHaveCount(4);
+    await expect(chips.first()).toHaveText('Brand Identity & Development');
+    const heights: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      await tabs.nth(i).click();
+      await expect(tabs.nth(i)).toHaveAttribute('aria-selected', 'true');
+      heights.push(Math.round((await card.boundingBox())!.height));
+    }
+    await expect(chips).toHaveCount(3); // Creative & Content
+    await tabs.nth(1).click();
+    await expect(chips).toHaveCount(5); // Technology & Product
+    const compact = isPhone(page) ? 250 : 230;
+    for (const h of heights) expect(h).toBeLessThanOrEqual(compact);
+    if (isPhone(page)) expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1); // same height on every tab
+    // a chip only highlights: nothing opens and the address stays the same
+    const url = page.url();
+    await chips.first().click();
+    await expect(chips.first()).toHaveAttribute('aria-pressed', 'true');
+    await chips.nth(1).click();
+    await expect(chips.first()).toHaveAttribute('aria-pressed', 'false');
+    await expect(chips.nth(1)).toHaveAttribute('aria-pressed', 'true');
+    await chips.nth(1).click();
+    await expect(chips.nth(1)).toHaveAttribute('aria-pressed', 'false');
+    expect(page.url()).toBe(url);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
@@ -671,6 +677,21 @@ test.describe('admin panel', () => {
     await expect(page.locator('#hire').getByRole('heading', { name: 'Brand Sprint' })).toBeVisible();
     await expect(page.locator('#hire').getByRole('link', { name: 'Start the sprint' })).toBeVisible();
     await request.post(`${API}/__seed-settings`, { data: { key: 'global', value: { hireOffers: DEFAULT_HIRE_OFFERS } } });
+  });
+
+  test('admin: edit the "What I Can Do" chips and see them on the site', async ({ page, request }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'What I Can Do' }).click();
+    await page.getByLabel('Chips (one line per chip)').first().fill('Brand Naming\nBrand Voice');
+    await page.getByLabel('Tab name').first().fill('Brand Work');
+    await page.getByRole('button', { name: /Save & Publish/ }).click();
+    await expect(page.getByText('What I Can Do saved and published.')).toBeVisible();
+    await page.goto(CONNECTED + '/');
+    const card = page.locator('#services .home-on-dark');
+    await expect(card.getByRole('tab', { name: page.viewportSize()!.width < 768 ? 'Brand' : 'Brand Work' })).toBeVisible();
+    await expect(card.getByRole('button', { name: 'Brand Naming' })).toBeVisible();
+    await expect(card.getByRole('button', { name: 'Brand Voice' })).toBeVisible();
+    await request.post(`${API}/__seed-settings`, { data: { key: 'global', value: { capabilityGroups: DEFAULT_CAPABILITY_GROUPS } } });
   });
 
   test('create, edit and delete a project; changes appear on the public site', async ({ page }) => {

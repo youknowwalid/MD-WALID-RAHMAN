@@ -23,6 +23,13 @@ export const DEFAULT_HIRE_OFFERS: HireOffer[] = [
     buttonText: 'Book a Call', buttonUrl: '/#contact', dark: true, hidden: false,
   },
 ];
+/** One tab of the "What I can do" card: a category name (and a shorter name for phones) with its small service chips. */
+export interface CapabilityGroup { name: string; short: string; items: string[] }
+export const DEFAULT_CAPABILITY_GROUPS: CapabilityGroup[] = [
+  { name: 'Brand & Business', short: 'Brand', items: ['Brand Identity & Development', 'Brand & Business Strategy', 'Digital Marketing & Growth', 'Business Operations & Optimization'] },
+  { name: 'Technology & Product', short: 'Technology', items: ['Web & Software Development', 'UI/UX & Product Design', 'Product Strategy & Management', 'AI & Business Automation', 'Business & Web Analytics'] },
+  { name: 'Creative & Content', short: 'Creative', items: ['Content Strategy & Production', 'Creative Design & Visual Communication', 'Digital Workflow & Productivity Solutions'] },
+];
 export interface HeroStat { value: string; unit: string; label: string }
 
 /** Branding, contact details and page texts (stored under site_settings.global). */
@@ -82,6 +89,9 @@ export interface SiteConfig {
   teamMembers: TeamMember[];
   /** The cards in the "Work with me" section (replaces the old pricing plans). */
   hireOffers: HireOffer[];
+  /** The "What I can do" card: its tabs and chips, and the small label at its top right. */
+  capabilityGroups: CapabilityGroup[];
+  capabilitiesEyebrow: string;
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
@@ -140,7 +150,7 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
   about: 'Crafting Digital Excellence',
   resume: 'My Journey',
   services: 'My Specialities',
-  whatIDo: 'What I do',
+  whatIDo: 'What I Can Do for Your Business',
   skills: 'Technical Arsenal',
   skillsIntro: 'Skills refined through years of practical application in demanding environments.',
   testimonials: 'Kind Words',
@@ -161,7 +171,7 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
 export const SECTION_TITLE_LABELS: [string, string][] = [
   ['heroGreeting', 'Hero: greeting (before your name)'], ['heroName', 'Hero: your name (typed out)'], ['teams', 'Line above the client names'],
   ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills (last word is dimmed)'],
-  ['skillsIntro', 'Skills: short line'], ['whatIDo', 'Phone card: Specialities and skills heading'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['hire', 'Work with me: heading'], ['hireLead', 'Work with me: short line'],
+  ['skillsIntro', 'Skills: short line'], ['whatIDo', 'What I can do: heading'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['hire', 'Work with me: heading'], ['hireLead', 'Work with me: short line'],
   ['projectsEyebrow', 'Projects: small label'], ['projects', 'Projects: heading'], ['blog', 'Blog'], ['resources', 'Digital products'],
   ['contactEyebrow', 'Contact: small label'], ['contact', 'Contact: heading'], ['contactLead', 'Contact: short line'],
 ];
@@ -223,6 +233,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
   projectsHidden: true,
   teamMembers: [],
   hireOffers: DEFAULT_HIRE_OFFERS,
+  capabilityGroups: DEFAULT_CAPABILITY_GROUPS,
+  capabilitiesEyebrow: 'Services & Solutions',
 };
 
 export const DEFAULT_HERO: HeroConfig = {

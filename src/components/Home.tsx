@@ -2,23 +2,21 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { m, useInView, useReducedMotion } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Laptop, Braces, Palette, Megaphone, ArrowUpRight, ArrowUp,
-  Mail, Phone, MapPin, Loader2, Layers, PenTool, Compass, Sparkles,
-  Camera, Code, Globe, LineChart, Rocket, Target, Video, ShoppingBag, Smartphone, Search, Briefcase, Lightbulb,
+  ArrowUpRight, ArrowUp, Mail, Phone, MapPin, Loader2,
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
 import { listRows, submitContact } from '../lib/api';
 import { backendConfigured } from '../lib/config';
-import { DEFAULT_SECTION_TITLES, FALLBACK_RESUME, FALLBACK_SERVICES } from '../lib/defaults';
+import { DEFAULT_SECTION_TITLES, FALLBACK_RESUME } from '../lib/defaults';
 import {
-  normalizeProject, normalizeBlogPost, normalizeService,
+  normalizeProject, normalizeBlogPost,
   normalizeTestimonial, normalizeResumeItem,
 } from '../lib/schema-defaults';
 import { safeUrl } from '../lib/text';
 import { useProducts } from '../lib/products';
 import { useSiteConfig } from '../context/SiteConfigContext';
-import { Project, BlogPost, Service, Skill, Testimonial, ResumeItem } from '../types';
+import { Project, BlogPost, Testimonial, ResumeItem } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { RichClamp, RichText } from './RichText';
@@ -29,15 +27,8 @@ import Seo from './Seo';
 import ProjectsLocked from './ProjectsLocked';
 import TeamDeck from './TeamDeck';
 import AutoCarousel from './AutoCarousel';
-import WhatIDo from './WhatIDo';
+import Capabilities from './Capabilities';
 import WorkWithMe from './WorkWithMe';
-
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles,
-  Camera, Code, Globe, LineChart, Rocket, Target, Video, ShoppingBag, Smartphone, Search, Briefcase, Lightbulb,
-};
-// Used when two services would otherwise share the same icon.
-const ICON_POOL = [Palette, Braces, Megaphone, Laptop, Layers, PenTool, Compass, Sparkles];
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -137,17 +128,6 @@ const statLabel = (stat: { unit?: string; label: string }) => {
   const unit = (stat.unit || '').trim();
   if (!unit) return stat.label;
   return `${/^yrs?\.?$/i.test(unit) ? 'Years' : unit} ${stat.label}`;
-};
-
-/** One icon per service, never the same one twice (the admin's choice first). */
-const iconsFor = (services: Service[]) => {
-  const used = new Set<React.ComponentType<{ className?: string }>>();
-  return services.map((service, i) => {
-    let Icon = ICON_MAP[service.iconName || ''] || ICON_POOL[i % ICON_POOL.length];
-    if (used.has(Icon)) Icon = ICON_POOL.find((c) => !used.has(c)) || Icon;
-    used.add(Icon);
-    return Icon;
-  });
 };
 
 const EmptyNote = ({ children }: { children: React.ReactNode }) => (
@@ -265,12 +245,10 @@ const MIN_FILL_MS = 3000;
 /** Home-page lists. Cards only need a few columns, so the long article/case-study text is not downloaded here. */
 const loadHomeData = () => Promise.all([
   listRows('projects', ['id', 'slug', 'title', 'category', 'image', 'published']),
-  listRows('services'),
   // Only the newest few: the full list lives on the /articles page, so the home page stays small however many are published.
   listRows('blogPosts', ['id', 'slug', 'title', 'date', 'excerpt', 'image'], 5),
   listRows('resume'),
   listRows('testimonials'),
-  listRows('skills'),
 ]);
 
 // Started as soon as the script loads (when the visit begins on the home page), in parallel with the settings
@@ -287,10 +265,7 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   // Built-in content is only for sites with no database; with one, nothing is shown until the real content arrives.
   const [loaded, setLoaded] = useState(!backendConfigured);
-  const [services, setServices] = useState<Service[]>(backendConfigured ? [] : FALLBACK_SERVICES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [showAllSkills, setShowAllSkills] = useState(false);
   const [resume, setResume] = useState<ResumeItem[]>(backendConfigured ? [] : FALLBACK_RESUME);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
@@ -326,15 +301,13 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [proj, serv, blog, res, test, skill] = await takeHomeData();
+      const [proj, blog, res, test] = await takeHomeData();
       if (cancelled) return;
       // null = no backend / unreachable: show built-in content. [] = the owner removed everything on purpose.
       if (proj) setProjects(proj.map(normalizeProject));
-      setServices(serv ? serv.map(normalizeService) : FALLBACK_SERVICES);
       if (blog) setBlogPosts(blog.map(normalizeBlogPost));
       setResume(res ? res.map(normalizeResumeItem) : FALLBACK_RESUME);
       if (test) setTestimonials(test.map(normalizeTestimonial));
-      if (skill) setSkills(skill as Skill[]);
       setLoaded(true);
     })();
     return () => { cancelled = true; };
@@ -426,6 +399,9 @@ export default function Home() {
   }, [reduceMotion]);
 
   const title = (key: string) => (config.sectionTitles?.[key] || '').trim() || DEFAULT_SECTION_TITLES[key] || '';
+  const capabilityGroups = (config.capabilityGroups || [])
+    .map((g) => ({ name: (g.name || '').trim(), short: (g.short || '').trim(), items: (g.items || []).map((x) => (x || '').trim()).filter(Boolean) }))
+    .filter((g) => g.name && g.items.length > 0);
   const homeAccent = /^#[0-9a-fA-F]{6}$/.test(config.homeAccent || '') ? config.homeAccent : '';
   const focusTitle = (config.currentFocusTitle || '').trim();
   const phoneDigits = config.officePhone.replace(/[^0-9+]/g, '');
@@ -735,107 +711,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SERVICES SECTION */}
-        {(services.length > 0 || skills.length > 0) && (
-          <section id="services" className="px-3 py-6 md:px-6 md:py-14">
-            <div className="md:hidden">
-              <WhatIDo
-                heading={title('whatIDo')}
-                services={(() => { const icons = iconsFor(services); return services.map((sv, i) => ({ title: sv.title, description: sv.description, Icon: icons[i] })); })()}
-                skills={skills.map((k) => ({ name: k.name, level: k.level }))}
-              />
-            </div>
-            {services.length > 0 && (
-            <div className="mx-auto hidden max-w-7xl md:block">
-              <Reveal>
-                <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('services')}</h2>
-              </Reveal>
-              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-2 md:gap-3 lg:grid-cols-3">
-                {(() => {
-                  const used = new Set<React.ComponentType<{ className?: string }>>();
-                  return services.map((service, i) => {
-                    let Icon = ICON_MAP[service.iconName || ''] || ICON_POOL[i % ICON_POOL.length];
-                    if (used.has(Icon)) Icon = ICON_POOL.find((c) => !used.has(c)) || Icon;
-                    used.add(Icon);
-                    return (
-                      <Reveal key={service.id} delay={Math.min((i % 3) * 0.05, 0.12)}>
-                        <div className="home-card group flex h-full flex-col items-start gap-2.5 rounded-[20px] border border-border-subtle bg-bg-card px-3.5 py-3.5 md:flex-row md:items-center md:gap-4 md:px-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-22px_rgba(13,17,23,0.4)]">
-                          <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#0d1117] text-white transition-colors duration-300 group-hover:bg-accent group-hover:text-[#0d1117]">
-                            <Icon className="h-[18px] w-[18px]" />
-                          </div>
-                          <div className="relative min-w-0">
-                            <h3 className="text-[15px] font-semibold leading-tight tracking-[-0.02em] text-text-main md:text-[17px]">{service.title}</h3>
-                            <RichClamp text={service.description} className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-text-muted md:text-[14px]" />
-                          </div>
-                        </div>
-                      </Reveal>
-                    );
-                  });
-                })()}
-              </div>
-            </div>
-            )}
-          </section>
-        )}
-
-        {/* SKILLS SECTION (larger screens; phones see it inside the "What I do" card above) */}
-        {skills.length > 0 && (
-          <section id="skills" className="hidden px-3 py-6 md:block md:px-6 md:py-8">
-            <div className="home-on-dark relative mx-auto max-w-[1400px] overflow-hidden rounded-[28px] bg-[#0d1117] px-5 py-6 md:rounded-[36px] md:px-12 md:py-10">
-              <div className="home-skills-glow" aria-hidden="true" />
-              <div className="relative grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">
-                <div>
-                  <h2 className="text-[1.75rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.4rem]">
-                    {(() => {
-                      const words = title('skills').split(' ');
-                      const last = words.length > 1 ? words.pop() : '';
-                      return <>{words.join(' ')}{last && <> <span className="text-white/45">{last}</span></>}</>;
-                    })()}
-                  </h2>
-                  <p className="mt-2 max-w-md text-[14px] leading-relaxed text-text-muted md:mt-3 md:text-[15px]">
-                    {title('skillsIntro')}
-                  </p>
-                </div>
-                <div className="grid gap-x-10 gap-y-3 sm:grid-cols-2 sm:gap-y-3.5">
-                  {skills.map((skill, i) => (
-                    <div key={skill.id || skill.name} className={i >= 5 && !showAllSkills ? 'hidden sm:block' : undefined}>
-                      <div className="mb-1.5 flex items-baseline justify-between gap-3">
-                        <span className="text-[14px] font-medium text-white">{skill.name}</span>
-                        <span className="text-[13px] font-medium tabular-nums text-accent" aria-hidden="true">{skill.level}%</span>
-                      </div>
-                      <div
-                        className="h-1 w-full overflow-hidden rounded-full bg-white/10"
-                        role="progressbar"
-                        aria-label={skill.name}
-                        aria-valuenow={skill.level}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                      >
-                        <m.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${skill.level}%` }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1.1, delay: Math.min(i * 0.04, 0.3), ease: EASE }}
-                          className="h-full rounded-full bg-[linear-gradient(90deg,#8db4d8,var(--color-accent))]"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  {skills.length > 5 && (
-                    <div className="mt-1 sm:hidden">
-                      <button
-                        type="button"
-                        onClick={() => setShowAllSkills((v) => !v)}
-                        aria-expanded={showAllSkills}
-                        className="home-btn min-h-[48px] w-full border border-white/25 px-6 py-3 text-[15px] text-white"
-                      >
-                        {showAllSkills ? 'Show fewer skills' : `Show all ${skills.length} skills`}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+        {/* WHAT I CAN DO: categories as tabs, services as chips */}
+        {capabilityGroups.length > 0 && (
+          <section id="services" className="px-3 py-6 md:px-6 md:py-10">
+            <Capabilities heading={title('whatIDo')} eyebrow={(config.capabilitiesEyebrow || '').trim()} groups={capabilityGroups} />
           </section>
         )}
 
