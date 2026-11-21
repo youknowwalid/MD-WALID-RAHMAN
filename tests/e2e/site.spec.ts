@@ -521,7 +521,7 @@ test.describe('zero-configuration mode (no database connected)', () => {
     const errors = watchErrors(page);
     await page.goto(PLAIN + '/');
     await expect(page.locator('h1')).toContainText('Walid Rahman.');
-    await expect(page.getByRole('heading', { name: 'Brand Identity' })).toBeAttached();
+    await expect(page.getByRole('button', { name: 'Brand Identity & Development' })).toBeAttached();
     await expect(page.getByRole('heading', { name: 'Executive Director' })).toBeAttached();
     await expect(page.getByText(PROJECTS_HIDDEN ? 'Not available in your region' : 'Selected projects will be shown here soon.')).toBeAttached();
     await expect(page.getByText('Sarah Johnson')).toHaveCount(0);
