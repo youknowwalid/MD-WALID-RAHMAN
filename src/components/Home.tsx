@@ -714,7 +714,7 @@ export default function Home() {
         {/* WHAT I CAN DO: categories as tabs, services as chips */}
         {capabilityGroups.length > 0 && (
           <section id="services" className="px-3 py-6 md:px-6 md:py-10">
-            <Capabilities heading={title('whatIDo')} eyebrow={(config.capabilitiesEyebrow || '').trim()} groups={capabilityGroups} />
+            <Capabilities heading={(() => { const t = title('whatIDo'); return t === 'What I do' ? DEFAULT_SECTION_TITLES.whatIDo : t; })()} eyebrow={(config.capabilitiesEyebrow || '').trim()} groups={capabilityGroups} />
           </section>
         )}
 
