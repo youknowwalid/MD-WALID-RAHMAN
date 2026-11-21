@@ -3,7 +3,7 @@ import { AnimatePresence, m } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, Briefcase, FileText,
-  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound,
+  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles,
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
@@ -12,6 +12,7 @@ import SettingsPanel from './admin/SettingsPanel';
 import ClientLogos from './admin/ClientLogos';
 import TeamMembers from './admin/TeamMembers';
 import HireOffers from './admin/HireOffers';
+import CapabilityGroups from './admin/CapabilityGroups';
 import Inquiries from './admin/Inquiries';
 import Orders from './admin/Orders';
 import ProjectsSwitch from './admin/ProjectsSwitch';
@@ -27,9 +28,10 @@ import Seo from './Seo';
 const TABS = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
-  { id: 'services', label: 'Services', icon: Briefcase },
+  { id: 'capabilities', label: 'What I Can Do', icon: Sparkles },
+  { id: 'services', label: 'Services (old)', icon: Briefcase },
   { id: 'resume', label: 'Resume', icon: FileText },
-  { id: 'skills', label: 'Skills', icon: Cpu },
+  { id: 'skills', label: 'Skills (old)', icon: Cpu },
   { id: 'testimonials', label: 'Feedback', icon: Users },
   { id: 'clientLogos', label: 'Client Logos', icon: Building2 },
   { id: 'team', label: 'Team', icon: UserRound },
@@ -217,6 +219,7 @@ function Dashboard({ email }: { email: string }) {
         {activeTab === 'clientLogos' && <ClientLogos onToast={show} />}
         {activeTab === 'team' && <TeamMembers onToast={show} />}
         {activeTab === 'hire' && <HireOffers onToast={show} />}
+        {activeTab === 'capabilities' && <CapabilityGroups onToast={show} />}
         {activeTab === 'seoSettings' && <SEOSettings onToast={show} />}
         {activeTab === 'branding' && <BrandingSettings onToast={show} />}
 
