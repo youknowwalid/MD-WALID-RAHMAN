@@ -171,6 +171,7 @@ describe('page head from the page SEO row', () => {
   it('keeps private pages out of search', () => {
     const priv = buildPageHtml(template, SEO, {}, '/admin', { noindex: true });
     expect(/name="robots" content="([^"]*)"/.exec(priv)?.[1]).toBe('noindex, nofollow');
+    expect(priv).not.toContain('application/ld+json'); // and gets no structured data
   });
 });
 

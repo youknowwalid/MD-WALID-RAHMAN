@@ -216,7 +216,8 @@ export function buildPageHtml(template, seoSettings, page, path, extra = {}) {
   const graph = buildGraph({
     site: base, seo, global, discovery, page, meta, author, url: canonical, path: route, kind, description, imageUrl: image, language,
   });
-  const ldTag = `<script type="application/ld+json" id="seo-jsonld-schema">${toScriptJson(graph)}</script>`;
+  // Pages kept out of search (private pages, 404s, a site switched off for search) get no structured data.
+  const ldTag = closed ? '' : `<script type="application/ld+json" id="seo-jsonld-schema">${toScriptJson(graph)}</script>`;
 
   const faq = (Array.isArray(meta?.faq_items) ? meta.faq_items : [])
     .map((i) => ({ question: clean(i?.question), answer: clean(i?.answer) }))
@@ -233,7 +234,7 @@ export function buildPageHtml(template, seoSettings, page, path, extra = {}) {
     .replace(/<link\b[^>]*\brel\s*=\s*["'](?:canonical|alternate)["'][^>]*>\s*/gi, '')
     // The template's own structured data describes the old home page; the graph below replaces it.
     .replace(/<script\b[^>]*\bid\s*=\s*["']seo-jsonld-schema["'][^>]*>[\s\S]*?<\/script>\s*/i, '')
-    .replace(/<\/head>/i, () => `    ${tags}\n    ${ldTag}\n  </head>`);
+    .replace(/<\/head>/i, () => `    ${tags}\n${ldTag ? `    ${ldTag}\n` : ''}  </head>`);
   if (owned) html = html.replace(/<html\b([^>]*)>/i, (_m, attrs) => `<html${attrs} data-ssr-path="${esc(route)}">`);
   return html;
 }
