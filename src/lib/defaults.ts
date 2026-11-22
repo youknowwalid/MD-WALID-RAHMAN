@@ -1,4 +1,5 @@
 import { ResumeItem, Service } from '../types';
+import seoDefaults from './seo-defaults.json';
 
 export interface HeaderLink { label: string; url: string }
 export interface SocialLink { platform: string; url: string }
@@ -243,17 +244,17 @@ export const DEFAULT_HERO: HeroConfig = {
   resumeImage: '',
 };
 
+/** Built-in search/share defaults: one shared file, also read by api/page-meta.js (see src/lib/seo-defaults.json). */
 export const DEFAULT_SEO: SeoConfig = {
-  defaultTitle: 'Walid Rahman | Brand Developer',
-  titleTemplate: '%s | Walid Rahman',
-  defaultDescription:
-    'Walid Rahman is a Dhaka-based Brand Developer and team leader with expertise in digital marketing, ed-tech, e-commerce and brand management.',
-  keywords: 'Walid Rahman, brand developer, digital marketing, brand management, web development, Dhaka, Bangladesh',
-  siteName: 'Walid Rahman',
-  siteUrl: 'https://walidrahman.com',
-  twitterHandle: '',
-  ogImage: '',
-  robotsIndex: true,
+  defaultTitle: seoDefaults.defaultTitle,
+  titleTemplate: seoDefaults.titleTemplate,
+  defaultDescription: seoDefaults.defaultDescription,
+  keywords: seoDefaults.keywords,
+  siteName: seoDefaults.siteName,
+  siteUrl: seoDefaults.siteUrl,
+  twitterHandle: seoDefaults.twitterHandle,
+  ogImage: seoDefaults.ogImage,
+  robotsIndex: seoDefaults.robotsIndex,
 };
 
 /** Content used only when no backend is connected / reachable. Nothing here is invented. */

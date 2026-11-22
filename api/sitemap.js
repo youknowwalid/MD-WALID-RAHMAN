@@ -1,8 +1,7 @@
 // Serves /sitemap.xml (see the rewrite in vercel.json). Lists the fixed pages plus
 // every project and blog post currently published in the database.
 import config from '../public-config.json' with { type: 'json' };
-
-const SITE = 'https://walidrahman.com';
+import { DEFAULT_SITE_URL, loadSettings, siteUrlOf } from './_site.js';
 const PAGES = [
   { path: '/', priority: '1.0' },
   { path: '/articles', priority: '0.7' },
@@ -46,15 +45,15 @@ async function fetchRows(table) {
   }
 }
 
-export function buildSitemap(entries) {
+export function buildSitemap(entries, site = DEFAULT_SITE_URL) {
   const urls = entries
-    .map((e) => `  <url><loc>${esc(SITE + e.path)}</loc>${e.lastmod ? `<lastmod>${esc(e.lastmod.slice(0, 10))}</lastmod>` : ''}<priority>${e.priority}</priority></url>`)
+    .map((e) => `  <url><loc>${esc(site + e.path)}</loc>${e.lastmod ? `<lastmod>${esc(e.lastmod.slice(0, 10))}</lastmod>` : ''}<priority>${e.priority}</priority></url>`)
     .join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
 export default async function handler(req, res) {
-  const [hidden, projects, posts] = await Promise.all([projectsHidden(), fetchRows('projects'), fetchRows('blog_posts')]);
+  const [hidden, projects, posts, settings] = await Promise.all([projectsHidden(), fetchRows('projects'), fetchRows('blog_posts'), loadSettings()]);
   const dynamic = [
     // While the admin's projects switch is on, projects are left out of the sitemap.
     ...(hidden ? [] : projects).map((r) => ({ path: `/projects/${encodeURIComponent(r.slug || r.id)}`, lastmod: r.updated_at, priority: '0.7' })),
@@ -62,5 +61,5 @@ export default async function handler(req, res) {
   ];
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-  res.status(200).send(buildSitemap([...PAGES, ...dynamic]));
+  res.status(200).send(buildSitemap([...PAGES, ...dynamic], siteUrlOf(settings)));
 }

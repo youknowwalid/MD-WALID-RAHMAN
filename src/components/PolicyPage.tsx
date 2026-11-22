@@ -17,13 +17,13 @@ const META: Record<PolicyKind, { title: string; Icon: typeof ShieldCheck }> = {
 };
 
 export default function PolicyPage({ kind }: { kind: PolicyKind }) {
-  const { config } = useSiteConfig();
+  const { config, seoConfig } = useSiteConfig();
   const { title, Icon } = META[kind];
   const text = config[kind as keyof SiteConfig] as string;
 
   return (
     <div className="home-v2 min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
-      <Seo title={title} description={`${title} for walidrahman.com.`} noindex={text === DEFAULT_TERMS || text === DEFAULT_REFUND} />
+      <Seo title={title} description={`${title} for ${seoConfig.siteUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '')}.`} noindex={text === DEFAULT_TERMS || text === DEFAULT_REFUND} />
       <Navbar />
       <main className="pt-32 pb-20 px-6 max-w-4xl mx-auto">
         <Link to="/" className="inline-flex min-h-11 items-center gap-2 text-text-muted hover:text-accent transition-colors mb-8 group text-sm font-bold">

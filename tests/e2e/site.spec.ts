@@ -2,7 +2,11 @@ import { expect, test, Locator, Page } from '@playwright/test';
 /** The sample database starts with the admin's projects switch on (the default). */
 const PROJECTS_HIDDEN = true;
 import AxeBuilder from '@axe-core/playwright';
-import { DEFAULT_CAPABILITY_GROUPS, DEFAULT_HIRE_OFFERS } from '../../src/lib/defaults';
+import { DEFAULT_CAPABILITY_GROUPS, DEFAULT_CONFIG, DEFAULT_HIRE_OFFERS, DEFAULT_SEO } from '../../src/lib/defaults';
+
+// Built-in text is read from the app's own defaults, never retyped here, so changing a default cannot break these tests.
+const HERO_NAME = DEFAULT_CONFIG.sectionTitles.heroName;
+const SITE_URL = DEFAULT_SEO.siteUrl.replace(/\/+$/, '');
 
 const CONNECTED = 'http://127.0.0.1:4174';
 const PLAIN = 'http://127.0.0.1:4175';
@@ -25,16 +29,16 @@ test.describe('public site (connected)', () => {
   test('home page renders real content, correct title and no errors', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(CONNECTED + '/');
-    await expect(page).toHaveTitle('Walid Rahman | Brand Developer');
-    await expect(page.locator('h1')).toContainText('Walid Rahman.');
+    await expect(page).toHaveTitle(DEFAULT_SEO.defaultTitle);
+    await expect(page.locator('h1')).toContainText(HERO_NAME);
     if (!PROJECTS_HIDDEN) await expect(page.getByRole('heading', { name: 'Brand One' })).toBeAttached();
     await expect(page.getByRole('heading', { name: 'Hello World' })).toBeAttached();
     // Fabricated placeholder content must be gone
     await expect(page.getByText('Sarah Johnson')).toHaveCount(0);
     await expect(page.getByText('Add introductory video URL')).toHaveCount(0);
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Brand Developer/);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://walidrahman.com/');
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', 'https://walidrahman.com/og-image.png');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', DEFAULT_SEO.defaultDescription);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', SITE_URL + '/');
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', SITE_URL + '/og-image.png');
     expect(errors).toEqual([]);
   });
 
@@ -64,7 +68,7 @@ test.describe('public site (connected)', () => {
       await page.locator('a[href="/projects/brand-one"]').first().click();
       await expect(page).toHaveURL(/\/projects\/brand-one$/);
       await expect(page.locator('h1')).toHaveText('Brand One');
-      await expect(page).toHaveTitle('Brand One | Walid Rahman');
+      await expect(page).toHaveTitle(DEFAULT_SEO.titleTemplate.replace('%s', 'Brand One'));
       await page.getByRole('link', { name: 'All Projects' }).click();
       await expect(page).toHaveURL(/\/#projects$/);
     }
@@ -204,7 +208,7 @@ test.describe('logos and intro video', () => {
     const card = page.locator('footer').getByTestId('founder-card');
     await card.scrollIntoViewIfNeeded();
     await card.getByRole('button', { name: 'Read my story' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Md. Walid Rahman Swapnil' });
+    const dialog = page.getByRole('dialog', { name: DEFAULT_CONFIG.founderName });
     await expect(dialog.locator('p', { hasText: 'The first paragraph.' })).toHaveCSS('text-align', 'justify');
     await expect(dialog.locator('p', { hasText: 'The second one.' })).toHaveCSS('text-align', 'right');
     await expect(dialog.locator('span.italic', { hasText: 'second' })).toBeVisible();
@@ -223,7 +227,7 @@ test.describe('logos and intro video', () => {
     const card = footer.getByTestId('founder-card');
     await card.scrollIntoViewIfNeeded();
     await expect(card.getByText('A word from the founder')).toBeVisible();
-    await expect(card.getByText('Md. Walid Rahman Swapnil')).toBeVisible();
+    await expect(card.getByText(DEFAULT_CONFIG.founderName)).toBeVisible();
     const c = (await card.boundingBox())!;
     const width = page.viewportSize()!.width;
     if (width >= 1024) {
@@ -239,7 +243,7 @@ test.describe('logos and intro video', () => {
       expect(b.width).toBeGreaterThan(c.width - 40); // a full-width button on phones
     }
     await card.getByRole('button', { name: 'Read my story' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Md. Walid Rahman Swapnil' });
+    const dialog = page.getByRole('dialog', { name: DEFAULT_CONFIG.founderName });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("I'm Walid, a brand developer")).toBeVisible();
     await expect(dialog.getByRole('link', { name: "Let's work together" })).toBeVisible();
@@ -502,8 +506,8 @@ test.describe('first visit on a new device (no flash of old content)', () => {
   test('the site still appears when the database cannot be reached', async ({ page }) => {
     await page.route('**/rest/v1/**', (route) => route.abort());
     await page.goto(CONNECTED + '/');
-    await expect(page.locator('h1')).toContainText('Walid Rahman.');
-    await expect(page.locator('#home').getByText('A Brand Developer crafting premium digital experiences.')).toBeVisible();
+    await expect(page.locator('h1')).toContainText(HERO_NAME);
+    await expect(page.locator('#home').getByText(DEFAULT_CONFIG.brandTagline)).toBeVisible();
   });
 
   test('the hero heading keeps its size while it is typed (no layout jump)', async ({ page }) => {
@@ -521,7 +525,7 @@ test.describe('zero-configuration mode (no database connected)', () => {
   test('site works with built-in content and no errors', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(PLAIN + '/');
-    await expect(page.locator('h1')).toContainText('Walid Rahman.');
+    await expect(page.locator('h1')).toContainText(HERO_NAME);
     await expect(page.getByRole('button', { name: 'Brand Identity & Development' })).toBeAttached();
     await expect(page.getByRole('heading', { name: 'Executive Director' })).toBeAttached();
     await expect(page.getByText(PROJECTS_HIDDEN ? 'Not available in your region' : 'Selected projects will be shown here soon.')).toBeAttached();

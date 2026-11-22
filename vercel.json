@@ -8,6 +8,7 @@
   },
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/llms.txt", "destination": "/api/llms" },
     { "source": "/projects/:slug", "destination": "/api/page-meta?type=project&slug=:slug" },
     { "source": "/blog/:slug", "destination": "/api/page-meta?type=blog&slug=:slug" },
     { "source": "/((?!api/|assets/|_vercel/).*)", "destination": "/index.html" }

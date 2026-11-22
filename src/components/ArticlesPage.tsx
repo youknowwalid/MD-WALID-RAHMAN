@@ -5,6 +5,7 @@ import { listRows } from '../lib/api';
 import { normalizeBlogPost } from '../lib/schema-defaults';
 import { BlogPost } from '../types';
 import Seo from './Seo';
+import { useSiteConfig } from '../context/SiteConfigContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
@@ -13,6 +14,7 @@ const PAGE_SIZE = 12;
 
 /** Every article, newest first, with search. Each card opens that article's own page (/blog/...). */
 export default function ArticlesPage() {
+  const { seoConfig } = useSiteConfig();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -41,7 +43,7 @@ export default function ArticlesPage() {
 
   return (
     <div className="home-v2 min-h-screen overflow-x-clip bg-bg-dark text-text-main relative z-10 ">
-      <Seo title="Articles" description="Articles and insights on brand, marketing, web and AI by Walid Rahman." noindex={!loading && posts.length === 0} />
+      <Seo title="Articles" description={`Articles and insights on brand, marketing, web and AI by ${seoConfig.siteName}.`} noindex={!loading && posts.length === 0} />
       <Navbar />
 
       <main className="min-h-[100svh] max-w-7xl mx-auto px-6 pt-32 pb-24 md:pt-40 md:pb-32">

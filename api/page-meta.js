@@ -11,18 +11,18 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import config from '../public-config.json' with { type: 'json' };
+import seoDefaults from '../src/lib/seo-defaults.json' with { type: 'json' };
 
-// Mirrors DEFAULT_SEO in src/lib/defaults.ts (used when the database has no saved SEO settings).
+// The built-in defaults are the same file the app uses (src/lib/defaults.ts), so the two can never drift apart.
 const DEFAULT_SEO = {
-  defaultTitle: 'Walid Rahman | Brand Developer',
-  titleTemplate: '%s | Walid Rahman',
-  defaultDescription:
-    'Walid Rahman is a Dhaka-based Brand Developer and team leader with expertise in digital marketing, ed-tech, e-commerce and brand management.',
-  siteName: 'Walid Rahman',
-  siteUrl: 'https://walidrahman.com',
-  twitterHandle: '',
-  ogImage: '',
-  robotsIndex: true,
+  defaultTitle: seoDefaults.defaultTitle,
+  titleTemplate: seoDefaults.titleTemplate,
+  defaultDescription: seoDefaults.defaultDescription,
+  siteName: seoDefaults.siteName,
+  siteUrl: seoDefaults.siteUrl,
+  twitterHandle: seoDefaults.twitterHandle,
+  ogImage: seoDefaults.ogImage,
+  robotsIndex: seoDefaults.robotsIndex,
 };
 // Same rule as the browser (SiteConfigContext): an empty saved value falls back to the default, except for these.
 const SEO_ALLOW_EMPTY = ['ogImage', 'twitterHandle', 'titleTemplate'];
@@ -139,7 +139,7 @@ export function buildPageHtml(template, seoSettings, page, path) {
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     ...(page.published ? { datePublished: page.published } : {}),
     ...(page.modified || page.published ? { dateModified: page.modified || page.published } : {}),
-    author: { '@type': 'Person', name: page.author || 'Walid Rahman', url: `${base}/` },
+    author: { '@type': 'Person', name: page.author || seo.siteName, url: `${base}/` },
     publisher: { '@type': 'Organization', name: seo.siteName, url: `${base}/`, logo: { '@type': 'ImageObject', url: `${base}/apple-touch-icon.png` } },
   };
   const ldTag = `<script type="application/ld+json" id="seo-jsonld-schema">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;

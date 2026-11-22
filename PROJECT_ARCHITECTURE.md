@@ -14,6 +14,11 @@ Single-page portfolio for Walid Rahman. The design is open to change; nothing he
   `src/lib/schema-defaults.ts`, `src/lib/rows.ts` and the form definition in `src/components/admin/forms.ts` together.
 - **Graceful fallbacks**: the site must render with no database (`backendConfigured === false`) or when it is unreachable.
 - **No invented content**: defaults are limited to text that already existed on the site; empty sections are hidden or show a neutral note.
+- **One source of truth for site text**: brand name, tagline, numbers, contact e-mail, web address and SEO text are
+  edited in the admin and stored in `site_settings`. Code must read them (`useSiteConfig()` in the app, `api/_site.js`
+  on the server); never retype them in a component, a test or a server file. The only built-in copy is
+  `src/lib/defaults.ts` plus `src/lib/seo-defaults.json`, which the app and `api/page-meta.js` both import. Tests import
+  these defaults too, and a unit test checks `index.html`'s static head against them.
 - **Minimal change**: prefer the smallest diff.
 
 ## Data flow
@@ -45,7 +50,8 @@ Single-page portfolio for Walid Rahman. The design is open to change; nothing he
 
 ## SEO
 Static tags + JSON-LD in `index.html`; `src/components/Seo.tsx` sets per-page title/description/canonical/Open Graph/structured data;
-`/sitemap.xml` is generated live from the database (`api/sitemap.js`); `robots.txt` blocks `/admin`.
+`/sitemap.xml` (`api/sitemap.js`) and `/llms.txt` (`api/llms.js`) are generated live from the database and the saved settings; `robots.txt` is the one static file (blocks `/admin`; change its `Sitemap:` line only if the domain changes).
+Still static in `index.html` (a fallback for crawlers that run no JavaScript): the home page's title, description, share tags, JSON-LD and hidden text. `Seo.tsx` replaces the tags in the browser, but the JSON-LD blocks and hidden text are not yet generated from the settings.
 **Link previews** (Facebook, LinkedIn, WhatsApp, X…) never run JavaScript, so `Seo.tsx` alone would show the home page's tags for every address.
 `/projects/:slug` and `/blog/:slug` are therefore rewritten (`vercel.json`) to `api/page-meta.js`, which returns the built `index.html`
 with that page's own title/description/canonical/share-image tags already filled in (same field choices as `ProjectDetail.tsx` / `BlogDetail.tsx`,

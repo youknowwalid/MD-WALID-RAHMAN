@@ -3,6 +3,7 @@ import { m, AnimatePresence } from 'motion/react';
 import { Sparkles, LayoutGrid, Search, Eye, Filter, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useProducts } from '../lib/products';
 import Seo from './Seo';
+import { useSiteConfig } from '../context/SiteConfigContext';
 import { Product } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -12,6 +13,7 @@ import { RichClamp } from './RichText';
 import { stripFormatting } from '../lib/richtext';
 
 export default function ResourcesPage() {
+  const { config, seoConfig } = useSiteConfig();
   const { products, loading } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
@@ -27,7 +29,7 @@ export default function ResourcesPage() {
   return (
     <div className="home-v2 min-h-screen overflow-x-clip bg-bg-dark text-text-main relative z-10 transition-colors duration-300">
       
-      <Seo title="Digital Resources" description="Digital products, templates and PDF guides by Walid Rahman." noindex={!loading && products.length === 0} />
+      <Seo title="Digital Resources" description={`Digital products, templates and PDF guides by ${seoConfig.siteName}.`} noindex={!loading && products.length === 0} />
       <Navbar />
 
       <main className="min-h-[100svh] max-w-7xl mx-auto px-6 pt-32 pb-24 md:pt-40 md:pb-32 relative">
@@ -59,7 +61,7 @@ export default function ResourcesPage() {
                 Modern Digital <br className="hidden md:inline" />Resources & PDF Guides
               </h1>
               <p className="text-sm md:text-base text-text-muted max-w-2xl leading-relaxed">
-                Elevate your productivity and design strategy. Invest in high-performance assets, brand identities guides, and structured PDF blueprints built by Md. Walid Rahman.
+                Elevate your productivity and design strategy. Invest in high-performance assets, brand identities guides, and structured PDF blueprints built by {config.founderName}.
               </p>
             </div>
             

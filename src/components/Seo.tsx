@@ -80,8 +80,8 @@ export default function Seo({ title, description, image, type = 'website', noind
         ? {
             '@context': 'https://schema.org',
             '@type': 'Person',
-            name: 'Walid Rahman',
-            jobTitle: 'Brand Developer',
+            name: seo.siteName,
+            ...(config.founderRole.trim() ? { jobTitle: config.founderRole.trim() } : {}),
             description: desc,
             url: base + '/',
             image: img,
@@ -95,7 +95,7 @@ export default function Seo({ title, description, image, type = 'website', noind
       script.textContent = JSON.stringify(data);
       document.head.appendChild(script);
     }
-  }, [fullTitle, desc, img, url, robots, type, ld, socials, pathname, seo.keywords, seo.siteName, seo.twitterHandle]);
+  }, [fullTitle, desc, img, url, robots, type, ld, socials, pathname, seo.keywords, seo.siteName, seo.twitterHandle, config.founderRole]);
 
   return null;
 }
