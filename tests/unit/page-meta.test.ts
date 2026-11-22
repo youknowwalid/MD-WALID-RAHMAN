@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { buildPageHtml, mergeSeo, pickPage } from '../../api/page-meta.js';
+import { buildPageHtml, mergeSeo, pickPage } from '../../api/_head.js';
 import seoDefaults from '../../src/lib/seo-defaults.json';
 
 // Built-in values come from the shared defaults file, never retyped here.

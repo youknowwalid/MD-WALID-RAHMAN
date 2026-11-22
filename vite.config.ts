@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import fs from 'node:fs';
 import path from 'path';
 import { defineConfig, type Plugin } from 'vite';
 import publicConfig from './public-config.json';
@@ -54,8 +55,30 @@ function earlySettings(): Plugin {
   };
 }
 
+/**
+ * On Vercel only: renames the built index.html to app-shell.html.
+ * Vercel serves a real file before it looks at rewrites, so with an index.html in the output the home page
+ * would never reach api/render.js. As app-shell.html the file is still there for that function to read, and
+ * every address (the home page included) goes through it. Everywhere else (local preview, tests) nothing changes.
+ */
+function appShell(): Plugin {
+  let outDir = 'dist';
+  return {
+    name: 'app-shell',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      if (process.env.VERCEL !== '1') return;
+      const from = path.join(outDir, 'index.html');
+      if (fs.existsSync(from)) fs.renameSync(from, path.join(outDir, 'app-shell.html'));
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), earlySettings()],
+  plugins: [react(), tailwindcss(), earlySettings(), appShell()],
   resolve: {
     alias: { '@': path.resolve(__dirname, '.') },
   },
