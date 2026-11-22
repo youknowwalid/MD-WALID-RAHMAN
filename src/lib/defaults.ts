@@ -1,5 +1,5 @@
 import { ResumeItem, Service } from '../types';
-import seoDefaults from './seo-defaults.json';
+import seoDefaults from './seo-defaults.json' with { type: 'json' };
 
 export interface HeaderLink { label: string; url: string }
 export interface SocialLink { platform: string; url: string }
