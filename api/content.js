@@ -13,8 +13,8 @@
 import config from '../public-config.json' with { type: 'json' };
 
 const TABLES = new Set([
-  'projects', 'blog_posts', 'services', 'resume_items', 'skills',
-  'testimonials', 'pricing_plans', 'products', 'site_settings',
+  'projects', 'blog_posts', 'resume_items',
+  'testimonials', 'products', 'site_settings', 'page_discovery_meta',
 ]);
 
 // Allowed query parameters and the exact shape of each value.

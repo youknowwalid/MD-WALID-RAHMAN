@@ -1,7 +1,7 @@
 import { Collection } from '../../lib/rows';
 import { slugify } from '../../lib/text';
 import {
-  normalizeBlogPost, normalizePricingPlan, normalizeProduct, normalizeProject,
+  normalizeBlogPost, normalizeProduct, normalizeProject,
   normalizeResumeItem, normalizeTestimonial,
 } from '../../lib/schema-defaults';
 
@@ -26,7 +26,7 @@ export interface Field {
 
 const order: Field = { name: 'order', label: 'Display order (lower numbers come first)', type: 'number', half: true };
 
-export const FORMS: Record<Exclude<Collection, 'contactSubmissions' | 'services' | 'skills'>, { singular: string; fields: Field[] }> = {
+export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular: string; fields: Field[] }> = {
   projects: {
     singular: 'project',
     fields: [
@@ -100,23 +100,6 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions' | 'services'
       order,
     ],
   },
-  pricingPlans: {
-    singular: 'pricing plan',
-    fields: [
-      { name: 'name', label: 'Plan name', required: true, half: true },
-      { name: 'price', label: 'Price', placeholder: '$350', half: true },
-      { name: 'period', label: 'Shown after the price (e.g. /month — leave empty for none)', half: true },
-      { name: 'features', label: 'Included features (one per line)', type: 'lines' },
-      { name: 'unavailableFeatures', label: 'Not included (one per line)', type: 'lines' },
-      { name: 'showPriorityBox', label: 'Show the highlighted box', type: 'checkbox' },
-      { name: 'priorityTitle', label: 'Highlighted box title', half: true },
-      { name: 'prioritySubtitle', label: 'Highlighted box subtitle', half: true },
-      { name: 'buttonText', label: 'Button text', half: true },
-      { name: 'buttonUrl', label: 'Button link (blank = contact form)', half: true },
-      { name: 'accent', label: 'Highlight as the "Most Popular" plan', type: 'checkbox' },
-      order,
-    ],
-  },
   products: {
     singular: 'product',
     fields: [
@@ -143,7 +126,6 @@ export type FormCollection = keyof typeof FORMS;
 const NEW_DEFAULTS: Partial<Record<FormCollection, Record<string, any>>> = {
   projects: { published: true },
   products: { published: true, featured: true },
-  pricingPlans: { period: '/month', buttonText: 'Get Started' },
 };
 
 /** Database item -> string values for the form inputs. */
@@ -188,7 +170,6 @@ export function toPayload(tab: FormCollection, values: Record<string, any>): Rec
     case 'blogPosts': return normalizeBlogPost(raw);
     case 'resume': return normalizeResumeItem(raw);
     case 'testimonials': return normalizeTestimonial(raw);
-    case 'pricingPlans': return normalizePricingPlan(raw);
     case 'products': return normalizeProduct(raw);
   }
 }

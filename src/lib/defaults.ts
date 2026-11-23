@@ -1,4 +1,4 @@
-import { ResumeItem, Service } from '../types';
+import { ResumeItem } from '../types';
 import seoDefaults from './seo-defaults.json' with { type: 'json' };
 
 export interface HeaderLink { label: string; url: string }
@@ -50,6 +50,9 @@ export interface SiteConfig {
   brandTagline: string;
   globalCtaText: string;
   globalCtaUrl: string;
+  /** Hero buttons: the main one (falls back to the header button text) and a quieter one that scrolls to the projects. */
+  heroCtaText: string;
+  heroSecondaryText: string;
   aboutText: string;
   aboutTags: string[];
   heroStats: HeroStat[];
@@ -135,10 +138,7 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
   teams: 'Teams I have worked with',
   about: 'About',
   resume: 'Journey',
-  services: 'Services',
   whatIDo: 'What I Can Do',
-  skills: 'Skills',
-  skillsIntro: '',
   testimonials: 'Testimonials',
   teamEyebrow: 'Team',
   team: 'The people behind the work',
@@ -156,8 +156,8 @@ export const DEFAULT_SECTION_TITLES: Record<string, string> = {
 /** [key, label in the admin] — in the order they appear on the home page. */
 export const SECTION_TITLE_LABELS: [string, string][] = [
   ['heroGreeting', 'Hero: greeting (before your name)'], ['heroName', 'Hero: your name (typed out)'], ['teams', 'Line above the client names'],
-  ['about', 'About section'], ['resume', 'Resume / journey'], ['services', 'Services'], ['skills', 'Skills (last word is dimmed)'],
-  ['skillsIntro', 'Skills: short line'], ['whatIDo', 'What I can do: heading'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['hire', 'Work with me: heading'], ['hireLead', 'Work with me: short line'],
+  ['about', 'About section'], ['resume', 'Resume / journey'],
+  ['whatIDo', 'What I can do: heading'], ['testimonials', 'Testimonials'], ['teamEyebrow', 'Team: small label'], ['team', 'Team: heading'], ['hire', 'Work with me: heading'], ['hireLead', 'Work with me: short line'],
   ['projectsEyebrow', 'Projects: small label'], ['projects', 'Projects: heading'], ['blog', 'Blog'], ['resources', 'Digital products'],
   ['contactEyebrow', 'Contact: small label'], ['contact', 'Contact: heading'], ['contactLead', 'Contact: short line'],
 ];
@@ -192,6 +192,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
   brandTagline: '',
   globalCtaText: 'Contact',
   globalCtaUrl: '',
+  heroCtaText: '',
+  heroSecondaryText: '',
   aboutText: '',
   aboutTags: [],
   heroStats: [],
@@ -233,6 +235,4 @@ export const DEFAULT_SEO: SeoConfig = {
 };
 
 /** Shown only when no backend is connected / reachable. The repo holds no content, so there is nothing to show. */
-export const FALLBACK_SERVICES: Service[] = [];
-
 export const FALLBACK_RESUME: ResumeItem[] = [];

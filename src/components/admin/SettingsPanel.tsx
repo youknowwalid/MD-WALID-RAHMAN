@@ -13,7 +13,7 @@ type Form = {
   siteTitle: string; siteLogo: string; footerLogo: string; favicon: string;
   heroPortrait: string; resumeImage: string; cvUrl: string;
   wordmarkLight: string; wordmarkAccent: string; currentFocusTitle: string; currentFocusText: string;
-  brandTagline: string; globalCtaText: string; globalCtaUrl: string;
+  brandTagline: string; globalCtaText: string; globalCtaUrl: string; heroCtaText: string; heroSecondaryText: string;
   heroStats: HeroStat[];
   aboutText: string; aboutTags: string; aboutVideoUrl: string;
   contactEmail: string; officePhone: string; officeAddress: string;
@@ -75,7 +75,7 @@ export default function SettingsPanel({ onToast }: Props) {
         siteTitle: c.siteTitle, siteLogo: c.siteLogo, footerLogo: c.footerLogo, favicon: c.favicon,
         heroPortrait: h.heroPortrait, resumeImage: h.resumeImage, cvUrl: h.cvUrl,
         wordmarkLight: c.wordmarkLight, wordmarkAccent: c.wordmarkAccent, currentFocusTitle: c.currentFocusTitle, currentFocusText: c.currentFocusText,
-        brandTagline: c.brandTagline, globalCtaText: c.globalCtaText, globalCtaUrl: c.globalCtaUrl,
+        brandTagline: c.brandTagline, globalCtaText: c.globalCtaText, globalCtaUrl: c.globalCtaUrl, heroCtaText: c.heroCtaText, heroSecondaryText: c.heroSecondaryText,
         heroStats: c.heroStats,
         aboutText: c.aboutText, aboutTags: c.aboutTags.join(', '), aboutVideoUrl: c.aboutVideoUrl,
         contactEmail: c.contactEmail, officePhone: c.officePhone, officeAddress: c.officeAddress,
@@ -103,7 +103,7 @@ export default function SettingsPanel({ onToast }: Props) {
       await patchSettings('global', {
         siteTitle: f.siteTitle.trim(), wordmarkLight: f.wordmarkLight.trim(), wordmarkAccent: f.wordmarkAccent.trim(),
         currentFocusTitle: f.currentFocusTitle.trim(), currentFocusText: f.currentFocusText.trim(), siteLogo: f.siteLogo, footerLogo: f.footerLogo, favicon: f.favicon,
-        brandTagline: f.brandTagline.trim(), globalCtaText: f.globalCtaText.trim(), globalCtaUrl: f.globalCtaUrl.trim(),
+        brandTagline: f.brandTagline.trim(), globalCtaText: f.globalCtaText.trim(), globalCtaUrl: f.globalCtaUrl.trim(), heroCtaText: f.heroCtaText.trim(), heroSecondaryText: f.heroSecondaryText.trim(),
         heroStats: f.heroStats.filter((s) => s.value.trim() || s.label.trim()),
         aboutText: f.aboutText.trim(), aboutTags: f.aboutTags.split(',').map((t) => t.trim()).filter(Boolean), aboutVideoUrl: f.aboutVideoUrl.trim(),
         contactEmail: f.contactEmail.trim(), officePhone: f.officePhone.trim(), officeAddress: f.officeAddress.trim(),
@@ -159,10 +159,14 @@ export default function SettingsPanel({ onToast }: Props) {
             hint="Leave empty to keep the built-in animated portrait. For a replacement use a cut-out with a transparent background: PNG, WebP or an animated WebP/GIF, up to 5 MB, about 1000 px tall." />
           <Text id="s-tag" label="Line under your name" value={f.brandTagline} onChange={set('brandTagline')} />
           <div className="grid sm:grid-cols-2 gap-6">
-            <Text id="s-cta" label="Main button text" value={f.globalCtaText} onChange={set('globalCtaText')} />
+            <Text id="s-cta" label="Header button text" value={f.globalCtaText} onChange={set('globalCtaText')} />
             <Text id="s-ctaurl" label="Main button link (blank = WhatsApp using your phone number)" value={f.globalCtaUrl} onChange={set('globalCtaUrl')} placeholder="https://…" />
           </div>
-          <PdfField label="CV / resume (PDF) — the Download CV button appears once this is set" value={f.cvUrl} onChange={set('cvUrl')} />
+          <div className="grid sm:grid-cols-2 gap-6">
+            <Text id="s-herocta" label="Hero main button text (empty = same as header button)" value={f.heroCtaText} onChange={set('heroCtaText')} />
+            <Text id="s-herosec" label="Hero quieter button text (scrolls to Projects; empty = hidden)" value={f.heroSecondaryText} onChange={set('heroSecondaryText')} />
+          </div>
+          <PdfField label="CV / resume (PDF) — the “Download My Resume” link in the footer appears once this is set" value={f.cvUrl} onChange={set('cvUrl')} />
           <div>
             <span className={labelCls}>Numbers under the buttons (leave all empty to hide)</span>
             <Rows rows={f.heroStats} onChange={set('heroStats')} blank={{ value: '', unit: '', label: '' }} addLabel="Add a number"

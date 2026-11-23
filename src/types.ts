@@ -1,4 +1,3 @@
-import { LucideIcon } from 'lucide-react';
 
 export interface Project {
   order?: number;
@@ -57,25 +56,6 @@ export interface BlogPost {
   updatedAt?: string;
 }
 
-export interface Service {
-  order?: number;
-  id: string;
-  displayId?: string;
-  title: string;
-  description: string;
-  icon?: LucideIcon;
-  iconName?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Skill {
-  id?: string;
-  name: string;
-  level: number;
-  order?: number;
-}
-
 export interface Testimonial {
   order?: number;
   name: string;
@@ -94,24 +74,6 @@ export interface ResumeItem {
   role: string;
   company: string;
   desc: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface PricingPlan {
-  order?: number;
-  id?: string;
-  name: string;
-  price: string;
-  features: string[];
-  unavailableFeatures?: string[];
-  showPriorityBox?: boolean;
-  priorityTitle?: string;
-  prioritySubtitle?: string;
-  period?: string;
-  buttonText?: string;
-  buttonUrl?: string;
-  accent: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

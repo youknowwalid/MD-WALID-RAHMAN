@@ -8,7 +8,7 @@ describe('/api/content request checking', () => {
       'projects?select=id,slug,title,category,image,published&order=sort_order.asc,created_at.desc',
       'projects?select=*&slug=eq.my-project%20x&limit=1',
       'blog_posts?select=*&id=eq.123e4567-e89b-12d3-a456-426614174000&limit=1',
-      'services?select=*&order=sort_order.asc,created_at.asc',
+      'page_discovery_meta?select=route_key,faq_items&limit=200',
     ]) expect(validate(p)).toBe(p);
   });
 

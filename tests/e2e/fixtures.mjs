@@ -40,6 +40,8 @@ export const FIXTURE_GLOBAL = {
   wordmarkAccent: 'studio',
   brandTagline: 'A small studio making brands people remember.',
   contactEmail: 'hello@acme.example',
+  heroCtaText: 'Text Me',
+  heroSecondaryText: 'Portfolio',
   officePhone: '+1 555 010 0199',
   globalCtaText: "Let's Discuss",
   founderLabel: 'A word from the founder',
