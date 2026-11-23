@@ -50,7 +50,7 @@ export default function Verification({ value, onSaved, onToast }: { value: Disco
   return (
     <form onSubmit={save} className="space-y-6 max-w-3xl">
       <Card title="Prove the site is yours" icon={<BadgeCheck className="text-accent w-6 h-6" aria-hidden="true" />}
-        hint="Google Search Console and Bing Webmaster Tools each give you a code. Paste only the code (the long text inside content="…").">
+        hint={'Google Search Console and Bing Webmaster Tools each give you a code. Paste only the code (the long text inside content="…").'}>
         <TextField id="ver-google" label="Google verification code" value={google} onChange={setGoogle} />
         <TextField id="ver-bing" label="Bing verification code" value={bing} onChange={setBing} />
       </Card>
