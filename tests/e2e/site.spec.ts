@@ -139,12 +139,24 @@ test.describe('public site (connected)', () => {
   test('contact: FAQ beside the form, one answer open at a time, no contact cards repeated', async ({ page }) => {
     await page.goto(CONNECTED + '/#contact');
     const section = page.locator('#contact');
-    await expect(section.getByRole('button', { name: 'How much does a project cost?' })).toHaveAttribute('aria-expanded', 'true');
+    await expect(section.getByRole('button', { name: 'How much does a project cost?' })).toHaveAttribute('aria-expanded', 'false');
+    await expect(section.getByText('Projects start at 25k BDT.')).toBeHidden();
+    await section.getByRole('button', { name: 'How much does a project cost?' }).click();
     await expect(section.getByText('Projects start at 25k BDT.')).toBeVisible();
     await section.getByRole('button', { name: 'Do I own everything?' }).click();
     await expect(section.getByText('Yes, everything.')).toBeVisible();
     await expect(section.getByText('Projects start at 25k BDT.')).toBeHidden();
     await expect(section.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0);
+    // The form card starts and ends level with the heading and the last question, and the whole section stays short.
+    if (page.viewportSize()!.width >= 1024) {
+      await page.waitForTimeout(1500); // let the section's entrance animation finish
+      const form = (await section.getByRole('form', { name: 'Contact form' }).boundingBox())!;
+      const head = (await section.getByRole('heading', { level: 2 }).boundingBox())!;
+      const last = (await section.locator('[role="list"]').boundingBox())!;
+      expect(Math.abs(form.y - head.y)).toBeLessThanOrEqual(4);
+      expect(Math.abs(form.y + form.height - (last.y + last.height))).toBeLessThanOrEqual(12);
+      expect((await section.boundingBox())!.height).toBeLessThanOrEqual(560);
+    }
   });
 
   test('hero: Text Me and Portfolio buttons, resume link in the footer', async ({ page, request }) => {
@@ -162,7 +174,6 @@ test.describe('public site (connected)', () => {
     await page.goto(CONNECTED + '/#contact');
     await page.getByLabel('Name', { exact: true }).fill('Jane Visitor');
     await page.getByLabel('Email', { exact: true }).fill('jane@example.com');
-    await page.getByLabel('Subject').fill('Hello');
     await page.getByLabel('Message').fill('I would like to work with you.');
     await page.waitForTimeout(3200); // the anti-spam timer
     await page.getByRole('button', { name: 'Send Message' }).click();

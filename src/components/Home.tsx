@@ -983,34 +983,35 @@ export default function Home() {
         <ResourcesSection />
 
         {/* CONTACT SECTION */}
-        <section id="contact" className="px-3 pb-12 pt-6 md:px-6 md:pb-[120px]">
+        <section id="contact" className="px-3 pb-10 pt-4 md:px-6 md:pb-16 md:pt-6">
           <div className="mx-auto max-w-[1400px]">
-            <div className="home-on-dark relative overflow-hidden rounded-[32px] bg-[linear-gradient(180deg,#3f78ad_0%,#5f93c4_55%,#8fb6d9_100%)] px-4 py-8 md:rounded-[40px] md:px-12 md:py-12">
+            <div className="home-on-dark relative overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,#3f78ad_0%,#5f93c4_55%,#8fb6d9_100%)] px-4 py-5 md:rounded-[36px] md:px-10 md:py-8">
               <div className="home-cloud home-cloud--a bottom-[-60px] left-[-120px] h-[200px] w-[620px]" aria-hidden="true" />
               <div className="home-cloud home-cloud--b right-[-160px] top-[-70px] h-[220px] w-[720px]" aria-hidden="true" />
 
-              <div className="relative grid gap-8 lg:grid-cols-2 lg:gap-12">
-                <div>
-                  <div className={faq.length ? 'mb-8 md:mb-10' : ''}>
+              <div className="relative grid gap-5 lg:grid-cols-[1.1fr_1fr] lg:items-stretch lg:gap-10">
+                <div className="flex flex-col">
+                  <div className={faq.length ? 'mb-4 md:mb-5' : ''}>
                     <Reveal delay={0.07}>
-                      <h2 className="max-w-3xl text-[2.1rem] font-medium leading-[1.06] tracking-[-0.045em] md:text-[3.2rem]">{title('contact')}</h2>
+                      <h2 className="max-w-2xl text-[1.6rem] font-medium leading-[1.1] tracking-[-0.04em] md:text-[2.1rem]">{title('contact')}</h2>
                     </Reveal>
                     {title('contactLead') && (
                       <Reveal delay={0.13}>
-                        <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-white/85 md:text-[19px]">{title('contactLead')}</p>
+                        <p className="mt-2.5 max-w-xl text-[14px] leading-snug text-white/90 md:text-[15px]">{title('contactLead')}</p>
                       </Reveal>
                     )}
                   </div>
-                  <ContactFaq items={faq} />
+                  <div className="mt-auto"><ContactFaq items={faq} /></div>
                 </div>
 
-                <Reveal from="right" delay={0.1}>
+                <Reveal from="right" delay={0.1} className="h-full">
                   <form
                     onSubmit={handleContactSubmit}
                     aria-label="Contact form"
-                    className="grid gap-3 rounded-[24px] bg-white p-4 text-[#0d1117] sm:rounded-[28px] sm:p-5 shadow-[0_40px_60px_-30px_rgba(8,26,48,0.6)] md:p-6"
+                    className="flex h-full flex-col gap-2.5 rounded-[20px] bg-white p-4 text-[#0d1117] shadow-[0_40px_60px_-30px_rgba(8,26,48,0.6)] md:p-5"
                   >
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <h3 className="text-[17px] font-medium tracking-[-0.02em]">Send me a message</h3>
+                    <div className="grid gap-2.5 md:grid-cols-2">
                       <div className="home-field">
                         <input id="contact-name" name="name" type="text" required maxLength={120} autoComplete="name" placeholder=" " />
                         <label htmlFor="contact-name">Name</label>
@@ -1020,12 +1021,8 @@ export default function Home() {
                         <label htmlFor="contact-email">Email</label>
                       </div>
                     </div>
-                    <div className="home-field">
-                      <input id="contact-subject" name="subject" type="text" maxLength={200} placeholder=" " />
-                      <label htmlFor="contact-subject">Subject</label>
-                    </div>
-                    <div className="home-field">
-                      <textarea id="contact-message" name="message" rows={4} required maxLength={5000} placeholder=" "></textarea>
+                    <div className="home-field flex flex-1 flex-col">
+                      <textarea id="contact-message" name="message" rows={3} required maxLength={5000} placeholder=" " className="h-full min-h-[84px] flex-1"></textarea>
                       <label htmlFor="contact-message">Message</label>
                     </div>
 
@@ -1038,13 +1035,13 @@ export default function Home() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="home-btn home-mag w-full bg-accent px-7 py-3.5 text-[16px] text-[#0d1117] disabled:opacity-60"
+                      className="home-btn home-mag w-full bg-accent px-7 py-3 text-[15px] text-[#0d1117] disabled:opacity-60"
                     >
                       {isSubmitting
                         ? <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Sending…</span></>
                         : <>Send Message <span className="home-arrow" aria-hidden="true">↗</span></>}
                     </button>
-                    <p role="status" aria-live="polite" className={cn('mt-1 text-center font-medium', statusMessages[formStatus]?.cls)}>
+                    <p role="status" aria-live="polite" className={cn('text-center font-medium', formStatus === 'idle' ? 'sr-only' : 'text-[14px]', statusMessages[formStatus]?.cls)}>
                       {statusMessages[formStatus]?.text}
                     </p>
                   </form>
