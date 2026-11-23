@@ -399,6 +399,8 @@ export default function Home() {
   }, [reduceMotion]);
 
   const title = (key: string) => (config.sectionTitles?.[key] || '').trim() || DEFAULT_SECTION_TITLES[key] || '';
+  // A long headline (a full sentence) is set smaller so the line under it and the buttons stay on the first screen.
+  const heroLong = `${title('heroGreeting')} ${title('heroName')}`.length > 32;
   const capabilityGroups = (config.capabilityGroups || [])
     .map((g) => ({ name: (g.name || '').trim(), short: (g.short || '').trim(), items: (g.items || []).map((x) => (x || '').trim()).filter(Boolean) }))
     .filter((g) => g.name && g.items.length > 0);
@@ -491,7 +493,7 @@ export default function Home() {
 
           <div className="mx-auto grid w-full max-w-7xl items-end gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6">
             <div className="relative z-10 min-w-0 pb-4 text-center lg:pb-44 lg:text-left">
-              <h1 className="text-[clamp(2.6rem,8vw,6.2rem)] font-medium leading-[1.03] tracking-[-0.045em] text-white">
+              <h1 className={`${heroLong ? 'text-[clamp(1.9rem,5vw,3.9rem)]' : 'text-[clamp(2.6rem,8vw,6.2rem)]'} font-medium leading-[1.06] tracking-[-0.04em] text-white`}>
                 {title('heroGreeting')} <br />
                 <span className="text-white/65">
                   <Typewriter text={title('heroName')} />
