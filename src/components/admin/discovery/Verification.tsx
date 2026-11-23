@@ -7,7 +7,7 @@ import { friendlyError } from '../forms';
 import { Card, GhostButton, SaveButton, TextField, Toaster } from './parts';
 
 /** Site-ownership codes for Google and Bing, and the IndexNow key that lets Bing and others hear about changes at once. */
-export default function Verification({ value, onSaved, onToast }: { value: DiscoverySettings; onSaved: () => Promise<void>; onToast: Toaster }) {
+export default function Verification({ value, onSaved, onToast }: { value: DiscoverySettings; onSaved: () => Promise<void>; onToast: Toaster } & React.Attributes) {
   const { seoConfig } = useSiteConfig();
   const [google, setGoogle] = useState(value.verification.google);
   const [bing, setBing] = useState(value.verification.bing);

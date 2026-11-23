@@ -14,6 +14,7 @@ const paragraphs = (v) => (typeof v === 'string' ? v.split(/\n\s*\n/).map(clean)
  * @param {object} settings site_settings by key
  * @param {{ posts?: object[], projects?: object[], meta?: Record<string, object> }} [data] published content and the pages' SEO rows
  * @param {boolean} [full] include the answers (llms-full.txt)
+ * @param {object} [req] the request, used to find the site address when none is saved
  */
 export function buildLlmsTxt(settings, data = {}, full = false, req) {
   const site = siteUrlOf(settings, req);

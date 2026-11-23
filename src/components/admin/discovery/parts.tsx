@@ -16,7 +16,7 @@ export const Card = ({ title, icon, children, hint }: { title: string; icon?: Re
 
 export function TextField({ id, label, value, onChange, hint, placeholder, maxLength, type = 'text' }: {
   id: string; label: string; value: string; onChange: (v: string) => void; hint?: string; placeholder?: string; maxLength?: number; type?: string;
-}) {
+} & React.Attributes) {
   return (
     <div>
       <label htmlFor={id} className={labelCls}>{label}</label>

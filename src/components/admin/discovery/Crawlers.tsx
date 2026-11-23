@@ -20,7 +20,7 @@ const WHO: Record<string, string> = {
 };
 
 /** Which AI crawlers may read the site, and which private addresses stay closed. Saved under site_settings.discovery. */
-export default function Crawlers({ value, onSaved, onToast }: { value: DiscoverySettings; onSaved: () => Promise<void>; onToast: Toaster }) {
+export default function Crawlers({ value, onSaved, onToast }: { value: DiscoverySettings; onSaved: () => Promise<void>; onToast: Toaster } & React.Attributes) {
   const { seoConfig } = useSiteConfig();
   const [crawlers, setCrawlers] = useState(value.crawlers);
   const [extra, setExtra] = useState(toLines(value.extraDisallow));

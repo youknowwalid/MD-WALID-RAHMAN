@@ -9,7 +9,7 @@ import { friendlyError } from '../forms';
 import { AreaField, Card, SaveButton, TextField, Toaster } from './parts';
 
 /** Who the brand is, in the words an AI or a search engine will repeat. Saved under site_settings.discovery.entity. */
-export default function BrandEntity({ value, onSaved, onToast }: { value: DiscoverySettings; onSaved: () => Promise<void>; onToast: Toaster }) {
+export default function BrandEntity({ value, onSaved, onToast }: { value: DiscoverySettings; onSaved: () => Promise<void>; onToast: Toaster } & React.Attributes) {
   const { config, seoConfig } = useSiteConfig();
   const [e, setE] = useState(value.entity);
   const [sameAs, setSameAs] = useState(toLines(value.entity.sameAs));

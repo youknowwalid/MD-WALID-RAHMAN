@@ -26,7 +26,7 @@ const ICON: Record<AuditCheck['status'], React.ReactNode> = {
 export default function PageEditor({ target, initial, hasRow, authors, discovery, onClose, onSaved, onToast }: {
   target: PageTarget; initial: PageMeta; hasRow: boolean; authors: admin.AuthorRow[]; discovery: DiscoverySettings;
   onClose: () => void; onSaved: () => Promise<void>; onToast: Toaster;
-}) {
+} & React.Attributes) {
   const { config, seoConfig } = useSiteConfig();
   const [m, setM] = useState<PageMeta>(initial);
   const [facts, setFacts] = useState(toLines(initial.quotable_facts));
