@@ -214,6 +214,7 @@ export function buildPageHtml(template, seoSettings, page, path, extra = {}) {
     ...(clean(verification.google) ? [meta_('name', 'google-site-verification', clean(verification.google))] : []),
     ...(clean(verification.bing) ? [meta_('name', 'msvalidate.01', clean(verification.bing))] : []),
     `<link rel="canonical" href="${esc(canonical)}" />`,
+    `<link rel="alternate" type="application/rss+xml" title="${esc(seo.siteName)}" href="${esc(base)}/feed.xml" />`,
     ...hreflang,
     meta_('property', 'og:type', page.type || 'website'),
     meta_('property', 'og:site_name', seo.siteName),
