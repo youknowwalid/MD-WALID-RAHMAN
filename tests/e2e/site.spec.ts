@@ -488,7 +488,7 @@ test.describe('brand colors', () => {
     expect(grad).toContain('linear-gradient(135deg, #00c6ff, #7b61ff, #0072ff)');
 
     // The home page has a brand colour of its own and keeps it whatever the admin picks.
-    const homeCta = await page.getByRole('link', { name: "Let's Discuss" }).first().evaluate((el) => getComputedStyle(el).backgroundColor);
+    const homeCta = await page.getByRole('link', { name: 'Text Me' }).first().evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(homeCta).toBe('rgb(195, 237, 58)');
 
     // Every other public page shares the home page's brand colour too, so the whole site looks the same.
