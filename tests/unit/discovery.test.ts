@@ -276,3 +276,14 @@ describe('sitemap', () => {
     expect(xml).not.toContain('/blog/b');
   });
 });
+
+describe('article page for crawlers without JavaScript', () => {
+  it('writes the headline, body text and article body into the page', () => {
+    const tpl = '<html><head><title>x</title></head><body><main id="static-content">old</main><noscript><main><h1>Old</h1></main></noscript></body></html>';
+    const html = buildPageHtml(tpl, { siteUrl: 'https://acme.test', siteName: 'Acme' }, { title: 'Post A', description: 'Short.', type: 'article', content: 'Hello **world**.\n\nSecond.' }, '/blog/post-a', { kind: 'blog', owned: true, withBody: true });
+    expect(html).toContain('<h1>Post A</h1>');
+    expect(html).toContain('<p>Hello world.</p>');
+    expect(html).toContain('"articleBody":"Hello world. Second."');
+    expect(html.match(/<h1>/g)).toHaveLength(1);
+  });
+});

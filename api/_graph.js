@@ -156,6 +156,9 @@ export function buildGraph({ site, seo, global, discovery, page, meta, author, u
     });
   }
 
+  const articleText = isArticle && typeof page.content === 'string'
+    ? page.content.replace(/\*\*\*|\*\*|\*/g, '').replace(/\s+/g, ' ').trim().slice(0, 20000)
+    : '';
   const reviewed = meta?.last_reviewed_at || null;
   const modified = page.modified || reviewed || page.published || null;
   const pageNode = {
@@ -174,6 +177,7 @@ export function buildGraph({ site, seo, global, discovery, page, meta, author, u
     ...(isArticle
       ? {
           headline: name,
+          ...(articleText ? { articleBody: articleText, wordCount: articleText.split(/\s+/).length } : {}),
           mainEntityOfPage: { '@id': pageId },
           publisher: { '@id': id.entity },
           author: authorId ? { '@id': authorId } : { '@type': 'Person', name: text(page.author) || seo.siteName, url: `${site}/` },

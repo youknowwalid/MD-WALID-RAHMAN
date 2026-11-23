@@ -23,7 +23,7 @@ import { rest, rpc } from './_site.js';
 
 const COLUMNS = {
   project: 'id,slug,title,social_title,social_description,social_image,summary,content,hero_image,image',
-  blog: 'id,slug,title,social_title,social_description,social_image,excerpt,image,created_at,updated_at,author',
+  blog: 'id,slug,title,social_title,social_description,social_image,excerpt,content,image,created_at,updated_at,author',
 };
 const TABLES = { project: 'projects', blog: 'blog_posts' };
 const PATHS = { project: '/projects/', blog: '/blog/' };
@@ -33,7 +33,6 @@ const FIXED = {
   '/': 'home',
   '/articles': 'articles',
   '/resources': 'resources',
-  '/products': 'resources',
   '/terms-of-service': 'terms-of-service',
   '/privacy-policy': 'privacy-policy',
   '/refund-policy': 'refund-policy',
@@ -48,6 +47,8 @@ export function routeOf(route) {
   if (FIXED[route]) return { kind: route === '/' ? 'home' : 'fixed', key: FIXED[route] };
   if (isPrivate(route)) return { kind: 'private' };
   if (route === '/blog') return { kind: 'redirect', to: '/articles' };
+  // The same page as /resources: one address only, so search engines do not see two copies.
+  if (route === '/products') return { kind: 'redirect', to: '/resources' };
   let m = /^\/projects\/([^/]+)$/.exec(route);
   if (m) return { kind: 'project', key: m[1] };
   m = /^\/blog\/([^/]+)$/.exec(route);
@@ -191,7 +192,12 @@ export default async function handler(req, res) {
     const authorRows = meta?.author_id && isUuid(meta.author_id)
       ? await safe(rest(`author_profiles?select=*&id=eq.${meta.author_id}&limit=1`), [])
       : [];
-    const author = authorRows[0] || null;
+    let author = authorRows[0] || null;
+    // An article with no author chosen is credited to the site's own author profile (a one-person byline).
+    if (!author && info.kind === 'blog') {
+      const all = await safe(rest('author_profiles?select=*&order=created_at.asc&limit=1'), []);
+      author = all[0] || null;
+    }
 
     let page = {};
     let path = route;
@@ -209,7 +215,7 @@ export default async function handler(req, res) {
 
     res.setHeader('Cache-Control', CACHE);
     return res.status(200).send(
-      buildPageHtml(template, settings.seo, page, path, { ...common, kind, meta, author, owned, withBody: info.kind === 'home' }),
+      buildPageHtml(template, settings.seo, page, path, { ...common, kind, meta, author, owned, withBody: info.kind === 'home' || info.kind === 'blog' }),
     );
   } catch (err) {
     console.error('render failed, serving the plain shell:', err);
