@@ -13,7 +13,7 @@ const headers = (extra?: Record<string, string>) => ({
 });
 
 /** Public tables that /api/content can serve from a cache near the visitor (see api/content.js). */
-const CACHEABLE = /^(projects|blog_posts|services|resume_items|skills|testimonials|pricing_plans|products|site_settings)\?/;
+const CACHEABLE = /^(projects|blog_posts|resume_items|testimonials|products|site_settings|page_discovery_meta)\?/;
 const CACHE_TIMEOUT_MS = 4000;
 
 /**
@@ -109,6 +109,22 @@ export async function fetchSettings(): Promise<Partial<Record<SettingsKey, any>>
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   } catch {
     return null;
+  }
+}
+
+/** The questions and answers saved for the home page (admin > Search & AI), or an empty list. */
+export async function fetchHomeFaq(): Promise<{ question: string; answer: string }[]> {
+  if (!backendConfigured) return [];
+  try {
+    const res = await request('page_discovery_meta?select=route_key,faq_items&limit=200', { headers: headers() });
+    if (!res.ok) return [];
+    const rows = (await res.json()) as { route_key: string; faq_items: unknown }[];
+    const list = rows.find((r) => r.route_key === 'home')?.faq_items;
+    return Array.isArray(list)
+      ? list.map((x: any) => ({ question: String(x?.question ?? '').trim(), answer: String(x?.answer ?? '').trim() })).filter((x) => x.question && x.answer)
+      : [];
+  } catch {
+    return [];
   }
 }
 

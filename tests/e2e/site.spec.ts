@@ -136,6 +136,28 @@ test.describe('public site (connected)', () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   });
 
+  test('contact: FAQ beside the form, one answer open at a time, no contact cards repeated', async ({ page }) => {
+    await page.goto(CONNECTED + '/#contact');
+    const section = page.locator('#contact');
+    await expect(section.getByRole('button', { name: 'How much does a project cost?' })).toHaveAttribute('aria-expanded', 'true');
+    await expect(section.getByText('Projects start at 25k BDT.')).toBeVisible();
+    await section.getByRole('button', { name: 'Do I own everything?' }).click();
+    await expect(section.getByText('Yes, everything.')).toBeVisible();
+    await expect(section.getByText('Projects start at 25k BDT.')).toBeHidden();
+    await expect(section.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0);
+  });
+
+  test('hero: Text Me and Portfolio buttons, resume link in the footer', async ({ page, request }) => {
+    await request.post(`${API}/__seed-settings`, { data: { key: 'hero', value: { cvUrl: 'https://files.example/resume.pdf' } } });
+    await page.goto(CONNECTED + '/');
+    const heroEl = page.locator('#home');
+    await expect(heroEl.getByRole('link', { name: /Text Me/ })).toBeVisible();
+    await expect(heroEl.getByRole('link', { name: 'Portfolio' })).toHaveAttribute('href', '/#projects');
+    await expect(heroEl.getByText('Download CV')).toHaveCount(0);
+    await expect(page.locator('footer').getByRole('link', { name: 'Download My Resume' })).toHaveAttribute('href', 'https://files.example/resume.pdf');
+    await request.post(`${API}/__seed-settings`, { data: { key: 'hero', value: { cvUrl: '' } } });
+  });
+
   test('contact form saves a message and shows confirmation', async ({ page, request }) => {
     await page.goto(CONNECTED + '/#contact');
     await page.getByLabel('Name', { exact: true }).fill('Jane Visitor');

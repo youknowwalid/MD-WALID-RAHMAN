@@ -1,27 +1,9 @@
-import { PricingPlan, Project, BlogPost, Service, Testimonial, ResumeItem, Product } from '../types';
+import { Project, BlogPost, Testimonial, ResumeItem, Product } from '../types';
 
 /** Every normalizer fills missing fields with safe, neutral values (never invented content). */
 const str = (v: unknown) => (v === undefined || v === null ? '' : String(v));
 const list = (v: unknown) => (Array.isArray(v) ? v.map(String).filter(Boolean) : []);
 const num = (v: unknown, fallback = 0) => (Number.isFinite(Number(v)) && v !== '' && v !== null && v !== undefined ? Number(v) : fallback);
-
-export const normalizePricingPlan = (data: any): PricingPlan => ({
-  id: str(data.id),
-  name: str(data.name) || 'Plan',
-  price: str(data.price),
-  period: data.period === undefined || data.period === null ? '/month' : str(data.period),
-  features: list(data.features),
-  unavailableFeatures: list(data.unavailableFeatures),
-  showPriorityBox: Boolean(data.showPriorityBox),
-  priorityTitle: str(data.priorityTitle),
-  prioritySubtitle: str(data.prioritySubtitle),
-  buttonText: str(data.buttonText) || 'Get Started',
-  buttonUrl: str(data.buttonUrl),
-  accent: Boolean(data.accent),
-  order: num(data.order),
-  createdAt: data.createdAt,
-  updatedAt: data.updatedAt,
-});
 
 export const normalizeProject = (data: any): Project => ({
   id: str(data.id),
@@ -55,17 +37,6 @@ export const normalizeProject = (data: any): Project => ({
   ctaButtonUrl: str(data.ctaButtonUrl),
   // Projects saved before the upgrade have no value: they stay visible.
   published: data.published === undefined ? true : Boolean(data.published),
-  order: num(data.order),
-  createdAt: data.createdAt,
-  updatedAt: data.updatedAt,
-});
-
-export const normalizeService = (data: any): Service => ({
-  id: str(data.id),
-  displayId: str(data.displayId),
-  title: str(data.title) || 'Service',
-  iconName: str(data.iconName) || 'Palette',
-  description: str(data.description),
   order: num(data.order),
   createdAt: data.createdAt,
   updatedAt: data.updatedAt,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Phone, Github, Twitter, Linkedin, Facebook, Instagram, Youtube, ArrowUpRight } from 'lucide-react';
+import { Mail, MapPin, Phone, Github, Twitter, Linkedin, Facebook, Instagram, Youtube, ArrowUpRight, Download } from 'lucide-react';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { safeUrl } from '../lib/text';
 import Photo from './Photo';
@@ -19,7 +19,7 @@ const getSocialIcon = (platform: string) => {
 };
 
 export default function Footer() {
-  const { config } = useSiteConfig();
+  const { config, hero } = useSiteConfig();
   const phoneDigits = config.officePhone.replace(/[^0-9+]/g, '');
   const socials = config.socialLinks.filter((s) => safeUrl(s.url));
 
@@ -78,6 +78,14 @@ export default function Footer() {
                   <a href={`tel:${phoneDigits}`} className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
                     <Phone className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
                     {config.officePhone}
+                  </a>
+                </li>
+              )}
+              {hero.cvUrl && (
+                <li>
+                  <a href={hero.cvUrl} download target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-accent transition-colors flex items-center gap-3 text-sm group min-h-11 lg:min-h-0">
+                    <Download className="w-4 h-4 text-accent/70 group-hover:text-accent shrink-0" aria-hidden="true" />
+                    Download My Resume
                   </a>
                 </li>
               )}

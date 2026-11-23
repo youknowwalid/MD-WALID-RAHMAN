@@ -2,11 +2,11 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { m, useInView, useReducedMotion } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  ArrowUpRight, ArrowUp, Mail, Phone, MapPin, Loader2,
+  ArrowUpRight, ArrowUp, Loader2,
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
-import { listRows, submitContact } from '../lib/api';
+import { fetchHomeFaq, listRows, submitContact } from '../lib/api';
 import { backendConfigured } from '../lib/config';
 import { DEFAULT_SECTION_TITLES, FALLBACK_RESUME } from '../lib/defaults';
 import {
@@ -29,6 +29,8 @@ import TeamDeck from './TeamDeck';
 import AutoCarousel from './AutoCarousel';
 import Capabilities from './Capabilities';
 import WorkWithMe from './WorkWithMe';
+import ContactFaq from './ContactFaq';
+import type { FaqItem } from '../lib/discovery';
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -108,19 +110,6 @@ const Reveal = ({ children, delay = 0, className, from = 'up' }: {
   >
     {children}
   </m.div>
-);
-
-const SectionHead = ({ title, lead }: { title: React.ReactNode; lead?: string }) => (
-  <div className="mb-14 md:mb-[70px]">
-    <Reveal delay={0.07}>
-      <h2 className="max-w-4xl text-[2.3rem] font-medium leading-[1.04] tracking-[-0.045em] md:text-6xl">{title}</h2>
-    </Reveal>
-    {lead && (
-      <Reveal delay={0.13}>
-        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted md:text-xl">{lead}</p>
-      </Reveal>
-    )}
-  </div>
 );
 
 /** The unit ("Yrs") belongs with the label underneath, so every number is the same size. */
@@ -268,6 +257,9 @@ export default function Home() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [resume, setResume] = useState<ResumeItem[]>(backendConfigured ? [] : FALLBACK_RESUME);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
+  const [faq, setFaq] = useState<FaqItem[]>([]);
+  useEffect(() => { fetchHomeFaq().then(setFaq); }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error' | 'limited' | 'mailto'>('idle');
@@ -466,12 +458,6 @@ export default function Home() {
   const sideProject = guide ? undefined : projects[1];
   const remainingProjects = projects.slice(guide ? 1 : 2);
 
-  const contactDetails = [
-    config.contactEmail && { icon: Mail, label: 'Email', value: config.contactEmail, href: `mailto:${config.contactEmail}` },
-    config.officePhone && { icon: Phone, label: 'Phone', value: config.officePhone, href: `tel:${phoneDigits}` },
-    config.officeAddress && { icon: MapPin, label: 'Office', value: config.officeAddress, href: '' },
-  ].filter(Boolean) as { icon: React.ComponentType<{ className?: string }>; label: string; value: string; href: string }[];
-
   return (
     <div
       className="home-v2 relative min-h-screen overflow-x-hidden bg-bg-dark selection:bg-accent/50 selection:text-[#0d1117]"
@@ -520,18 +506,15 @@ export default function Home() {
                   {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   className="home-btn home-mag bg-accent min-h-[52px] px-7 py-3.5 text-[16px] text-[#0d1117] shadow-[0_14px_24px_-12px_rgba(0,0,0,0.55)] md:text-[17px]"
                 >
-                  {config.globalCtaText}
+                  {config.heroCtaText || config.globalCtaText}
                   <span className="home-arrow" aria-hidden="true">↗</span>
                 </a>
-                {hero.cvUrl && (
+                {config.heroSecondaryText && (
                   <a
-                    href={hero.cvUrl}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="home-btn home-mag min-h-[52px] bg-white px-7 py-3.5 text-[16px] text-[#0d1117] md:text-[17px]"
+                    href="/#projects"
+                    className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-white/40 px-7 py-3.5 text-[16px] font-medium text-white transition-colors hover:bg-white/15 md:text-[17px]"
                   >
-                    Download CV
+                    {config.heroSecondaryText}
                   </a>
                 )}
               </m.div>
@@ -1008,29 +991,17 @@ export default function Home() {
 
               <div className="relative grid gap-8 lg:grid-cols-2 lg:gap-12">
                 <div>
-                  <SectionHead
-                    title={title('contact')}
-                    lead={title('contactLead')}
-                  />
-                  <div className="-mt-10 space-y-4">
-                    {contactDetails.map((item, i) => (
-                      <Reveal key={item.label} delay={Math.min(i * 0.08, 0.2)}>
-                        <div className="relative flex items-center gap-4 rounded-[20px] border border-white/25 bg-white/15 p-4 md:p-5 backdrop-blur-sm transition-transform duration-500 hover:translate-x-2">
-                          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent text-[#0d1117]" aria-hidden="true">
-                            <item.icon className="h-5 w-5" />
-                          </span>
-                          <div className="min-w-0">
-                            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/85 md:text-[10px] md:tracking-[0.18em]">{item.label}</div>
-                            {item.href ? (
-                              <a href={item.href} className="break-words text-[19px] font-medium text-white underline-offset-4 after:absolute after:inset-0 after:rounded-[20px] hover:underline">{item.value}</a>
-                            ) : (
-                              <span className="break-words text-[19px] font-medium text-white">{item.value}</span>
-                            )}
-                          </div>
-                        </div>
+                  <div className={faq.length ? 'mb-8 md:mb-10' : ''}>
+                    <Reveal delay={0.07}>
+                      <h2 className="max-w-3xl text-[2.1rem] font-medium leading-[1.06] tracking-[-0.045em] md:text-[3.2rem]">{title('contact')}</h2>
+                    </Reveal>
+                    {title('contactLead') && (
+                      <Reveal delay={0.13}>
+                        <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-white/85 md:text-[19px]">{title('contactLead')}</p>
                       </Reveal>
-                    ))}
+                    )}
                   </div>
+                  <ContactFaq items={faq} />
                 </div>
 
                 <Reveal from="right" delay={0.1}>

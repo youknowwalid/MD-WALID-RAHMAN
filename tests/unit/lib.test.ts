@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fromRow, toRow } from '../../src/lib/rows';
 import { isUuid, parseContent, readingMinutes, safeUrl, slugify } from '../../src/lib/text';
-import { normalizePricingPlan, normalizeProject } from '../../src/lib/schema-defaults';
+import { normalizeProject } from '../../src/lib/schema-defaults';
 import { toFormValues, toPayload } from '../../src/components/admin/forms';
 import { buildSitemap } from '../../api/sitemap.js';
 
@@ -86,8 +86,6 @@ describe('normalizers', () => {
     const p = normalizeProject({ title: 'A' });
     expect(p.image).toBe('');
     expect(p.category).toBe('');
-    expect(normalizePricingPlan({ name: 'X' }).period).toBe('/month');
-    expect(normalizePricingPlan({ name: 'X', period: '' }).period).toBe('');
   });
 });
 
