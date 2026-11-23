@@ -990,7 +990,7 @@ export default function Home() {
               <div className="home-cloud home-cloud--b right-[-160px] top-[-70px] h-[220px] w-[720px]" aria-hidden="true" />
 
               <div className="relative grid gap-5 lg:grid-cols-[1.1fr_1fr] lg:items-stretch lg:gap-10">
-                <div>
+                <div className="flex flex-col">
                   <div className={faq.length ? 'mb-4 md:mb-5' : ''}>
                     <Reveal delay={0.07}>
                       <h2 className="max-w-2xl text-[1.6rem] font-medium leading-[1.1] tracking-[-0.04em] md:text-[2.1rem]">{title('contact')}</h2>
@@ -1001,7 +1001,7 @@ export default function Home() {
                       </Reveal>
                     )}
                   </div>
-                  <ContactFaq items={faq} />
+                  <div className="mt-auto"><ContactFaq items={faq} /></div>
                 </div>
 
                 <Reveal from="right" delay={0.1} className="h-full">
