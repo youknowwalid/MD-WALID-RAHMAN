@@ -13,10 +13,12 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import NotFound from './NotFound';
 import Seo from './Seo';
+import { useSiteConfig } from '../context/SiteConfigContext';
 import Photo from './Photo';
 
 export default function BlogDetail() {
   const { blogId } = useParams();
+  const { seoConfig } = useSiteConfig();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -84,7 +86,7 @@ export default function BlogDetail() {
           headline: post.title,
           description: post.excerpt,
           image: post.image || undefined,
-          author: { '@type': 'Person', name: post.author || 'Walid Rahman' },
+          author: { '@type': 'Person', name: post.author || seoConfig.siteName },
           datePublished: post.createdAt || undefined,
           dateModified: post.updatedAt || post.createdAt || undefined,
         }}
@@ -108,7 +110,7 @@ export default function BlogDetail() {
               </div>
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-accent" />
-                {post.author || 'Walid Rahman'}
+                {post.author || seoConfig.siteName}
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-accent" />

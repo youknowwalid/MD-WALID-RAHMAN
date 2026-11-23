@@ -258,7 +258,7 @@ const prefetched: { at: number; data: ReturnType<typeof loadHomeData> } | null =
 const takeHomeData = () => (prefetched && Date.now() - prefetched.at < 10_000 ? prefetched.data : loadHomeData());
 
 export default function Home() {
-  const { config, hero } = useSiteConfig();
+  const { config, hero, seoConfig } = useSiteConfig();
   const { products } = useProducts();
   const reduceMotion = useReducedMotion();
 
@@ -567,7 +567,7 @@ export default function Home() {
                   {!hero.heroPortrait && <source media="(prefers-reduced-motion: reduce)" srcSet="/walid-cutout.webp" />}
                   <img
                     src={hero.heroPortrait || '/walid-hero-animated-v2.webp'}
-                    alt="Portrait of Walid Rahman"
+                    alt={`Portrait of ${seoConfig.siteName}`}
                     width={362}
                     height={482}
                     fetchPriority="high"

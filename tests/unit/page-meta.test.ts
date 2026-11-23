@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { buildPageHtml, mergeSeo, pickPage } from '../../api/page-meta.js';
+import { buildPageHtml, mergeSeo, pickPage } from '../../api/_head.js';
+import seoDefaults from '../../src/lib/seo-defaults.json';
+
+// Built-in values come from the shared defaults file, never retyped here.
+const SITE_URL = seoDefaults.siteUrl.replace(/\/+$/, '');
 
 const template = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
 const count = (html: string, re: RegExp) => (html.match(re) || []).length;
@@ -21,13 +25,13 @@ describe('page meta: project and blog link previews', () => {
 
   it('puts the project\'s own tags in the HTML, not the home page\'s', () => {
     const html = buildPageHtml(template, null, pickPage('project', project), '/projects/replyme-io');
-    expect(html).toContain('<title>ReplyMe | Walid Rahman</title>');
-    expect(content(html, 'property', 'og:title')).toBe('ReplyMe | Walid Rahman');
+    expect(html).toContain(`<title>${seoDefaults.titleTemplate.replace('%s', 'ReplyMe')}</title>`);
+    expect(content(html, 'property', 'og:title')).toBe(seoDefaults.titleTemplate.replace('%s', 'ReplyMe'));
     expect(content(html, 'property', 'og:description')).toBe('An AI sales and support chatbot for businesses.');
     expect(content(html, 'property', 'og:image')).toBe('https://cdn.example.com/replyme-share.jpg');
     expect(content(html, 'name', 'twitter:image')).toBe('https://cdn.example.com/replyme-share.jpg');
-    expect(content(html, 'property', 'og:url')).toBe('https://walidrahman.com/projects/replyme-io');
-    expect(html).toContain('<link rel="canonical" href="https://walidrahman.com/projects/replyme-io" />');
+    expect(content(html, 'property', 'og:url')).toBe(`${SITE_URL}/projects/replyme-io`);
+    expect(html).toContain(`<link rel="canonical" href="${SITE_URL}/projects/replyme-io" />`);
     expect(html).not.toContain('og-image.png'); // neither in a tag nor in the home page's structured data
     expect(html).not.toContain('"jobTitle"');
     expect(html).toContain('"@type":"CreativeWork"');
@@ -67,7 +71,7 @@ describe('page meta: project and blog link previews', () => {
 
   it('falls back to the built-in share image (with its size) when a page has none', () => {
     const html = buildPageHtml(template, null, pickPage('project', { title: 'Bare' }), '/projects/bare');
-    expect(content(html, 'property', 'og:image')).toBe('https://walidrahman.com/og-image.png');
+    expect(content(html, 'property', 'og:image')).toBe(`${SITE_URL}/og-image.png`);
     expect(content(html, 'property', 'og:image:width')).toBe('1200');
     expect(content(html, 'property', 'og:image:height')).toBe('630');
   });
@@ -83,8 +87,8 @@ describe('page meta: project and blog link previews', () => {
     const html = buildPageHtml(template, null, pickPage('blog', post), '/blog/hello');
     expect(content(html, 'property', 'og:type')).toBe('article');
     expect(content(html, 'property', 'og:description')).toBe('A short post.');
-    expect(content(html, 'property', 'og:image')).toBe('https://walidrahman.com/uploads/post.png');
-    expect(content(html, 'property', 'og:url')).toBe('https://walidrahman.com/blog/hello');
+    expect(content(html, 'property', 'og:image')).toBe(`${SITE_URL}/uploads/post.png`);
+    expect(content(html, 'property', 'og:url')).toBe(`${SITE_URL}/blog/hello`);
   });
 
   it('cannot be used to inject markup, and keeps "$" characters as typed', () => {
@@ -97,7 +101,7 @@ describe('page meta: project and blog link previews', () => {
     expect(html).not.toContain('<img src=x');
     expect(html).not.toContain('javascript:');
     expect(html).toContain('$&amp; $1');
-    expect(content(html, 'property', 'og:image')).toBe('https://walidrahman.com/og-image.png');
+    expect(content(html, 'property', 'og:image')).toBe(`${SITE_URL}/og-image.png`);
   });
 
   it('uses the SEO settings saved in the admin (template, site name, default image, noindex, twitter)', () => {
@@ -110,9 +114,20 @@ describe('page meta: project and blog link previews', () => {
     expect(content(html, 'name', 'robots')).toBe('noindex, nofollow');
   });
 
+  it('keeps the static index.html head in step with the shared defaults (so the two cannot contradict each other)', () => {
+    expect(/<title>([^<]*)<\/title>/.exec(template)?.[1]).toBe(seoDefaults.defaultTitle);
+    expect(content(template, 'name', 'description')).toBe(seoDefaults.defaultDescription);
+    expect(content(template, 'property', 'og:title')).toBe(seoDefaults.defaultTitle);
+    expect(content(template, 'property', 'og:description')).toBe(seoDefaults.defaultDescription);
+    expect(content(template, 'name', 'twitter:title')).toBe(seoDefaults.defaultTitle);
+    expect(content(template, 'name', 'twitter:description')).toBe(seoDefaults.defaultDescription);
+    expect(content(template, 'property', 'og:site_name')).toBe(seoDefaults.siteName);
+    expect(content(template, 'property', 'og:url')).toBe(`${SITE_URL}/`);
+  });
+
   it('merges saved SEO settings the same way the browser does', () => {
-    expect(mergeSeo(null).siteName).toBe('Walid Rahman');
-    expect(mergeSeo({ siteName: '   ' }).siteName).toBe('Walid Rahman'); // blank falls back
+    expect(mergeSeo(null).siteName).toBe(seoDefaults.siteName);
+    expect(mergeSeo({ siteName: '   ' }).siteName).toBe(seoDefaults.siteName); // blank falls back
     expect(mergeSeo({ ogImage: '' }).ogImage).toBe(''); // these may be blank on purpose
     expect(mergeSeo({ robotsIndex: 'no' }).robotsIndex).toBe(true); // wrong type ignored
   });

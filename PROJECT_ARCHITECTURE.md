@@ -14,6 +14,11 @@ Single-page portfolio for Walid Rahman. The design is open to change; nothing he
   `src/lib/schema-defaults.ts`, `src/lib/rows.ts` and the form definition in `src/components/admin/forms.ts` together.
 - **Graceful fallbacks**: the site must render with no database (`backendConfigured === false`) or when it is unreachable.
 - **No invented content**: defaults are limited to text that already existed on the site; empty sections are hidden or show a neutral note.
+- **One source of truth for site text**: brand name, tagline, numbers, contact e-mail, web address and SEO text are
+  edited in the admin and stored in `site_settings`. Code must read them (`useSiteConfig()` in the app, `api/_site.js`
+  on the server); never retype them in a component, a test or a server file. The only built-in copy is
+  `src/lib/defaults.ts` plus `src/lib/seo-defaults.json`, which the app and `api/_head.js` both import. Tests import
+  these defaults too, and a unit test checks `index.html`'s static head against them.
 - **Minimal change**: prefer the smallest diff.
 
 ## Data flow
@@ -43,14 +48,22 @@ Single-page portfolio for Walid Rahman. The design is open to change; nothing he
 - Storage bucket `site-media`: public read; admin-only write; 5 MB limit; images + PDF only (no SVG).
 - Headers (CSP, HSTS, frame-ancestors none…) in `vercel.json`. If a Supabase custom domain is ever used, add it to `connect-src`.
 
-## SEO
-Static tags + JSON-LD in `index.html`; `src/components/Seo.tsx` sets per-page title/description/canonical/Open Graph/structured data;
-`/sitemap.xml` is generated live from the database (`api/sitemap.js`); `robots.txt` blocks `/admin`.
-**Link previews** (Facebook, LinkedIn, WhatsApp, X…) never run JavaScript, so `Seo.tsx` alone would show the home page's tags for every address.
-`/projects/:slug` and `/blog/:slug` are therefore rewritten (`vercel.json`) to `api/page-meta.js`, which returns the built `index.html`
-with that page's own title/description/canonical/share-image tags already filled in (same field choices as `ProjectDetail.tsx` / `BlogDetail.tsx`,
-same SEO settings rules as `SiteConfigContext.tsx`). Drafts are hidden by Row Level Security, so they get no preview. The result is cached at
-the edge for 5 minutes, so admin edits reach link previews within that time. If you change which fields a page shares, change `pickPage()` there too.
+## SEO, AI search and link previews
+**Every public address is rendered by one function, `api/render.js`** (catch-all rewrite in `vercel.json`). It takes the built app shell and
+writes the page's own head tags, one linked JSON-LD graph (`api/_graph.js`) and a plain-HTML copy of the page into it, all from saved content:
+`site_settings` (global, seo, discovery), the page itself, its row in `page_discovery_meta` (SEO / AEO / GEO fields) and its `author_profiles` row.
+Data that has no saved source is left out, never invented. The same function applies the admin's redirects (`url_redirects`: 301 / 302 / 410, loops
+and chains are blocked by a database trigger), answers a real 404 for addresses that do not exist, and marks private pages (`/admin`, `/thank-you`,
+`/checkout/*`) noindex. If the database is unreachable it serves the plain shell, so the site always loads.
+- **Why the shell is renamed**: Vercel serves a real file before it looks at rewrites. On Vercel only (`VERCEL=1`), `appShell()` in `vite.config.ts`
+  renames `dist/index.html` to `dist/app-shell.html` so even `/` reaches the function. Local preview and the e2e tests are unchanged.
+- **Who owns the head**: for the home page, projects, articles and any page whose tags the admin wrote, the function marks the page `data-ssr-path`
+  and `src/components/Seo.tsx` leaves those tags alone. For other fixed pages (articles list, resources, policies) the app still sets its own titles.
+- `api/_head.js` builds the head (`buildPageHtml`; `pickPage` chooses the fields like `ProjectDetail.tsx` / `BlogDetail.tsx`; same SEO settings rules as
+  `SiteConfigContext.tsx`). `/sitemap.xml`, `/robots.txt`, `/llms.txt` and `/llms-full.txt` are generated live from the database and the saved settings
+  (`api/sitemap.js`, `api/robots.js`, `api/llms.js`). Pages switched off for search in `page_discovery_meta` are left out of the sitemap and llms files.
+  Results are cached at the edge for 5 minutes, so admin edits show within that time.
+- `index.html` still carries a fallback head and hidden text for local development and for the no-database case; the renderer replaces them on every page.
 After changing a page's share image, ask Facebook to re-read it at developers.facebook.com/tools/debug (it keeps its own copy of old previews).
 
 ## Workflow

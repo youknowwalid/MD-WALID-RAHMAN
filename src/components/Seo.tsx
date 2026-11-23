@@ -47,6 +47,11 @@ export default function Seo({ title, description, image, type = 'website', noind
   const socials = JSON.stringify(config.socialLinks.map((s) => s.url));
 
   useEffect(() => {
+    // The server already wrote this page's tags and structured data into the HTML (api/render.js marks it with
+    // data-ssr-path). They are final, so the app leaves them alone. Navigating to another page takes over as usual.
+    const served = document.documentElement.dataset.ssrPath;
+    if (served === (pathname === '/' ? '/' : pathname.replace(/\/+$/, ''))) return;
+    if (served !== undefined) delete document.documentElement.dataset.ssrPath;
     document.title = fullTitle;
     setMeta('name', 'description', desc);
     setMeta('name', 'keywords', seo.keywords);
@@ -80,8 +85,8 @@ export default function Seo({ title, description, image, type = 'website', noind
         ? {
             '@context': 'https://schema.org',
             '@type': 'Person',
-            name: 'Walid Rahman',
-            jobTitle: 'Brand Developer',
+            name: seo.siteName,
+            ...(config.founderRole.trim() ? { jobTitle: config.founderRole.trim() } : {}),
             description: desc,
             url: base + '/',
             image: img,
@@ -95,7 +100,7 @@ export default function Seo({ title, description, image, type = 'website', noind
       script.textContent = JSON.stringify(data);
       document.head.appendChild(script);
     }
-  }, [fullTitle, desc, img, url, robots, type, ld, socials, pathname, seo.keywords, seo.siteName, seo.twitterHandle]);
+  }, [fullTitle, desc, img, url, robots, type, ld, socials, pathname, seo.keywords, seo.siteName, seo.twitterHandle, config.founderRole]);
 
   return null;
 }

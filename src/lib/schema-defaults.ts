@@ -98,7 +98,7 @@ export const normalizeBlogPost = (data: any): BlogPost => ({
   title: str(data.title) || 'Untitled Post',
   slug: str(data.slug),
   date: str(data.date),
-  author: str(data.author) || 'Walid Rahman',
+  author: str(data.author), // blank = the site owner's name, filled in where it is shown (BlogDetail, api/page-meta.js)
   image: str(data.image),
   excerpt: str(data.excerpt),
   content: str(data.content),
