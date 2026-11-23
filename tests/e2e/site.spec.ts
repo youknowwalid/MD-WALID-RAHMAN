@@ -149,6 +149,7 @@ test.describe('public site (connected)', () => {
     await expect(section.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0);
     // The form card starts and ends level with the heading and the last question, and the whole section stays short.
     if (page.viewportSize()!.width >= 1024) {
+      await page.waitForTimeout(1500); // let the section's entrance animation finish
       const form = (await section.getByRole('form', { name: 'Contact form' }).boundingBox())!;
       const head = (await section.getByRole('heading', { level: 2 }).boundingBox())!;
       const last = (await section.locator('[role="list"]').boundingBox())!;
@@ -173,7 +174,6 @@ test.describe('public site (connected)', () => {
     await page.goto(CONNECTED + '/#contact');
     await page.getByLabel('Name', { exact: true }).fill('Jane Visitor');
     await page.getByLabel('Email', { exact: true }).fill('jane@example.com');
-    await page.getByLabel('Subject').fill('Hello');
     await page.getByLabel('Message').fill('I would like to work with you.');
     await page.waitForTimeout(3200); // the anti-spam timer
     await page.getByRole('button', { name: 'Send Message' }).click();
