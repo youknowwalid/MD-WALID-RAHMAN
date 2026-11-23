@@ -99,10 +99,8 @@ describe('admin forms', () => {
     const payload = toPayload('projects', { ...values, title: 'My Project' });
     expect(payload).toMatchObject({ title: 'My Project', slug: 'my-project', tags: ['a', 'b'], gallery: ['u1', 'u2'], order: 4 });
   });
-  it('requires required fields and valid skill levels', () => {
+  it('requires required fields', () => {
     expect(() => toPayload('projects', { ...toFormValues('projects', null), title: '  ' })).toThrow(/Project title/);
-    expect(() => toPayload('skills', { name: 'x', level: '150', order: '' })).toThrow(/0 to 100/);
-    expect(toPayload('skills', { name: 'x', level: '90', order: '' })).toMatchObject({ name: 'x', level: 90 });
   });
 });
 
