@@ -149,7 +149,8 @@ export interface ContactSubmission {
 /** One order paid by bKash / Nagad "send money" (admin view, snake_case straight from the database). */
 export interface OrderRow {
   id: string;
-  edition: 'english' | 'bangla';
+  /** The product's code (see Store setup). */
+  edition: string;
   email: string;
   wallet: 'bkash' | 'nagad' | 'rocket';
   trx_id: string;

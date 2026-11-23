@@ -13,7 +13,7 @@ const content = (html: string, attr: 'property' | 'name', key: string) =>
 
 describe('page meta: project and blog link previews', () => {
   const project = {
-    title: 'ReplyMe',
+    title: 'Acme Pro',
     social_title: '',
     social_description: '',
     social_image: 'https://cdn.example.com/replyme-share.jpg',
@@ -24,21 +24,21 @@ describe('page meta: project and blog link previews', () => {
   };
 
   it('puts the project\'s own tags in the HTML, not the home page\'s', () => {
-    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/replyme-io');
-    expect(html).toContain(`<title>${seoDefaults.titleTemplate.replace('%s', 'ReplyMe')}</title>`);
-    expect(content(html, 'property', 'og:title')).toBe(seoDefaults.titleTemplate.replace('%s', 'ReplyMe'));
+    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/acme-pro');
+    expect(html).toContain(`<title>${seoDefaults.titleTemplate.replace('%s', 'Acme Pro')}</title>`);
+    expect(content(html, 'property', 'og:title')).toBe(seoDefaults.titleTemplate.replace('%s', 'Acme Pro'));
     expect(content(html, 'property', 'og:description')).toBe('An AI sales and support chatbot for businesses.');
     expect(content(html, 'property', 'og:image')).toBe('https://cdn.example.com/replyme-share.jpg');
     expect(content(html, 'name', 'twitter:image')).toBe('https://cdn.example.com/replyme-share.jpg');
-    expect(content(html, 'property', 'og:url')).toBe(`${SITE_URL}/projects/replyme-io`);
-    expect(html).toContain(`<link rel="canonical" href="${SITE_URL}/projects/replyme-io" />`);
+    expect(content(html, 'property', 'og:url')).toBe(`${SITE_URL}/projects/acme-pro`);
+    expect(html).toContain(`<link rel="canonical" href="${SITE_URL}/projects/acme-pro" />`);
     expect(html).not.toContain('og-image.png'); // neither in a tag nor in the home page's structured data
     expect(html).not.toContain('"jobTitle"');
     expect(html).toContain('"@type":"CreativeWork"');
   });
 
   it('leaves exactly one of each tag, so a crawler cannot pick the old home-page one', () => {
-    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/replyme-io');
+    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/acme-pro');
     expect(count(html, /<title>/g)).toBe(1);
     expect(count(html, /<link rel="canonical"/g)).toBe(1);
     expect(count(html, /property="og:image"/g)).toBe(1);
@@ -49,7 +49,7 @@ describe('page meta: project and blog link previews', () => {
   });
 
   it('keeps everything else in the page (app root, scripts, favicon, theme colour)', () => {
-    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/replyme-io');
+    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/acme-pro');
     expect(html).toContain('<div id="root"></div>');
     expect(html).toContain('<script type="module" src="/src/main.tsx"></script>');
     expect(html).toContain('rel="icon"');
@@ -77,7 +77,7 @@ describe('page meta: project and blog link previews', () => {
   });
 
   it('does not claim a size for an uploaded image', () => {
-    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/replyme-io');
+    const html = buildPageHtml(template, null, pickPage('project', project), '/projects/acme-pro');
     expect(html).not.toContain('og:image:width');
     expect(html).not.toContain('og:image:height');
   });
@@ -105,24 +105,21 @@ describe('page meta: project and blog link previews', () => {
   });
 
   it('uses the SEO settings saved in the admin (template, site name, default image, noindex, twitter)', () => {
-    const saved = { titleTemplate: '%s — Walid', siteName: 'W', ogImage: 'https://cdn.example.com/default.png', twitterHandle: '@walid', robotsIndex: false };
+    const saved = { titleTemplate: '%s — Acme', siteName: 'W', ogImage: 'https://cdn.example.com/default.png', twitterHandle: '@acme', robotsIndex: false };
     const html = buildPageHtml(template, saved, pickPage('project', { title: 'Bare' }), '/projects/bare');
-    expect(html).toContain('<title>Bare — Walid</title>');
+    expect(html).toContain('<title>Bare — Acme</title>');
     expect(content(html, 'property', 'og:site_name')).toBe('W');
     expect(content(html, 'property', 'og:image')).toBe('https://cdn.example.com/default.png');
-    expect(content(html, 'name', 'twitter:site')).toBe('@walid');
+    expect(content(html, 'name', 'twitter:site')).toBe('@acme');
     expect(content(html, 'name', 'robots')).toBe('noindex, nofollow');
   });
 
-  it('keeps the static index.html head in step with the shared defaults (so the two cannot contradict each other)', () => {
-    expect(/<title>([^<]*)<\/title>/.exec(template)?.[1]).toBe(seoDefaults.defaultTitle);
-    expect(content(template, 'name', 'description')).toBe(seoDefaults.defaultDescription);
-    expect(content(template, 'property', 'og:title')).toBe(seoDefaults.defaultTitle);
-    expect(content(template, 'property', 'og:description')).toBe(seoDefaults.defaultDescription);
-    expect(content(template, 'name', 'twitter:title')).toBe(seoDefaults.defaultTitle);
-    expect(content(template, 'name', 'twitter:description')).toBe(seoDefaults.defaultDescription);
-    expect(content(template, 'property', 'og:site_name')).toBe(seoDefaults.siteName);
-    expect(content(template, 'property', 'og:url')).toBe(`${SITE_URL}/`);
+  it('keeps personal content out of the static index.html: it is a bare shell the server fills in', () => {
+    expect(/<title>([^<]*)<\/title>/.exec(template)?.[1]).toBe('Loading…');
+    expect(content(template, 'name', 'description')).toBeUndefined();
+    expect(content(template, 'property', 'og:title')).toBeUndefined();
+    expect(template).not.toContain('application/ld+json');
+    expect(template).toContain('id="static-content"'); // the place the server writes the plain-HTML copy of the home page
   });
 
   it('merges saved SEO settings the same way the browser does', () => {

@@ -1,6 +1,6 @@
-# walidrahman.com
+# Portfolio site
 
-Personal portfolio of Md. Walid Rahman — React + Vite + Tailwind, hosted on Vercel, with a Supabase backend
+A personal portfolio and small store — React + Vite + Tailwind, hosted on Vercel, with a Supabase backend
 (content, contact-form inbox, admin panel, image storage).
 
 ## How it works
@@ -26,8 +26,8 @@ content, and the contact form opens the visitor's e-mail app. Fill in the two va
    (change the e-mail on the `insert into public.admin_emails` line first if needed) and press **Run**.
 3. In **Project Settings → API** copy the **Project URL** and the **anon / publishable** key into `public-config.json`.
    (Never use the `service_role` key anywhere in this repository.)
-4. In **Authentication → URL Configuration** set *Site URL* to `https://walidrahman.com`
-   and add `https://walidrahman.com/admin` to *Redirect URLs*. Keep **Confirm email** switched on.
+4. In **Authentication → URL Configuration** set *Site URL* to `https://your-domain.com`
+   and add `https://your-domain.com/admin` to *Redirect URLs*. Keep **Confirm email** switched on.
 5. Visit `/admin` → *First time? Create the admin account* with the administrator e-mail, confirm the e-mail, sign in.
 
 Only e-mail addresses listed in `public.admin_emails` can create an account or edit anything; everyone

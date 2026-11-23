@@ -56,7 +56,7 @@ export default async function handler(req, res) {
   const settings = await loadSettings();
   const key = String(settings?.discovery?.indexnow?.key || '');
   if (!KEY.test(key)) return json(res, 400, { error: 'no_key' });
-  const site = siteUrlOf(settings);
+  const site = siteUrlOf(settings, req);
   const urls = ownUrls(body?.urls, site);
   if (!urls.length) return json(res, 400, { error: 'no_urls' });
 

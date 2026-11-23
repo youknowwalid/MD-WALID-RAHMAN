@@ -4,8 +4,16 @@
 import config from '../public-config.json' with { type: 'json' };
 import seoDefaults from '../src/lib/seo-defaults.json' with { type: 'json' };
 
-/** The built-in web address, used only while the database has no saved SEO settings (or cannot be reached). */
-export const DEFAULT_SITE_URL = seoDefaults.siteUrl.replace(/\/+$/, '');
+/**
+ * The address this request was made to, e.g. "https://example.com". Used only while the admin has not saved
+ * a web address (Settings > SEO). Empty when the request carries no host.
+ */
+export function originOf(req) {
+  const raw = req?.headers?.['x-forwarded-host'] || req?.headers?.host || '';
+  const host = String(raw).split(',')[0].trim().toLowerCase();
+  if (!/^[a-z0-9.-]+(:\d{1,5})?$/.test(host)) return '';
+  return `${/^(localhost|127\.0\.0\.1)(:|$)/.test(host) ? 'http' : 'https'}://${host}`;
+}
 
 /**
  * Reads from the database with the public key (Row Level Security decides what is visible, so drafts stay hidden).
@@ -53,8 +61,8 @@ export async function loadSettings() {
 
 const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
-/** The site's web address without a trailing slash: the saved one if there is one, else the built-in one. */
-export const siteUrlOf = (settings) => (text(settings?.seo?.siteUrl) || DEFAULT_SITE_URL).replace(/\/+$/, '');
+/** The site's web address without a trailing slash: the saved one, else the SITE_URL setting, else the address of this request. */
+export const siteUrlOf = (settings, req) => (text(settings?.seo?.siteUrl) || text(process.env.SITE_URL) || originOf(req)).replace(/\/+$/, '');
 export const siteNameOf = (settings) => text(settings?.seo?.siteName) || seoDefaults.siteName;
 export const descriptionOf = (settings) => text(settings?.seo?.defaultDescription) || seoDefaults.defaultDescription;
 

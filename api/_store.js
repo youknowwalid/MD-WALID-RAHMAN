@@ -42,6 +42,18 @@ const conditions = (cond = {}) =>
 
 export function createStore({ fetchImpl = fetch } = {}) {
   return {
+    /** One product by its code (inactive ones too: a paid order must still get its file). Server-only table. */
+    async getProduct(key) {
+      return firstOrNull(must(await rest(`store_products?key=eq.${q(key)}&select=*&limit=1`, { fetchImpl }), 'getProduct'));
+    },
+    /** What the checkout page may show: code, name and price of every active product. Never the file path. */
+    async listProducts() {
+      return must(await rest('store_products?is_active=eq.true&select=key,name,price_bdt&order=sort_order.asc,created_at.asc', { fetchImpl }), 'listProducts') ?? [];
+    },
+    /** One saved settings group (site_settings.value), or null. */
+    async getSetting(key) {
+      return firstOrNull(must(await rest(`site_settings?key=eq.${q(key)}&select=value&limit=1`, { fetchImpl }), 'getSetting'))?.value ?? null;
+    },
     async countOrders({ since, ipHash, email }) {
       let path = `orders?select=id&created_at=gte.${q(since)}`;
       if (ipHash) path += `&ip_hash=eq.${q(ipHash)}`;

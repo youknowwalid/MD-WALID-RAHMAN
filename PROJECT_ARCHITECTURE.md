@@ -1,6 +1,6 @@
-# Project Architecture: Walid Rahman Portfolio
+# Project Architecture: Portfolio site
 
-Single-page portfolio for Walid Rahman. The design is open to change; nothing here freezes it.
+Single-page portfolio and small store. The design is open to change; nothing here freezes it.
 
 - **Home page** (`src/components/Home.tsx`): light, sky-and-lime, set in Inter Tight. Its look lives
   behind the `.home-v2` class in `src/index.css`, which re-declares the site's colour variables for that
@@ -13,12 +13,16 @@ Single-page portfolio for Walid Rahman. The design is open to change; nothing he
 - **Schema first**: change `supabase/migrations/*.sql` (add a *new* migration file), `src/types.ts`,
   `src/lib/schema-defaults.ts`, `src/lib/rows.ts` and the form definition in `src/components/admin/forms.ts` together.
 - **Graceful fallbacks**: the site must render with no database (`backendConfigured === false`) or when it is unreachable.
-- **No invented content**: defaults are limited to text that already existed on the site; empty sections are hidden or show a neutral note.
+- **No content in the code**: the repository holds structure only. No name, tagline, numbers, services, offers, products, prices, wallet
+  numbers, e-mail addresses or web addresses are written in code, defaults or tests. Everything about the owner, the services and the products is
+  edited in the admin and stored in the database. Defaults are neutral (empty, or a generic label such as "About"); empty sections are hidden.
+  Tests use made-up fixtures ("Acme Studio": `tests/e2e/fixtures.mjs`, the sample data in the unit tests).
 - **One source of truth for site text**: brand name, tagline, numbers, contact e-mail, web address and SEO text are
   edited in the admin and stored in `site_settings`. Code must read them (`useSiteConfig()` in the app, `api/_site.js`
-  on the server); never retype them in a component, a test or a server file. The only built-in copy is
-  `src/lib/defaults.ts` plus `src/lib/seo-defaults.json`, which the app and `api/_head.js` both import. Tests import
-  these defaults too, and a unit test checks `index.html`'s static head against them.
+  on the server); never retype them in a component, a test or a server file. The only built-in values are the neutral ones in
+  `src/lib/defaults.ts` and `src/lib/seo-defaults.json` (which the app and `api/_head.js` both import). The web address comes from
+  Settings > SEO, else the `SITE_URL` setting, else the address of the request (`originOf` in `api/_site.js`, `withOrigin` in the app).
+  Analytics: the Google Tag Manager id is the `VITE_GTM_ID` build setting (Vercel); without it nothing loads.
 - **Minimal change**: prefer the smallest diff.
 
 ## Data flow
@@ -65,6 +69,16 @@ and chains are blocked by a database trigger), answers a real 404 for addresses 
   Results are cached at the edge for 5 minutes, so admin edits show within that time.
 - `index.html` still carries a fallback head and hidden text for local development and for the no-database case; the renderer replaces them on every page.
 After changing a page's share image, ask Facebook to re-read it at developers.facebook.com/tools/debug (it keeps its own copy of old previews).
+
+## Store (paid downloads by mobile wallet)
+What is sold lives in the database, edited under **Store setup** in the admin (`src/components/admin/StoreSetup.tsx`):
+- `store_products` (admin-only table, never readable by visitors): code, name, price in taka, the file's name in the private `paid-downloads` bucket, active flag.
+  The server (`api/_orders.js`) prices every order from this row, so the price cannot be changed from the browser; `/api/download` signs a 60-second link
+  to the stored file only for a paid order.
+- `site_settings.payments`: the wallet numbers buyers send money to and the support e-mail (public by nature).
+- `/api/checkout?config=1` gives the checkout page the product names and prices, wallets and support e-mail, never a file path.
+- The sender of the download e-mail is `MAIL_FROM` (Vercel setting) or the SMTP address; its sign-off is the site name saved in Settings > SEO.
+- A product's "checkout" field in the Products tab holds the product code to open `/checkout/<code>`.
 
 ## Workflow
 1. `npm run check` and `npm run test:e2e` must pass.

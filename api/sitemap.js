@@ -1,7 +1,7 @@
 // Serves /sitemap.xml (see the rewrite in vercel.json). Lists the fixed pages plus
 // every project and blog post currently published in the database.
 import config from '../public-config.json' with { type: 'json' };
-import { DEFAULT_SITE_URL, loadSettings, rest, siteUrlOf } from './_site.js';
+import { loadSettings, rest, siteUrlOf } from './_site.js';
 // The fixed pages and the key their SEO row (page_discovery_meta.route_key) is saved under.
 const PAGES = [
   { path: '/', key: 'home', priority: '1.0' },
@@ -52,7 +52,7 @@ export function withoutNoindex(entries, metaRows) {
   return entries.filter((e) => !e.key || !off.has(e.key));
 }
 
-export function buildSitemap(entries, site = DEFAULT_SITE_URL) {
+export function buildSitemap(entries, site = '') {
   const urls = entries
     .map((e) => `  <url><loc>${esc(site + e.path)}</loc>${e.lastmod ? `<lastmod>${esc(e.lastmod.slice(0, 10))}</lastmod>` : ''}<priority>${e.priority}</priority></url>`)
     .join('\n');
@@ -71,5 +71,5 @@ export default async function handler(req, res) {
   ];
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-  res.status(200).send(buildSitemap(withoutNoindex([...PAGES, ...dynamic], metaRows), siteUrlOf(settings)));
+  res.status(200).send(buildSitemap(withoutNoindex([...PAGES, ...dynamic], metaRows), siteUrlOf(settings, req)));
 }

@@ -4,7 +4,8 @@ import { AlertTriangle, CheckCircle, Download, Loader2, Mail } from 'lucide-reac
 import Navbar from './Navbar';
 import Footer from './Footer';
 import Seo from './Seo';
-import { OrderState, SUPPORT_EMAIL, fetchOrder, formatBdt } from '../lib/payments';
+import { OrderState, fetchOrder, formatBdt } from '../lib/payments';
+import { useCheckoutConfig } from '../lib/useCheckoutConfig';
 
 type State =
   | { kind: 'loading' }
@@ -22,6 +23,8 @@ export default function ThankYou() {
   const orderId = params.get('order') || '';
   const token = params.get('t') || '';
   const [state, setState] = useState<State>({ kind: 'loading' });
+  const supportEmail = useCheckoutConfig()?.supportEmail ?? '';
+  const help = supportEmail ? `email ${supportEmail}` : 'contact us';
 
   useEffect(() => {
     if (!orderId || !token) { setState({ kind: 'problem', reason: 'invalid' }); return; }
@@ -89,7 +92,7 @@ export default function ThankYou() {
                 <span>
                   {state.order.emailed
                     ? 'We also emailed you a link, so you can download again any time.'
-                    : `Bookmark this page: it is your download link. If you ever lose it, email ${SUPPORT_EMAIL}.`}
+                    : `Bookmark this page: it is your download link. If you ever lose it, ${help}.`}
                 </span>
               </p>
             </div>
@@ -103,8 +106,8 @@ export default function ThankYou() {
               </h1>
               <p className="text-text-muted text-sm mb-6">
                 {state.reason === 'rejected'
-                  ? `Your transaction did not match a payment we received. If you did pay, email ${SUPPORT_EMAIL} with your transaction ID and we will fix it right away.`
-                  : `The link looks incomplete or has expired. Use the link from your email, or contact ${SUPPORT_EMAIL} and we will help.`}
+                  ? `Your transaction did not match a payment we received. If you did pay, ${help} with your transaction ID and we will fix it right away.`
+                  : `The link looks incomplete or has expired. Use the link from your email, or ${help} and we will help.`}
               </p>
               <Link to="/#contact" className="inline-block bg-accent text-black font-semibold py-3 px-6 rounded-2xl">Contact us</Link>
             </div>

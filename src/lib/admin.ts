@@ -222,3 +222,18 @@ export const submitIndexNow = async (urls: string[]): Promise<{ submitted: numbe
   }
   return { submitted: Number(body.submitted) || urls.length };
 };
+
+// ── Store: what is sold (private table, admin only) ──
+export interface StoreProductRow {
+  key: string; name: string; price_bdt: number; file_path: string; download_name: string; is_active: boolean; sort_order: number;
+}
+export const listStoreProducts = async (): Promise<StoreProductRow[]> => {
+  const { data, error } = await getClient().from('store_products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+  fail(error);
+  return (data ?? []) as StoreProductRow[];
+};
+export const saveStoreProduct = async (isNew: boolean, values: StoreProductRow) => {
+  const q = isNew ? getClient().from('store_products').insert(values) : getClient().from('store_products').update(values).eq('key', values.key);
+  fail((await q).error);
+};
+export const deleteStoreProduct = async (key: string) => { fail((await getClient().from('store_products').delete().eq('key', key)).error); };

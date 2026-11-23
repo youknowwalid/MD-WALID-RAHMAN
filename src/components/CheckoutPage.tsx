@@ -5,9 +5,8 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import Seo from './Seo';
 import { useProducts } from '../lib/products';
-import {
-  EDITIONS, PRICE_BDT, SUPPORT_EMAIL, WALLETS, WalletId, editionOf, formatBdt, isEdition, submitErrorMessage, submitOrder,
-} from '../lib/payments';
+import { formatBdt, submitErrorMessage, submitOrder } from '../lib/payments';
+import { useCheckoutConfig } from '../lib/useCheckoutConfig';
 
 const field = 'w-full min-h-12 bg-white border border-border-subtle rounded-xl px-4 py-3.5 text-base text-text-main placeholder:text-text-muted focus:border-accent outline-none transition-colors';
 const label = 'block text-sm font-semibold text-text-main mb-2';
@@ -49,51 +48,69 @@ export default function CheckoutPage() {
   const { edition: editionParam } = useParams();
   const navigate = useNavigate();
   const { products } = useProducts();
-  const edition = isEdition(editionParam) ? editionParam : null;
+  const shop = useCheckoutConfig();
 
   const [email, setEmail] = useState('');
-  const [wallet, setWallet] = useState<WalletId>('bkash');
+  const [wallet, setWallet] = useState('');
   const [sender, setSender] = useState('');
   const [trxId, setTrxId] = useState('');
   const [spamTrap, setSpamTrap] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  if (!edition) {
+  const item = shop ? shop.products.find((p) => p.key === editionParam) : undefined;
+  const edition = item?.key ?? '';
+  const supportEmail = shop?.supportEmail ?? '';
+
+  if (shop === undefined) {
+    return (
+      <div className="home-v2 min-h-screen bg-bg-dark text-text-main">
+        <Seo title="Checkout" noindex />
+        <Navbar />
+        <main className="pt-32 pb-20 px-6 max-w-xl mx-auto text-center" aria-busy="true"><Loader2 className="mx-auto h-6 w-6 animate-spin text-text-muted" aria-label="Loading" /></main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!item || !shop || shop.wallets.length === 0) {
     return (
       <div className="home-v2 min-h-screen bg-bg-dark text-text-main">
         <Seo title="Checkout" noindex />
         <Navbar />
         <main className="pt-32 pb-20 px-6 max-w-xl mx-auto text-center">
-          <h1 className="text-3xl font-semibold mb-4">We couldn&apos;t find that book</h1>
-          <Link to="/resources" className="inline-block bg-accent text-black font-semibold py-3 px-6 rounded-2xl">Back to the books</Link>
+          <h1 className="text-3xl font-semibold mb-4">{shop && item ? 'Checkout is not available right now' : 'We couldn\'t find that product'}</h1>
+          <Link to="/resources" className="inline-block bg-accent text-black font-semibold py-3 px-6 rounded-2xl">Back to the products</Link>
         </main>
         <Footer />
       </div>
     );
   }
 
-  const product = products.find((p) => editionOf(p.paddleUrl) === edition);
-  const title = product?.title || EDITIONS[edition].title;
-  const selected = WALLETS.find((w) => w.id === wallet)!;
+  const wallets = shop.wallets;
+  const product = products.find((p) => (p.paddleUrl || '').trim().toLowerCase() === edition);
+  const title = product?.title || item.name;
+  const price = item.price;
+  const selected = wallets.find((w) => w.id === wallet) ?? wallets[0];
+  const walletNames = wallets.map((w) => w.name).join(' or ');
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (busy) return;
     setBusy(true);
     setError('');
-    const result = await submitOrder({ edition, email, wallet, trxId, sender, website: spamTrap });
+    const result = await submitOrder({ edition, email, wallet: selected.id, trxId, sender, website: spamTrap });
     if (result.ok && result.order) {
       navigate(`/thank-you?order=${encodeURIComponent(result.order.id)}&t=${encodeURIComponent(result.order.token || '')}`, { replace: true });
       return;
     }
-    setError(submitErrorMessage(result.error || 'server', result.field));
+    setError(submitErrorMessage(result.error || 'server', result.field, supportEmail));
     setBusy(false);
   };
 
   return (
     <div className="home-v2 min-h-screen bg-bg-dark text-text-main selection:bg-accent/30 selection:text-text-main">
-      <Seo title="Checkout" description="Pay with bKash or Nagad and download your book." noindex />
+      <Seo title="Checkout" description={`Pay with ${walletNames} and download your purchase.`} noindex />
       <Navbar />
       <main className="pt-28 pb-20 px-6 max-w-2xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">Checkout</h1>
@@ -102,16 +119,16 @@ export default function CheckoutPage() {
         <div className="mb-10 sm:mb-6 sm:bg-bg-card sm:border sm:border-border-subtle sm:rounded-3xl sm:p-8">
           <div className="flex items-baseline justify-between gap-4 mb-6">
             <span className="text-sm font-semibold text-text-main">Amount to send</span>
-            <span className="text-3xl font-semibold tracking-tight text-text-main tabular-nums">{formatBdt(PRICE_BDT)}</span>
+            <span className="text-3xl font-semibold tracking-tight text-text-main tabular-nums">{formatBdt(price)}</span>
           </div>
 
           <h2 className="mb-2 flex items-center gap-3 text-lg font-semibold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-[15px] text-[#0d1117]" aria-hidden="true">1</span>Send the money</h2>
           <p className="text-sm text-text-muted mb-5">
-            Open your bKash or Nagad app, choose <strong className="text-text-main">Send Money</strong> (not Payment or Cash Out), and send exactly{' '}
-            <strong className="text-text-main">{formatBdt(PRICE_BDT)}</strong> to one of these numbers.
+            Open your {walletNames} app, choose <strong className="text-text-main">Send Money</strong> (not Payment or Cash Out), and send exactly{' '}
+            <strong className="text-text-main">{formatBdt(price)}</strong> to one of these numbers.
           </p>
           <ul className="space-y-3 mb-2">
-            {WALLETS.map((w) => (
+            {wallets.map((w) => (
               <li key={w.id} className="flex flex-col gap-3 bg-bg-card border border-border-subtle rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-wider text-text-muted font-bold">{w.name} · Send Money</p>
@@ -126,7 +143,7 @@ export default function CheckoutPage() {
 
         <form onSubmit={submit} className="sm:bg-bg-card sm:border sm:border-border-subtle sm:rounded-3xl sm:p-8" noValidate>
           <h2 className="mb-2 flex items-center gap-3 text-lg font-semibold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-[15px] text-[#0d1117]" aria-hidden="true">2</span>Confirm your payment</h2>
-          <p className="text-sm text-text-muted mb-6">We check your payment automatically, usually within a minute, and you can download the book right away.</p>
+          <p className="text-sm text-text-muted mb-6">We check your payment automatically, usually within a minute, and you can download your purchase right away.</p>
 
           <div className="space-y-5">
             <div>
@@ -137,9 +154,9 @@ export default function CheckoutPage() {
             <fieldset>
               <legend className={label}>Which wallet did you pay with?</legend>
               <div className="grid grid-cols-2 gap-3">
-                {WALLETS.map((w) => (
-                  <label key={w.id} className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-[15px] font-bold cursor-pointer transition-colors ${wallet === w.id ? 'border-accent bg-accent/10 text-text-main' : 'border-border-subtle text-text-main hover:border-white/30'}`}>
-                    <input type="radio" name="wallet" value={w.id} checked={wallet === w.id} onChange={() => setWallet(w.id)} className="h-5 w-5 accent-accent" />
+                {wallets.map((w) => (
+                  <label key={w.id} className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-[15px] font-bold cursor-pointer transition-colors ${selected.id === w.id ? 'border-accent bg-accent/10 text-text-main' : 'border-border-subtle text-text-main hover:border-white/30'}`}>
+                    <input type="radio" name="wallet" value={w.id} checked={selected.id === w.id} onChange={() => setWallet(w.id)} className="h-5 w-5 accent-accent" />
                     {w.name}
                   </label>
                 ))}
@@ -180,7 +197,7 @@ export default function CheckoutPage() {
 
           <p className="mt-5 flex items-start gap-2 text-xs text-text-muted">
             <ShieldCheck className="w-4 h-4 shrink-0 text-accent" aria-hidden="true" />
-            <span>Your payment is matched with the SMS from the {selected.name} app. If something does not match, we confirm it by hand and email you. Questions? <a className="underline hover:text-text-main" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></span>
+            <span>Your payment is matched with the SMS from the {selected.name} app. If something does not match, we confirm it by hand and email you. {supportEmail && <>Questions? <a className="underline hover:text-text-main" href={`mailto:${supportEmail}`}>{supportEmail}</a></>}</span>
           </p>
         </form>
       </main>

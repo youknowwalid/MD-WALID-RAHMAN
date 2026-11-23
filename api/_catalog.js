@@ -1,26 +1,13 @@
-// What each edition is, what it costs, and which PRIVATE file it unlocks. The files live in the
-// private Supabase Storage bucket `paid-downloads` and are only ever handed out through
+// Technical constants for the store. WHAT is sold (names, prices, private files), the wallet numbers and the
+// support e-mail are NOT here: they live in the admin (Store setup) and are read from the database.
+
+// The private Supabase Storage bucket that holds the paid files. Files are only ever handed out through
 // /api/download after an order is confirmed as paid.
 export const BUCKET = 'paid-downloads';
 
-// Price of one book in Bangladeshi taka. Keep in sync with src/lib/payments.ts (a unit test checks this).
-export const PRICE_BDT = 2999;
-
-export const EDITIONS = {
-  english: {
-    name: 'Automate Your Facebook Business with AI (English edition)',
-    path: 'English.pdf',
-    filename: 'Automate-Your-Facebook-Business-with-AI-English.pdf',
-    price: PRICE_BDT,
-  },
-  bangla: {
-    name: 'Automate Your Facebook Business with AI (Bangla edition)',
-    path: 'Bangla.pdf',
-    filename: 'Automate-Your-Facebook-Business-with-AI-Bangla.pdf',
-    price: PRICE_BDT,
-  },
-};
-
+// Wallets the SMS reader understands (see _sms.js). Which of them a shop offers, and the numbers, are set in the admin.
 export const WALLETS = ['bkash', 'nagad', 'rocket'];
 
-export const isEdition = (value) => typeof value === 'string' && Object.hasOwn(EDITIONS, value);
+// A product's short code, e.g. "my-book". Used in the checkout address and on orders.
+export const PRODUCT_KEY_RE = /^[a-z0-9][a-z0-9-]{0,39}$/;
+export const isProductKey = (value) => typeof value === 'string' && PRODUCT_KEY_RE.test(value);

@@ -84,7 +84,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <FounderCard className="md:col-span-12 lg:col-span-5" />
+          {config.founderName.trim() && <FounderCard className="md:col-span-12 lg:col-span-5" />}
         </div>
 
         <div className="pt-4 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">

@@ -13,9 +13,10 @@ export default async function handler(req, res) {
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
   try {
-    const result = await adminAction(body?.action, body?.orderId, makeContext());
+    const ctx = makeContext(req);
+    const result = await adminAction(body?.action, body?.orderId, ctx);
     if (result.error) return sendJson(res, { invalid: 400, not_found: 404, conflict: 409 }[result.error] ?? 500, { error: result.error });
-    return sendJson(res, 200, { order: publicOrder(result.order), email: result.email ?? null });
+    return sendJson(res, 200, { order: publicOrder(result.order, await ctx.store.getProduct(result.order.edition)), email: result.email ?? null });
   } catch {
     return sendJson(res, 502, { error: 'server' });
   }

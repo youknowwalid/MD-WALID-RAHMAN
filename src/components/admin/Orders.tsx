@@ -107,7 +107,7 @@ export default function Orders({ onToast }: Props) {
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`text-xs font-black uppercase tracking-wide rounded-full border px-3 py-1 ${STATUS_STYLE[o.status]}`}>{STATUS_LABEL[o.status]}</span>
-                    <span className="text-xs text-gray-400 uppercase tracking-wider">{o.edition === 'bangla' ? 'Bangla edition' : 'English edition'}</span>
+                    <span className="text-xs text-gray-400 uppercase tracking-wider">{o.edition}</span>
                     {o.status === 'paid' && o.paid_how && <span className="text-xs text-gray-500">({o.paid_how === 'auto' ? 'matched automatically' : 'approved by hand'})</span>}
                   </div>
                   <p className="text-lg font-bold text-white break-all">{o.email}</p>

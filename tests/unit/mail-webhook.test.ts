@@ -37,21 +37,21 @@ function fakeGmail({ acceptLogin = true } = {}) {
 }
 
 const MAIL = { to: 'buyer@example.com', subject: 'Your download is ready', text: 'Hello ৳2,999', html: '<p>Hello ৳2,999</p>' };
-const ENV = { SMTP_USER: 'walidxdxdxd@gmail.com', SMTP_PASS: 'abcd efgh ijkl mnop' };
+const ENV = { SMTP_USER: 'owner@gmail.example', SMTP_PASS: 'abcd efgh ijkl mnop', MAIL_FROM: 'Acme Studio <hello@acme.example>' };
 
 describe('sendMail', () => {
-  it('logs in to Gmail and sends from hello@walidrahman.com', async () => {
+  it('logs in to Gmail and sends from the configured address', async () => {
     const server = fakeGmail();
     const connect = vi.fn(() => server.socket);
     const result = await sendMail(MAIL, { env: ENV, connect });
     expect(result).toEqual({ ok: true });
     expect(connect).toHaveBeenCalledWith({ host: 'smtp.gmail.com', port: 465, servername: 'smtp.gmail.com' });
     const auth = server.log.find((l) => l.startsWith('AUTH PLAIN'))!;
-    expect(Buffer.from(auth.slice(11), 'base64').toString()).toBe('\0walidxdxdxd@gmail.com\0abcdefghijklmnop'); // spaces in the app password are ignored
-    expect(server.log).toContain('MAIL FROM:<hello@walidrahman.com>');
+    expect(Buffer.from(auth.slice(11), 'base64').toString()).toBe('\0owner@gmail.example\0abcdefghijklmnop'); // spaces in the app password are ignored
+    expect(server.log).toContain('MAIL FROM:<hello@acme.example>');
     expect(server.log).toContain('RCPT TO:<buyer@example.com>');
     const data = server.log.find((l) => l.startsWith('DATA:'))!;
-    expect(data).toContain('From: Walid Rahman Swapnil <hello@walidrahman.com>');
+    expect(data).toContain('From: Acme Studio <hello@acme.example>');
     expect(data).toContain('To: buyer@example.com');
     expect(data).toContain(Buffer.from('Hello ৳2,999').toString('base64'));
     expect(server.log.at(-1)).toBe('QUIT');
@@ -72,9 +72,9 @@ describe('sendMail', () => {
   });
 
   it('cannot be tricked into adding headers', () => {
-    const message = buildMessage({ from: 'Walid <hello@walidrahman.com>', to: 'a@b.co\r\nBcc: evil@x.co', subject: 'Hi\r\nBcc: evil@x.co', text: 't', html: 'h' });
+    const message = buildMessage({ from: 'Alex <hello@acme.example>', to: 'a@b.co\r\nBcc: evil@x.co', subject: 'Hi\r\nBcc: evil@x.co', text: 't', html: 'h' });
     expect(message.split('\r\n').some((line) => line.startsWith('Bcc:'))).toBe(false);
-    expect(parseAddress('Walid Rahman <hello@walidrahman.com>')).toEqual({ name: 'Walid Rahman', address: 'hello@walidrahman.com' });
+    expect(parseAddress('Alex Acme <hello@acme.example>')).toEqual({ name: 'Alex Acme', address: 'hello@acme.example' });
   });
 });
 

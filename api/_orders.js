@@ -2,15 +2,13 @@
 // (see _store.js) and a `mailer`, so it can be tested without a database or a mail server.
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import config from '../public-config.json' with { type: 'json' };
-import { BUCKET, EDITIONS, WALLETS, isEdition } from './_catalog.js';
+import { BUCKET, WALLETS, isProductKey } from './_catalog.js';
 import { normalizePhone, normalizeTrx } from './_sms.js';
 
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const TOKEN_RE = /^[0-9a-f]{32,96}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const TEN_MINUTES = 10 * 60 * 1000;
-
-export const siteUrl = () => (process.env.SITE_URL || 'https://walidrahman.com').replace(/\/+$/, '');
 
 export const hashIp = (ip) => createHash('sha256').update(`order-ip:${ip || 'unknown'}`).digest('hex').slice(0, 32);
 
@@ -23,7 +21,7 @@ const tokensMatch = (a, b) => {
 /** Checks what the buyer typed. Returns { value } or { error: 'invalid', field }. */
 export function validateOrderInput(input) {
   const edition = input?.edition;
-  if (!isEdition(edition)) return { error: 'invalid', field: 'edition' };
+  if (!isProductKey(edition)) return { error: 'invalid', field: 'edition' };
   const email = String(input?.email ?? '').trim().toLowerCase();
   if (email.length > 254 || !EMAIL_RE.test(email)) return { error: 'invalid', field: 'email' };
   const wallet = String(input?.wallet ?? '').toLowerCase();
@@ -44,46 +42,48 @@ export function smsPaysOrder(order, sms) {
   return Boolean(sms.sender) && normalizePhone(sms.sender) === order.sender;
 }
 
-/** What the buyer's browser is allowed to know about an order. */
-export const publicOrder = (order) => ({
+/** What the buyer's browser is allowed to know about an order. `product` is the store_products row (or null). */
+export const publicOrder = (order, product = null) => ({
   id: order.id,
   status: order.status,
   edition: order.edition,
-  name: EDITIONS[order.edition]?.name ?? 'Your purchase',
+  name: product?.name ?? 'Your purchase',
   amount: order.amount_due,
   downloadUrl: order.status === 'paid' ? `/api/download?id=${order.id}&t=${order.access_token}` : null,
   emailed: Boolean(order.emailed_at),
 });
 
-function deliveryEmail(order) {
-  const book = EDITIONS[order.edition];
-  const link = `${siteUrl()}/thank-you?order=${order.id}&t=${order.access_token}`;
-  const subject = `Your download is ready: ${book.name}`;
+const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function deliveryEmail(order, product, brand) {
+  const link = `${brand.siteUrl}/thank-you?order=${order.id}&t=${order.access_token}`;
+  const name = product?.name || 'Your purchase';
+  const host = brand.siteUrl.replace(/^https?:\/\//, '');
+  const signature = [brand.name, host].filter(Boolean);
+  const subject = `Your download is ready: ${name}`;
   const text = [
     'Hello,',
     '',
     `Thank you! Your payment of ৳${order.amount_due.toLocaleString('en-US')} was confirmed (transaction ${order.trx_id}).`,
     '',
-    `Download your book here: ${link}`,
+    `Download your purchase here: ${link}`,
     '',
     'Keep this email. The link works any time you need to download the file again, so please do not share it.',
     '',
     'If anything goes wrong, just reply to this email.',
-    '',
-    'Walid Rahman Swapnil',
-    'walidrahman.com',
+    ...(signature.length ? ['', ...signature] : []),
   ].join('\n');
   const html = `<!doctype html><html><body style="margin:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b">
 <div style="max-width:520px;margin:0 auto;padding:32px 20px">
 <div style="background:#ffffff;border-radius:16px;padding:32px;border:1px solid #e4e4e7">
 <h1 style="font-size:22px;margin:0 0 12px">Your download is ready</h1>
-<p style="margin:0 0 16px;line-height:1.55">Thank you! Your payment of <strong>৳${order.amount_due.toLocaleString('en-US')}</strong> was confirmed (transaction <strong>${order.trx_id}</strong>).</p>
-<p style="margin:0 0 24px;line-height:1.55"><strong>${book.name}</strong></p>
-<p style="margin:0 0 24px"><a href="${link}" style="display:inline-block;background:#f45901;color:#000000;font-weight:bold;text-decoration:none;padding:14px 24px;border-radius:12px">Download your book</a></p>
+<p style="margin:0 0 16px;line-height:1.55">Thank you! Your payment of <strong>৳${order.amount_due.toLocaleString('en-US')}</strong> was confirmed (transaction <strong>${esc(order.trx_id)}</strong>).</p>
+<p style="margin:0 0 24px;line-height:1.55"><strong>${esc(name)}</strong></p>
+<p style="margin:0 0 24px"><a href="${esc(link)}" style="display:inline-block;background:#18181b;color:#ffffff;font-weight:bold;text-decoration:none;padding:14px 24px;border-radius:12px">Download your purchase</a></p>
 <p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#52525b">Keep this email: the link works any time you need the file again. Please do not share it.</p>
 <p style="margin:0;font-size:13px;line-height:1.5;color:#52525b">Trouble? Just reply to this email.</p>
 </div>
-<p style="text-align:center;font-size:12px;color:#71717a;margin:16px 0 0">Walid Rahman Swapnil &middot; walidrahman.com</p>
+${signature.length ? `<p style="text-align:center;font-size:12px;color:#71717a;margin:16px 0 0">${signature.map(esc).join(' &middot; ')}</p>` : ''}
 </div></body></html>`;
   return { subject, text, html };
 }
@@ -92,13 +92,15 @@ function deliveryEmail(order) {
  * Sends the download e-mail once (or again, with force). A failure never loses the order: the
  * buyer still gets the download on screen, and the admin can press "Resend".
  */
-export async function deliverEmail(order, { store, mailer, now = () => new Date() }, { force = false } = {}) {
+export async function deliverEmail(order, ctx, { force = false } = {}) {
+  const { store, mailer, now = () => new Date() } = ctx;
   if (order.status !== 'paid') return { sent: false, reason: 'not_paid' };
   if (!force) {
     const claimed = await store.updateOrder(order.id, { emailed_at: now().toISOString() }, { emailed_at: null });
     if (!claimed) return { sent: false, reason: 'already_sent' };
   }
-  const result = await mailer({ to: order.email, ...deliveryEmail(order) });
+  const [product, brand] = await Promise.all([store.getProduct(order.edition), ctx.brand()]);
+  const result = await mailer({ to: order.email, from: brand.name && brand.supportEmail ? `${brand.name} <${brand.supportEmail}>` : '', ...deliveryEmail(order, product, brand) });
   if (result.ok) {
     await store.updateOrder(order.id, { emailed_at: now().toISOString(), email_error: null });
     return { sent: true };
@@ -152,6 +154,11 @@ export async function createOrder(input, ctx, { ip = '' } = {}) {
   if (fromIp >= 8 || fromEmail >= 5) return { error: 'rate_limited' };
   if (overall >= 60) return { error: 'busy' };
 
+  // What is sold, and at what price, is decided here from the admin's products: nothing the browser sends is trusted.
+  const [product, brand] = await Promise.all([ctx.store.getProduct(edition), ctx.brand()]);
+  if (!product || !product.is_active) return { error: 'invalid', field: 'edition' };
+  if (brand.wallets.length && !brand.wallets.some((w) => w.id === wallet)) return { error: 'invalid', field: 'wallet' };
+
   const existing = await ctx.store.findOrderByTrx(trxId);
   if (existing) {
     // The same buyer pressing the button twice just gets their order back.
@@ -163,7 +170,7 @@ export async function createOrder(input, ctx, { ip = '' } = {}) {
   try {
     order = await ctx.store.insertOrder({
       edition, email, wallet, trx_id: trxId, sender,
-      amount_due: EDITIONS[edition].price,
+      amount_due: product.price_bdt,
       access_token: randomBytes(24).toString('hex'),
       ip_hash: ipHash,
     });
@@ -215,14 +222,13 @@ export async function adminAction(action, orderId, ctx) {
   return { error: 'invalid' };
 }
 
-/** A 60-second link to the private file for one edition. */
-export async function signedDownloadUrl(edition, { fetchImpl = fetch } = {}) {
-  const item = isEdition(edition) ? EDITIONS[edition] : null;
-  if (!item) return null;
+/** A 60-second link to the private file of one product (a store_products row). */
+export async function signedDownloadUrl(item, { fetchImpl = fetch } = {}) {
+  if (!item || typeof item.file_path !== 'string' || !item.file_path || item.file_path.includes('..')) return null;
   const base = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || config.supabaseUrl || '').replace(/\/+$/, '');
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
   if (!base || !key) return null;
-  const res = await fetchImpl(`${base}/storage/v1/object/sign/${BUCKET}/${encodeURIComponent(item.path)}`, {
+  const res = await fetchImpl(`${base}/storage/v1/object/sign/${BUCKET}/${item.file_path.split('/').map(encodeURIComponent).join('/')}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, apikey: key, 'Content-Type': 'application/json' },
     body: JSON.stringify({ expiresIn: 60 }),
@@ -232,7 +238,7 @@ export async function signedDownloadUrl(edition, { fetchImpl = fetch } = {}) {
   const signed = (await res.json())?.signedURL;
   if (typeof signed !== 'string') return null;
   const path = signed.startsWith('/storage/v1') ? signed : `/storage/v1${signed.startsWith('/') ? '' : '/'}${signed}`;
-  return `${base}${path}&download=${encodeURIComponent(item.filename)}`;
+  return `${base}${path}&download=${encodeURIComponent(item.download_name || item.file_path.split('/').pop())}`;
 }
 
 export function sendJson(res, status, body) {

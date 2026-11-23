@@ -3,7 +3,7 @@ import { AnimatePresence, m } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, Briefcase, FileText,
-  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles, Search,
+  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles, Search, CreditCard,
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
@@ -15,6 +15,7 @@ import HireOffers from './admin/HireOffers';
 import CapabilityGroups from './admin/CapabilityGroups';
 import Inquiries from './admin/Inquiries';
 import Orders from './admin/Orders';
+import StoreSetup from './admin/StoreSetup';
 import ProjectsSwitch from './admin/ProjectsSwitch';
 import DiscoveryPanel from './admin/discovery/DiscoveryPanel';
 import RichTextArea from './admin/RichTextArea';
@@ -39,6 +40,7 @@ const TABS = [
   { id: 'hire', label: 'Work With Me', icon: Handshake },
   { id: 'products', label: 'Products', icon: ShoppingCart },
   { id: 'orders', label: 'Orders', icon: Receipt },
+  { id: 'store', label: 'Store setup', icon: CreditCard },
   { id: 'contactSubmissions', label: 'Inquiries', icon: MessageSquare },
   { id: 'seoSettings', label: 'SEO Settings', icon: Globe },
   { id: 'discovery', label: 'Search & AI', icon: Search },
@@ -217,6 +219,7 @@ function Dashboard({ email }: { email: string }) {
 
         {activeTab === 'projects' && <ProjectsSwitch onToast={show} />}
         {activeTab === 'orders' && <Orders onToast={show} />}
+        {activeTab === 'store' && <StoreSetup onToast={show} />}
         {activeTab === 'settings' && <SettingsPanel onToast={show} />}
         {activeTab === 'clientLogos' && <ClientLogos onToast={show} />}
         {activeTab === 'team' && <TeamMembers onToast={show} />}

@@ -14,8 +14,8 @@ export const PRIVATE_PATHS = ['/admin', '/thank-you', '/checkout/', '/api/'];
 
 const isBlocked = (settings, bot) => String(settings?.discovery?.crawlers?.[bot] || '').toLowerCase() === 'block';
 
-export function buildRobotsTxt(settings) {
-  const site = siteUrlOf(settings);
+export function buildRobotsTxt(settings, req) {
+  const site = siteUrlOf(settings, req);
   if (settings?.seo?.robotsIndex === false) {
     return `User-agent: *\nDisallow: /\n\nSitemap: ${site}/sitemap.xml\n`;
   }
@@ -38,5 +38,5 @@ export default async function handler(req, res) {
   const settings = await loadSettings();
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
-  res.status(200).send(buildRobotsTxt(settings));
+  res.status(200).send(buildRobotsTxt(settings, req));
 }
