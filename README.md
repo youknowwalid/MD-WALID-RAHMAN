@@ -31,7 +31,7 @@ content, and the contact form opens the visitor's e-mail app. Fill in the two va
 5. Visit `/admin` → *First time? Create the admin account* with the administrator e-mail, confirm the e-mail, sign in.
 
 Only e-mail addresses listed in `public.admin_emails` can create an account or edit anything; everyone
-else can only read public content and send contact-form messages (max 5 per hour per visitor).
+else can only read public content & send contact-form messages (max 5 per hour per visitor).
 
 ## Development
 
