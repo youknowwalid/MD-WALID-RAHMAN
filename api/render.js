@@ -17,6 +17,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { buildPageHtml, pickPage } from './_head.js';
+import { originOf } from './_site.js';
 import { canonicalPath } from './_graph.js';
 import { rest, rpc } from './_site.js';
 
@@ -139,6 +140,8 @@ export default async function handler(req, res) {
     ]);
     const settings = {};
     for (const row of settingRows) if (row && typeof row.key === 'string') settings[row.key] = row.value;
+    // No web address saved yet (Settings > SEO): use the address this page was asked for.
+    if (!settings.seo?.siteUrl) settings.seo = { ...(settings.seo || {}), siteUrl: process.env.SITE_URL || originOf(req) };
 
     const hit = redirects[0];
     if (hit) {

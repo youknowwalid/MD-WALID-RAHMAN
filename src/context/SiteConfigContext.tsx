@@ -44,10 +44,13 @@ const GLOBAL_ALLOW_EMPTY: (keyof SiteConfig)[] = [
 const HERO_ALLOW_EMPTY: (keyof HeroConfig)[] = ['heroPortrait', 'cvUrl', 'resumeImage'];
 const SEO_ALLOW_EMPTY: (keyof SeoConfig)[] = ['ogImage', 'twitterHandle', 'titleTemplate'];
 
+/** No web address saved yet (Settings > SEO): use the address the visitor is on, so nothing about the site is typed into the code. */
+const withOrigin = (seo: SeoConfig): SeoConfig => (seo.siteUrl || typeof window === 'undefined' ? seo : { ...seo, siteUrl: window.location.origin });
+
 const build = (raw: Raw) => ({
   config: merge(DEFAULT_CONFIG, raw.global, GLOBAL_ALLOW_EMPTY),
   hero: merge(DEFAULT_HERO, raw.hero, HERO_ALLOW_EMPTY),
-  seoConfig: merge(DEFAULT_SEO, raw.seo, SEO_ALLOW_EMPTY),
+  seoConfig: withOrigin(merge(DEFAULT_SEO, raw.seo, SEO_ALLOW_EMPTY)),
 });
 
 function readCache(): Raw {

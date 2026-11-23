@@ -1,15 +1,13 @@
-// Sends the "your download is ready" e-mail from hello@walidrahman.com through Gmail's SMTP server
-// (the same "Send mail as" setup the owner already uses). No extra service or package is needed:
+// Sends the "your download is ready" e-mail through Gmail's SMTP server
+// (the owner's own "Send mail as" address). No extra service or package is needed:
 // this is a small SMTP client over an encrypted connection (port 465).
 //
 // Server settings (Vercel, Production):
-//   SMTP_USER  the Gmail address that owns the alias, e.g. walidxdxdxd@gmail.com
+//   SMTP_USER  the Gmail address that owns the "send mail as" address
 //   SMTP_PASS  a Google "App password" for that account (NOT the normal Gmail password)
-//   MAIL_FROM  optional, default: Walid Rahman Swapnil <hello@walidrahman.com>
+//   MAIL_FROM  the "From" of the e-mail, e.g. Your Name <hello@yourdomain.com>. Default: the SMTP_USER address.
 import { randomUUID } from 'node:crypto';
 import tls from 'node:tls';
-
-const DEFAULT_FROM = 'Walid Rahman Swapnil <hello@walidrahman.com>';
 
 const clean = (value) => String(value ?? '').replace(/[\r\n]+/g, ' ').trim();
 const b64 = (value) => Buffer.from(value, 'utf8').toString('base64');
@@ -27,9 +25,10 @@ export function parseAddress(value) {
 const formatAddress = ({ name, address }) => (name ? `${encodeWord(name)} <${address}>` : address);
 
 /** The full message text: headers plus a plain-text and an HTML version. */
-export function buildMessage({ from, to, subject, text, html, date = new Date(), messageId = `<${randomUUID()}@walidrahman.com>` }) {
+export function buildMessage({ from, to, subject, text, html, date = new Date(), messageId = '' }) {
   const boundary = `b_${randomUUID().replace(/-/g, '')}`;
   const sender = parseAddress(from);
+  if (!messageId) messageId = `<${randomUUID()}@${sender.address.split('@')[1] || 'localhost'}>`;
   const headers = [
     `From: ${formatAddress(sender)}`,
     `To: ${clean(to)}`,
@@ -45,7 +44,7 @@ export function buildMessage({ from, to, subject, text, html, date = new Date(),
 }
 
 /** Minimal SMTP conversation over an already connected, encrypted stream. */
-async function converse(socket, { user, pass, from, to, message, heloName = 'walidrahman.com' }) {
+async function converse(socket, { user, pass, from, to, message, heloName = 'localhost' }) {
   let buffer = '';
   let waiting = null;
   let failure = null;
@@ -99,13 +98,13 @@ async function converse(socket, { user, pass, from, to, message, heloName = 'wal
  * Sends one e-mail. Never throws: returns { ok: true } or { ok: false, reason }.
  * `connect` can be replaced in tests.
  */
-export async function sendMail({ to, subject, text, html }, { env = process.env, connect = tls.connect, timeoutMs = 15000 } = {}) {
+export async function sendMail({ to, subject, text, html, from = '' }, { env = process.env, connect = tls.connect, timeoutMs = 15000 } = {}) {
   const user = clean(env.SMTP_USER);
   const pass = clean(env.SMTP_PASS).replace(/\s+/g, '');
   if (!user || !pass) return { ok: false, reason: 'E-mail sending is not set up yet (SMTP_USER / SMTP_PASS).' };
   const recipient = clean(to);
   if (!/^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/.test(recipient)) return { ok: false, reason: 'Invalid recipient address.' };
-  const fromHeader = clean(env.MAIL_FROM) || DEFAULT_FROM;
+  const fromHeader = clean(env.MAIL_FROM) || clean(from) || user;
   const sender = parseAddress(fromHeader);
   const message = buildMessage({ from: fromHeader, to: recipient, subject, text, html });
   const host = clean(env.SMTP_HOST) || 'smtp.gmail.com';
@@ -115,7 +114,7 @@ export async function sendMail({ to, subject, text, html }, { env = process.env,
   try {
     socket = connect({ host, port, servername: host });
     socket.setTimeout?.(timeoutMs);
-    await converse(socket, { user, pass, from: sender.address, to: recipient, message });
+    await converse(socket, { user, pass, from: sender.address, to: recipient, message, heloName: sender.address.split('@')[1] || 'localhost' });
     return { ok: true };
   } catch (error) {
     return { ok: false, reason: String(error?.message || error).slice(0, 300) };

@@ -1,37 +1,41 @@
 /** Pay by mobile wallet ("Send Money") and get the PDF once the payment is verified. */
 
-/** Price of one book in Bangladeshi taka. Keep in sync with api/_catalog.js (a unit test checks this). */
-export const PRICE_BDT = 2999;
+export type WalletId = string;
 
-/** The wallet numbers buyers send money to. */
-export const WALLETS = [
-  { id: 'bkash', name: 'bKash', number: '01756520701' },
-  { id: 'nagad', name: 'Nagad', number: '01744588644' },
-] as const;
-export type WalletId = (typeof WALLETS)[number]['id'];
-
-export const SUPPORT_EMAIL = 'hello@walidrahman.com';
-
-export type Edition = 'english' | 'bangla';
-export const EDITIONS: Record<Edition, { title: string }> = {
-  english: { title: 'Automate Your Facebook Business with AI (English Edition)' },
-  bangla: { title: 'Automate Your Facebook Business with AI (Bangla Edition)' },
-};
-
-export const isEdition = (value: unknown): value is Edition => value === 'english' || value === 'bangla';
-
-/** A product's "checkout" field set to `english` or `bangla` opens this checkout; a normal link keeps working as before. */
-export const editionOf = (value: string | undefined): Edition | null => {
+/** A product's short code, e.g. "my-book". A product's "checkout" field set to one of these opens this checkout; a normal link keeps working as before. */
+export const PRODUCT_KEY_RE = /^[a-z0-9][a-z0-9-]{0,39}$/;
+export const editionOf = (value: string | undefined): string | null => {
   const key = (value || '').trim().toLowerCase();
-  return isEdition(key) ? key : null;
+  return PRODUCT_KEY_RE.test(key) ? key : null;
 };
+
+/** What the checkout page shows. It all comes from the admin (Store setup) through /api/checkout?config=1: nothing is typed in code. */
+export interface CheckoutProduct { key: string; name: string; price: number }
+export interface CheckoutWallet { id: string; name: string; number: string }
+export interface CheckoutConfig { products: CheckoutProduct[]; wallets: CheckoutWallet[]; supportEmail: string }
+
+/** null = could not reach the server. */
+export async function fetchCheckoutConfig(): Promise<CheckoutConfig | null> {
+  try {
+    const res = await fetch('/api/checkout?config=1');
+    if (!res.ok) return null;
+    const body = await res.json();
+    return {
+      products: Array.isArray(body?.products) ? body.products : [],
+      wallets: Array.isArray(body?.wallets) ? body.wallets : [],
+      supportEmail: typeof body?.supportEmail === 'string' ? body.supportEmail : '',
+    };
+  } catch {
+    return null;
+  }
+}
 
 export const formatBdt = (amount: number) => `৳${amount.toLocaleString('en-US')}`;
 
 export interface OrderState {
   id: string;
   status: 'pending' | 'paid' | 'rejected';
-  edition: Edition;
+  edition: string;
   name: string;
   amount: number;
   downloadUrl: string | null;
@@ -40,7 +44,7 @@ export interface OrderState {
 }
 
 export interface OrderInput {
-  edition: Edition;
+  edition: string;
   email: string;
   wallet: WalletId;
   trxId: string;
@@ -77,21 +81,22 @@ export async function fetchOrder(id: string, token: string): Promise<OrderState 
   }
 }
 
-/** Plain-language message for a failed submission. */
-export function submitErrorMessage(error: string, field?: string): string {
+/** Plain-language message for a failed submission. `supportEmail` is the one saved in the admin (may be empty). */
+export function submitErrorMessage(error: string, field?: string, supportEmail = ''): string {
   const fieldNames: Record<string, string> = {
     email: 'your email address',
     wallet: 'the wallet you paid with',
     trxId: 'the transaction ID (TrxID), usually 8–12 letters and numbers',
     sender: 'the number you paid from (11 digits, starting with 01)',
   };
+  const help = supportEmail ? `email ${supportEmail}` : 'contact us';
   switch (error) {
     case 'invalid': return `Please check ${fieldNames[field || ''] || 'the form'} and try again.`;
-    case 'duplicate': return `This transaction ID has already been submitted. If it was you, email ${SUPPORT_EMAIL} and we will sort it out.`;
+    case 'duplicate': return `This transaction ID has already been submitted. If it was you, ${help} and we will sort it out.`;
     case 'rate_limited':
     case 'busy': return 'Too many attempts just now. Please wait a few minutes and try again.';
-    case 'unconfigured': return `Checkout is not available right now. Please email ${SUPPORT_EMAIL}.`;
+    case 'unconfigured': return `Checkout is not available right now. Please ${help}.`;
     case 'network': return 'We could not reach the server. Please check your internet and try again.';
-    default: return `Something went wrong on our side. Please try again, or email ${SUPPORT_EMAIL}.`;
+    default: return `Something went wrong on our side. Please try again, or ${help}.`;
   }
 }

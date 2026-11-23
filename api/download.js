@@ -7,9 +7,10 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'method' });
   if (!isConfigured()) return sendJson(res, 503, { error: 'unconfigured' });
   try {
-    const result = await paidOrderForDownload(query(req, 'id'), query(req, 't'), makeContext());
+    const ctx = makeContext(req);
+    const result = await paidOrderForDownload(query(req, 'id'), query(req, 't'), ctx);
     if (result.error) return sendJson(res, { invalid: 400, not_found: 404, unpaid: 402 }[result.error] ?? 500, { error: result.error });
-    const url = await signedDownloadUrl(result.order.edition);
+    const url = await signedDownloadUrl(await ctx.store.getProduct(result.order.edition));
     if (!url) return sendJson(res, 502, { error: 'server' });
     res.statusCode = 302;
     res.setHeader('Location', url);

@@ -37,7 +37,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, zoomed]);
 
-  // "english" / "bangla" in the checkout field opens our own bKash / Nagad checkout page; a normal link keeps working as before.
+  // A product code (set up under Store) in the checkout field opens our own mobile-wallet checkout page; a normal link keeps working as before.
   const edition = editionOf(product.paddleUrl);
   const checkoutHref = /^https?:/i.test(product.paddleUrl || '') ? safeUrl(product.paddleUrl) : '';
   const closeRef = useRef<HTMLButtonElement>(null);

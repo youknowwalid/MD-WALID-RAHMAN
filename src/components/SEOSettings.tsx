@@ -54,7 +54,7 @@ export function SEOSettings({ onToast }: { onToast: (type: 'success' | 'error', 
         </div>
         <div>
           <label htmlFor="seo-template" className={labelCls}>Title for other pages (%s becomes the page name)</label>
-          <input id="seo-template" value={f.titleTemplate} onChange={(e) => set('titleTemplate')(e.target.value)} placeholder="%s | Walid Rahman" className={inputCls} />
+          <input id="seo-template" value={f.titleTemplate} onChange={(e) => set('titleTemplate')(e.target.value)} placeholder="%s | Your Site Name" className={inputCls} />
         </div>
         <div>
           <label htmlFor="seo-desc" className={labelCls}>Description</label>

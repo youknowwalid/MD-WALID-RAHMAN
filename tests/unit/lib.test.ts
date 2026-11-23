@@ -108,8 +108,8 @@ describe('admin forms', () => {
 
 describe('sitemap', () => {
   it('escapes and lists urls', () => {
-    const xml = buildSitemap([{ path: '/blog/a&b', lastmod: '2026-01-02T00:00:00Z', priority: '0.6' }]);
-    expect(xml).toContain('<loc>https://walidrahman.com/blog/a&amp;b</loc>');
+    const xml = buildSitemap([{ path: '/blog/a&b', lastmod: '2026-01-02T00:00:00Z', priority: '0.6' }], 'https://acme.example');
+    expect(xml).toContain('<loc>https://acme.example/blog/a&amp;b</loc>');
     expect(xml).toContain('<lastmod>2026-01-02</lastmod>');
   });
 });

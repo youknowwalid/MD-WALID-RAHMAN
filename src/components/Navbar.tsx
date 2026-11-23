@@ -97,7 +97,7 @@ export default function Navbar() {
       >
         <Link to="/" className="flex min-h-11 min-w-11 items-center gap-2 transition-opacity hover:opacity-80" aria-label={`${config.siteTitle} – home`}>
           {styled ? (
-            // Home wordmark as in the design: a slowly turning lime star, "youknow" light, "walid" lime.
+            // Home wordmark as in the design: a slowly turning star, a light part and an accent part (both set in the admin).
             <span className="flex items-center gap-2.5 text-[20px] tracking-[-0.03em]">
               <i className="home-logo-star" aria-hidden="true" />
               <span className={cn('transition-colors duration-300', onSky ? 'text-white' : 'text-[#0d1117]')}>

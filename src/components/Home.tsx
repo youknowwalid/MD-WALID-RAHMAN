@@ -524,7 +524,7 @@ export default function Home() {
                 {hero.cvUrl && (
                   <a
                     href={hero.cvUrl}
-                    download="Walid_Rahman_CV.pdf"
+                    download
                     target="_blank"
                     rel="noopener noreferrer"
                     className="home-btn home-mag min-h-[52px] bg-white px-7 py-3.5 text-[16px] text-[#0d1117] md:text-[17px]"

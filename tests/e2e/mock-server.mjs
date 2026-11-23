@@ -1,6 +1,7 @@
 // A tiny in-memory imitation of the Supabase endpoints the site uses (REST, auth, storage),
 // so the whole site and admin panel can be tested in a real browser without a real database.
 import http from 'node:http';
+import { FIXTURE_GLOBAL, FIXTURE_PAYMENTS, FIXTURE_SEO } from './fixtures.mjs';
 
 const PORT = 54321;
 const ADMIN = { email: 'admin@test.local', password: 'correct-horse-battery' };
@@ -14,15 +15,20 @@ const row = (o) => ({ id: `00000000-0000-4000-8000-${String(seq++).padStart(12, 
 
 const initial = () => ({
   projects: [row({ slug: 'brand-one', title: 'Brand One', category: 'Branding', image: 'http://127.0.0.1:54321/storage/v1/object/public/site-media/images/a.png', content: 'First paragraph of the case study.\n\nSecond paragraph.', tags: ['Logo'], gallery: [], link: '', hero_image: '', client: 'Acme', designer: '', start_date: '', intro_title: '', details_title: '', details_content: '', social_title: '', social_description: '', social_image: '', summary: 'A short intro line for Brand One.', industry: 'Retail', services: 'Branding, Logo design', feedback_quote: 'Walid delivered beyond our expectations.', feedback_name: 'Jane Doe', feedback_role: 'CEO, Acme', cta_title: '', cta_button_text: '', cta_button_url: '', published: true })],
-  blog_posts: [row({ slug: 'hello-world', title: 'Hello World', date: 'May 1, 2026', excerpt: 'A first post.', image: '', content: '### A heading\n\nBody text here.\n\n- one\n- two', author: 'Walid Rahman', tags: ['Intro'], social_title: '', social_description: '', social_image: '' })],
+  blog_posts: [row({ slug: 'hello-world', title: 'Hello World', date: 'May 1, 2026', excerpt: 'A first post.', image: '', content: '### A heading\n\nBody text here.\n\n- one\n- two', author: 'Alex Acme', tags: ['Intro'], social_title: '', social_description: '', social_image: '' })],
   services: [row({ display_id: '01', title: 'Brand Identity', description: 'Identity work.', icon_name: 'Palette' })],
-  resume_items: [row({ year: '2024 - Present', role: 'Executive Director', company: 'De Jure Academy', description: '' })],
+  resume_items: [row({ year: '2024 - Present', role: 'Executive Director', company: 'Acme Co', description: '' })],
   skills: [row({ name: 'Canva', level: 98 })],
   testimonials: [],
   pricing_plans: [],
   products: [],
   contact_submissions: [],
-  site_settings: [],
+  store_products: [],
+  site_settings: [
+    { key: 'global', value: structuredClone(FIXTURE_GLOBAL), updated_at: now() },
+    { key: 'seo', value: structuredClone(FIXTURE_SEO), updated_at: now() },
+    { key: 'payments', value: structuredClone(FIXTURE_PAYMENTS), updated_at: now() },
+  ],
 });
 let db = initial();
 const buckets = new Map();

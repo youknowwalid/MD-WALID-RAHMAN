@@ -3,7 +3,7 @@ import { AnimatePresence, m } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, Briefcase, FileText,
-  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles,
+  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles, Search, CreditCard,
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
@@ -15,7 +15,9 @@ import HireOffers from './admin/HireOffers';
 import CapabilityGroups from './admin/CapabilityGroups';
 import Inquiries from './admin/Inquiries';
 import Orders from './admin/Orders';
+import StoreSetup from './admin/StoreSetup';
 import ProjectsSwitch from './admin/ProjectsSwitch';
+import DiscoveryPanel from './admin/discovery/DiscoveryPanel';
 import RichTextArea from './admin/RichTextArea';
 import { GalleryField, ImageField, Toast, inputCls, labelCls, useToast } from './admin/fields';
 import { FORMS, FormCollection, friendlyError, toFormValues, toPayload } from './admin/forms';
@@ -38,8 +40,10 @@ const TABS = [
   { id: 'hire', label: 'Work With Me', icon: Handshake },
   { id: 'products', label: 'Products', icon: ShoppingCart },
   { id: 'orders', label: 'Orders', icon: Receipt },
+  { id: 'store', label: 'Store setup', icon: CreditCard },
   { id: 'contactSubmissions', label: 'Inquiries', icon: MessageSquare },
   { id: 'seoSettings', label: 'SEO Settings', icon: Globe },
+  { id: 'discovery', label: 'Search & AI', icon: Search },
   { id: 'branding', label: 'Branding Colors', icon: Palette },
   { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
@@ -215,12 +219,14 @@ function Dashboard({ email }: { email: string }) {
 
         {activeTab === 'projects' && <ProjectsSwitch onToast={show} />}
         {activeTab === 'orders' && <Orders onToast={show} />}
+        {activeTab === 'store' && <StoreSetup onToast={show} />}
         {activeTab === 'settings' && <SettingsPanel onToast={show} />}
         {activeTab === 'clientLogos' && <ClientLogos onToast={show} />}
         {activeTab === 'team' && <TeamMembers onToast={show} />}
         {activeTab === 'hire' && <HireOffers onToast={show} />}
         {activeTab === 'capabilities' && <CapabilityGroups onToast={show} />}
         {activeTab === 'seoSettings' && <SEOSettings onToast={show} />}
+        {activeTab === 'discovery' && <DiscoveryPanel onToast={show} />}
         {activeTab === 'branding' && <BrandingSettings onToast={show} />}
 
         {loading && isListTab && <div className="flex justify-center py-16" role="status" aria-label="Loading"><Loader2 className="w-8 h-8 text-accent animate-spin" /></div>}

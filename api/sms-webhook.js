@@ -42,7 +42,7 @@ export default async function handler(req, res) {
   if (!parsed) return sendJson(res, 200, { ok: true, ignored: true }); // OTPs, sent money, anything else: not stored
 
   try {
-    const ctx = makeContext();
+    const ctx = makeContext(req);
     const { sms, duplicate } = await ctx.store.insertSms({
       wallet: parsed.wallet,
       trx_id: parsed.trxId,

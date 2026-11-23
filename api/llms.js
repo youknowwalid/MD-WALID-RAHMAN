@@ -14,9 +14,10 @@ const paragraphs = (v) => (typeof v === 'string' ? v.split(/\n\s*\n/).map(clean)
  * @param {object} settings site_settings by key
  * @param {{ posts?: object[], projects?: object[], meta?: Record<string, object> }} [data] published content and the pages' SEO rows
  * @param {boolean} [full] include the answers (llms-full.txt)
+ * @param {object} [req] the request, used to find the site address when none is saved
  */
-export function buildLlmsTxt(settings, data = {}, full = false) {
-  const site = siteUrlOf(settings);
+export function buildLlmsTxt(settings, data = {}, full = false, req) {
+  const site = siteUrlOf(settings, req);
   const global = settings?.global || {};
   const meta = data.meta || {};
   const home = meta.home || {};
@@ -96,5 +97,5 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
   res.setHeader('X-Robots-Tag', 'noindex, follow');
   res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
-  res.status(200).send(buildLlmsTxt(settings, { posts, projects, meta }, full));
+  res.status(200).send(buildLlmsTxt(settings, { posts, projects, meta }, full, req));
 }

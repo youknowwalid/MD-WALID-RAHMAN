@@ -8,6 +8,7 @@ import { Collection, ORDER, TABLES, fromRow, toRow } from './rows';
 import { prepareImage } from './image';
 import type { SettingsKey } from './api';
 import type { OrderRow, PaymentSmsRow } from '../types';
+import type { RedirectDraft } from './discovery';
 
 export type { User };
 
@@ -159,3 +160,80 @@ export const uploadPdf = async (file: File) => {
   if (file.type !== 'application/pdf') throw new Error('Only PDF files are allowed.');
   return upload(file, 'raw');
 };
+
+// ── Search & AI Discovery: authors, per-page SEO rows, redirects ──
+export interface AuthorRow {
+  id: string; slug: string; name: string; job_title: string; credentials: string; short_bio: string;
+  avatar_url: string; same_as: string[]; knows_about: string[];
+}
+export interface RedirectRow extends RedirectDraft { id: string; hit_count: number; last_hit_at: string | null }
+
+export const listAuthors = async (): Promise<AuthorRow[]> => {
+  const { data, error } = await getClient().from('author_profiles').select('*').order('name', { ascending: true });
+  fail(error);
+  return (data ?? []) as AuthorRow[];
+};
+export const saveAuthor = async (id: string | null, values: Omit<AuthorRow, 'id'>) => {
+  const q = id ? getClient().from('author_profiles').update(values).eq('id', id) : getClient().from('author_profiles').insert(values);
+  fail((await q).error);
+};
+export const deleteAuthor = async (id: string) => { fail((await getClient().from('author_profiles').delete().eq('id', id)).error); };
+
+export const listPageMeta = async (): Promise<Record<string, any>[]> => {
+  const { data, error } = await getClient().from('page_discovery_meta').select('*');
+  fail(error);
+  return data ?? [];
+};
+export const savePageMeta = async (routeKey: string, row: Record<string, any>) => {
+  fail((await getClient().from('page_discovery_meta').upsert({ route_key: routeKey, ...row }, { onConflict: 'route_key' })).error);
+};
+export const deletePageMeta = async (routeKey: string) => { fail((await getClient().from('page_discovery_meta').delete().eq('route_key', routeKey)).error); };
+
+export const listRedirects = async (): Promise<RedirectRow[]> => {
+  const { data, error } = await getClient().from('url_redirects').select('*').order('created_at', { ascending: false });
+  fail(error);
+  return (data ?? []) as RedirectRow[];
+};
+export const saveRedirect = async (id: string | null, values: RedirectDraft) => {
+  const row = { source_path: values.source_path.trim(), destination_path: values.status_code === 410 ? '' : values.destination_path.trim(), status_code: values.status_code, is_active: values.is_active };
+  const q = id ? getClient().from('url_redirects').update(row).eq('id', id) : getClient().from('url_redirects').insert(row);
+  fail((await q).error);
+};
+export const deleteRedirect = async (id: string) => { fail((await getClient().from('url_redirects').delete().eq('id', id)).error); };
+
+/** Tells search engines that use IndexNow (Bing, Yandex and others) that these addresses are new or changed. Goes through the website's server. */
+export const submitIndexNow = async (urls: string[]): Promise<{ submitted: number }> => {
+  const { data } = await getClient().auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Your session has expired. Please sign in again.');
+  const res = await fetch('/api/indexnow', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ urls }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const reasons: Record<string, string> = {
+      unauthorized: 'Not allowed. Please sign in again.',
+      no_key: 'Create your IndexNow key first (Verification tab) and save it.',
+      no_urls: 'There were no valid addresses to send.',
+    };
+    throw new Error(reasons[body?.error] || 'The search engine did not accept the request. Please try again later.');
+  }
+  return { submitted: Number(body.submitted) || urls.length };
+};
+
+// ── Store: what is sold (private table, admin only) ──
+export interface StoreProductRow {
+  key: string; name: string; price_bdt: number; file_path: string; download_name: string; is_active: boolean; sort_order: number;
+}
+export const listStoreProducts = async (): Promise<StoreProductRow[]> => {
+  const { data, error } = await getClient().from('store_products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+  fail(error);
+  return (data ?? []) as StoreProductRow[];
+};
+export const saveStoreProduct = async (isNew: boolean, values: StoreProductRow) => {
+  const q = isNew ? getClient().from('store_products').insert(values) : getClient().from('store_products').update(values).eq('key', values.key);
+  fail((await q).error);
+};
+export const deleteStoreProduct = async (key: string) => { fail((await getClient().from('store_products').delete().eq('key', key)).error); };

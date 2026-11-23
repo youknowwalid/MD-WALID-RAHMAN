@@ -3,7 +3,19 @@ import {
   adminAction, createOrder, lookupOrder, onSmsStored, paidOrderForDownload, publicOrder, smsPaysOrder, validateOrderInput, deliverEmail,
 } from '../../api/_orders.js';
 import { normalizePhone, normalizeTrx, parseSms } from '../../api/_sms.js';
-import { EDITIONS, PRICE_BDT } from '../../api/_catalog.js';
+import { checkoutConfig } from '../../api/checkout.js';
+import { signedDownloadUrl } from '../../api/_orders.js';
+
+// Made-up shop data. The app holds none of its own: products, prices and wallets come from the admin (the database).
+const PRODUCTS: any[] = [
+  { key: 'acme-guide', name: 'The Acme Guide', price_bdt: 2999, file_path: 'acme-guide.pdf', download_name: 'Acme-Guide.pdf', is_active: true, sort_order: 0 },
+  { key: 'acme-pro', name: 'The Acme Pro Kit', price_bdt: 4999, file_path: 'kits/acme pro.pdf', download_name: '', is_active: true, sort_order: 1 },
+  { key: 'acme-old', name: 'Retired Guide', price_bdt: 100, file_path: 'old.pdf', download_name: '', is_active: false, sort_order: 2 },
+];
+const BRAND = {
+  name: 'Acme Studio', siteUrl: 'https://acme.example', supportEmail: 'help@acme.example',
+  wallets: [{ id: 'bkash', name: 'bKash', number: '01700000001' }, { id: 'nagad', name: 'Nagad', number: '01700000002' }],
+};
 
 // ---- an in-memory copy of the database, same rules as the real one -------------------------------
 function memoryStore() {
@@ -16,6 +28,8 @@ function memoryStore() {
     async countOrders({ since, ipHash, email }: any) {
       return orders.filter((o) => o.created_at >= since && (!ipHash || o.ip_hash === ipHash) && (!email || o.email === email)).length;
     },
+    async getProduct(key: string) { return PRODUCTS.find((p) => p.key === key) ?? null; },
+    async listProducts() { return PRODUCTS.filter((p) => p.is_active).map(({ key, name, price_bdt }) => ({ key, name, price_bdt })); },
     async getOrder(oid: string) { return orders.find((o) => o.id === oid) ?? null; },
     async findOrderByTrx(trx: string) { return orders.find((o) => o.trx_id === trx && o.status !== 'rejected') ?? null; },
     async insertOrder(o: any) {
@@ -60,10 +74,10 @@ const setup = (mailOk = true) => {
     sent.push(mail);
     return { ok: true };
   });
-  return { store, sent, mailer, ctx: { store, mailer, now: () => new Date() } as any };
+  return { store, sent, mailer, ctx: { store, mailer, now: () => new Date(), brand: async () => BRAND } as any };
 };
 
-const BUYER = { edition: 'english', email: 'Buyer@Example.com', wallet: 'bkash', trxId: '8n7a6d5cq', sender: '+8801712345678' };
+const BUYER = { edition: 'acme-guide', email: 'Buyer@Example.com', wallet: 'bkash', trxId: '8n7a6d5cq', sender: '+8801712345678' };
 const bkashSms = (trx = '8N7A6D5CQ', amount = '2,999.00', sender = '01712345678') =>
   `You have received Tk ${amount} from ${sender}. Fee Tk 0.00. Balance Tk 3,512.34. TrxID ${trx} at 09/10/2026 14:30`;
 const storeSms = async (store: any, text: string, from = 'bKash') => {
@@ -104,17 +118,47 @@ describe('helpers', () => {
     expect(normalizeTrx(' 8n7a-6d5cq ')).toBe('8N7A6D5CQ');
   });
   it('validates what the buyer types', () => {
-    expect(validateOrderInput(BUYER)).toEqual({ value: { edition: 'english', email: 'buyer@example.com', wallet: 'bkash', trxId: '8N7A6D5CQ', sender: '01712345678' } });
+    expect(validateOrderInput(BUYER)).toEqual({ value: { edition: 'acme-guide', email: 'buyer@example.com', wallet: 'bkash', trxId: '8N7A6D5CQ', sender: '01712345678' } });
     expect(validateOrderInput({ ...BUYER, edition: '__proto__' })).toEqual({ error: 'invalid', field: 'edition' });
     expect(validateOrderInput({ ...BUYER, email: 'nope' })).toEqual({ error: 'invalid', field: 'email' });
     expect(validateOrderInput({ ...BUYER, wallet: 'paypal' })).toEqual({ error: 'invalid', field: 'wallet' });
     expect(validateOrderInput({ ...BUYER, trxId: 'abc' })).toEqual({ error: 'invalid', field: 'trxId' });
     expect(validateOrderInput({ ...BUYER, sender: '123' })).toEqual({ error: 'invalid', field: 'sender' });
   });
-  it('charges the same price for both editions', () => {
-    expect(EDITIONS.english.price).toBe(PRICE_BDT);
-    expect(EDITIONS.bangla.price).toBe(PRICE_BDT);
-    expect(PRICE_BDT).toBe(2999);
+  it('prices every order from the stored product, never from what the browser sends', async () => {
+    const { ctx } = setup();
+    const cheap: any = await createOrder({ ...BUYER, amount: 1, price: 1, edition: 'acme-guide' }, ctx);
+    expect(cheap.order.amount_due).toBe(2999);
+    const pro: any = await createOrder({ ...BUYER, edition: 'acme-pro', trxId: 'PRO123456' }, ctx);
+    expect(pro.order.amount_due).toBe(4999);
+  });
+  it('refuses products that do not exist or are switched off, and wallets the shop does not offer', async () => {
+    const { ctx } = setup();
+    expect(await createOrder({ ...BUYER, edition: 'nope' }, ctx)).toEqual({ error: 'invalid', field: 'edition' });
+    expect(await createOrder({ ...BUYER, edition: 'acme-old' }, ctx)).toEqual({ error: 'invalid', field: 'edition' });
+    expect(await createOrder({ ...BUYER, wallet: 'rocket' }, ctx)).toEqual({ error: 'invalid', field: 'wallet' });
+  });
+  it('the checkout page gets names, prices and wallets, but never the private file path', async () => {
+    const { ctx } = setup();
+    const config = await checkoutConfig(ctx);
+    expect(config).toEqual({
+      products: [{ key: 'acme-guide', name: 'The Acme Guide', price: 2999 }, { key: 'acme-pro', name: 'The Acme Pro Kit', price: 4999 }],
+      wallets: BRAND.wallets,
+      supportEmail: 'help@acme.example',
+    });
+    expect(JSON.stringify(config)).not.toContain('pdf');
+  });
+  it('makes a short-lived download link to the stored file, with a download name', async () => {
+    const calls: string[] = [];
+    const fetchImpl = (async (url: string) => { calls.push(url); return { ok: true, json: async () => ({ signedURL: '/object/sign/paid-downloads/x?token=t' }) }; }) as any;
+    vi.stubEnv('SUPABASE_URL', 'https://db.example');
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'service-key');
+    const url = await signedDownloadUrl(PRODUCTS[1], { fetchImpl });
+    expect(calls[0]).toBe('https://db.example/storage/v1/object/sign/paid-downloads/kits/acme%20pro.pdf');
+    expect(url).toBe('https://db.example/storage/v1/object/sign/paid-downloads/x?token=t&download=acme%20pro.pdf');
+    expect(await signedDownloadUrl({ ...PRODUCTS[0], file_path: '../secret.pdf' }, { fetchImpl })).toBeNull();
+    expect(await signedDownloadUrl(null, { fetchImpl })).toBeNull();
+    vi.unstubAllEnvs();
   });
 });
 
@@ -129,7 +173,10 @@ describe('automatic approval', () => {
     expect(sent).toHaveLength(1);
     expect(sent[0].to).toBe('buyer@example.com');
     expect(sent[0].text).toContain(`/thank-you?order=${result.order.id}&t=${result.token}`);
-    expect(sent[0].subject).toContain('English edition');
+    expect(sent[0].subject).toContain('The Acme Guide');
+    expect(sent[0].text).toContain('https://acme.example/thank-you?order=');
+    expect(sent[0].text).toContain('Acme Studio');
+    expect(sent[0].html).toContain('The Acme Guide');
     expect(publicOrder(result.order).downloadUrl).toBe(`/api/download?id=${result.order.id}&t=${result.token}`);
   });
 
@@ -226,7 +273,7 @@ describe('orders and abuse limits', () => {
     expect(await paidOrderForDownload(created.order.id, created.token, ctx)).toEqual({ error: 'unpaid' });
     expect(await paidOrderForDownload(created.order.id, 'a'.repeat(48), ctx)).toEqual({ error: 'not_found' });
     await adminAction('approve', created.order.id, ctx);
-    expect(((await paidOrderForDownload(created.order.id, created.token, ctx)) as any).order.edition).toBe('english');
+    expect(((await paidOrderForDownload(created.order.id, created.token, ctx)) as any).order.edition).toBe('acme-guide');
   });
 });
 

@@ -2,11 +2,12 @@ import { expect, test, Locator, Page } from '@playwright/test';
 /** The sample database starts with the admin's projects switch on (the default). */
 const PROJECTS_HIDDEN = true;
 import AxeBuilder from '@axe-core/playwright';
-import { DEFAULT_CAPABILITY_GROUPS, DEFAULT_CONFIG, DEFAULT_HIRE_OFFERS, DEFAULT_SEO } from '../../src/lib/defaults';
+import { FIXTURE_CAPABILITY_GROUPS, FIXTURE_GLOBAL, FIXTURE_HIRE_OFFERS, FIXTURE_PAYMENTS, FIXTURE_PRODUCT, FIXTURE_SEO } from './fixtures.mjs';
 
-// Built-in text is read from the app's own defaults, never retyped here, so changing a default cannot break these tests.
-const HERO_NAME = DEFAULT_CONFIG.sectionTitles.heroName;
-const SITE_URL = DEFAULT_SEO.siteUrl.replace(/\/+$/, '');
+// The app holds no content of its own. Names and texts below come from made-up fixtures (tests/e2e/fixtures.mjs),
+// which the sample database serves as if they were saved in the admin.
+const HERO_NAME = FIXTURE_GLOBAL.sectionTitles.heroName;
+const SITE_URL = FIXTURE_SEO.siteUrl.replace(/\/+$/, '');
 
 const CONNECTED = 'http://127.0.0.1:4174';
 const PLAIN = 'http://127.0.0.1:4175';
@@ -29,14 +30,14 @@ test.describe('public site (connected)', () => {
   test('home page renders real content, correct title and no errors', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(CONNECTED + '/');
-    await expect(page).toHaveTitle(DEFAULT_SEO.defaultTitle);
+    await expect(page).toHaveTitle(FIXTURE_SEO.defaultTitle);
     await expect(page.locator('h1')).toContainText(HERO_NAME);
     if (!PROJECTS_HIDDEN) await expect(page.getByRole('heading', { name: 'Brand One' })).toBeAttached();
     await expect(page.getByRole('heading', { name: 'Hello World' })).toBeAttached();
     // Fabricated placeholder content must be gone
     await expect(page.getByText('Sarah Johnson')).toHaveCount(0);
     await expect(page.getByText('Add introductory video URL')).toHaveCount(0);
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', DEFAULT_SEO.defaultDescription);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', FIXTURE_SEO.defaultDescription);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', SITE_URL + '/');
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', SITE_URL + '/og-image.png');
     expect(errors).toEqual([]);
@@ -68,7 +69,7 @@ test.describe('public site (connected)', () => {
       await page.locator('a[href="/projects/brand-one"]').first().click();
       await expect(page).toHaveURL(/\/projects\/brand-one$/);
       await expect(page.locator('h1')).toHaveText('Brand One');
-      await expect(page).toHaveTitle(DEFAULT_SEO.titleTemplate.replace('%s', 'Brand One'));
+      await expect(page).toHaveTitle(FIXTURE_SEO.titleTemplate.replace('%s', 'Brand One'));
       await page.getByRole('link', { name: 'All Projects' }).click();
       await expect(page).toHaveURL(/\/#projects$/);
     }
@@ -113,7 +114,7 @@ test.describe('public site (connected)', () => {
     await expect(page.getByRole('heading', { name: 'Challenge' })).toBeVisible();
     await expect(page.getByText('First paragraph of the case study.')).toBeVisible();
     await expect(page.getByRole('heading', { name: "Client's feedback" })).toBeVisible();
-    await expect(page.getByText('Walid delivered beyond our expectations.')).toBeVisible();
+    await expect(page.getByText('Acme delivered beyond our expectations.')).toBeVisible();
     await expect(page.getByText('Jane Doe')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Contact Us' })).toHaveAttribute('href', '/#contact');
     // no solution text and no gallery in the sample project: those sections stay hidden
@@ -191,8 +192,8 @@ test.describe('logos and intro video', () => {
     await seed(request, 'global', { siteLogo: `${API}/storage/v1/object/public/site-media/images/h.png`, footerLogo: `${API}/storage/v1/object/public/site-media/images/f.png` });
     await page.goto(CONNECTED + '/');
     await expect(page.locator('footer img[src$="f.png"]')).toBeAttached();
-    await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('navigation', { name: 'Main' }).getByText('youknowwalid', { exact: true })).toHaveCount(1);
+    await expect(page.locator('footer').getByText('acmestudio', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Main' }).getByText('acmestudio', { exact: true })).toHaveCount(1);
   });
 
   test('formatted texts (founder story, legal pages) show bold, italic and alignment without the marks', async ({ page, request }) => {
@@ -208,7 +209,7 @@ test.describe('logos and intro video', () => {
     const card = page.locator('footer').getByTestId('founder-card');
     await card.scrollIntoViewIfNeeded();
     await card.getByRole('button', { name: 'Read my story' }).click();
-    const dialog = page.getByRole('dialog', { name: DEFAULT_CONFIG.founderName });
+    const dialog = page.getByRole('dialog', { name: FIXTURE_GLOBAL.founderName });
     await expect(dialog.locator('p', { hasText: 'The first paragraph.' })).toHaveCSS('text-align', 'justify');
     await expect(dialog.locator('p', { hasText: 'The second one.' })).toHaveCSS('text-align', 'right');
     await expect(dialog.locator('span.italic', { hasText: 'second' })).toBeVisible();
@@ -227,25 +228,33 @@ test.describe('logos and intro video', () => {
     const card = footer.getByTestId('founder-card');
     await card.scrollIntoViewIfNeeded();
     await expect(card.getByText('A word from the founder')).toBeVisible();
-    await expect(card.getByText(DEFAULT_CONFIG.founderName)).toBeVisible();
+    await expect(card.getByText(FIXTURE_GLOBAL.founderName)).toBeVisible();
     const c = (await card.boundingBox())!;
     const width = page.viewportSize()!.width;
     if (width >= 1024) {
       // The card is exactly as tall as the left side: its top meets the logo, its bottom meets the social icons and the last contact line.
-      const logo = (await footer.locator('img[src$="f.png"]').boundingBox())!;
-      const social = (await footer.getByRole('link', { name: /LinkedIn/ }).boundingBox())!;
-      const phone = (await footer.locator('a[href^="tel:"]').boundingBox())!;
-      expect(Math.abs(c.y - logo.y)).toBeLessThanOrEqual(2);
-      expect(Math.abs(c.y + c.height - (social.y + social.height))).toBeLessThanOrEqual(2);
-      expect(Math.abs(c.y + c.height - (phone.y + phone.height))).toBeLessThanOrEqual(3);
+      // Read every box in one instant, so a late layout shift cannot sit between two measurements.
+      const m = await page.evaluate(() => {
+        const box = (el: Element | null) => { const r = el!.getBoundingClientRect(); return { y: r.y, height: r.height }; };
+        const f = document.querySelector('footer')!;
+        return {
+          card: box(f.querySelector('[data-testid="founder-card"]')),
+          logo: box(f.querySelector('img[src$="f.png"]')),
+          social: box(f.querySelector('a[aria-label*="LinkedIn"]')),
+          phone: box(f.querySelector('a[href^="tel:"]')),
+        };
+      });
+      expect(Math.abs(m.card.y - m.logo.y)).toBeLessThanOrEqual(2);
+      expect(Math.abs(m.card.y + m.card.height - (m.social.y + m.social.height))).toBeLessThanOrEqual(2);
+      expect(Math.abs(m.card.y + m.card.height - (m.phone.y + m.phone.height))).toBeLessThanOrEqual(3);
     } else if (width < 768) {
       const b = (await card.getByRole('button', { name: 'Read my story' }).boundingBox())!;
       expect(b.width).toBeGreaterThan(c.width - 40); // a full-width button on phones
     }
     await card.getByRole('button', { name: 'Read my story' }).click();
-    const dialog = page.getByRole('dialog', { name: DEFAULT_CONFIG.founderName });
+    const dialog = page.getByRole('dialog', { name: FIXTURE_GLOBAL.founderName });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText("I'm Walid, a brand developer")).toBeVisible();
+    await expect(dialog.getByText("I'm Alex, a designer")).toBeVisible();
     await expect(dialog.getByRole('link', { name: "Let's work together" })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
@@ -306,8 +315,8 @@ test.describe('logos and intro video', () => {
     await page.goto(CONNECTED + '/');
     const hire = page.locator('#hire');
     await expect(hire.getByRole('heading', { name: 'Work With Me', level: 2 })).toBeVisible();
-    await expect(hire.getByRole('heading', { name: 'Project-Based' })).toBeVisible();
-    await expect(hire.getByRole('heading', { name: 'Fractional CMO / CBO' })).toBeVisible();
+    await expect(hire.getByRole('heading', { name: 'Fixed Project' })).toBeVisible();
+    await expect(hire.getByRole('heading', { name: 'Monthly Retainer' })).toBeVisible();
     await expect(hire.getByRole('link', { name: 'Request Proposal' })).toHaveAttribute('href', '/#contact');
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
@@ -330,7 +339,7 @@ test.describe('logos and intro video', () => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('#hire').getByRole('heading', { name: 'Only Offer' })).toBeVisible();
     await expect(page.locator('#hire').getByText('Secret Offer')).toHaveCount(0);
-    await seed(request, 'global', { hireOffers: DEFAULT_HIRE_OFFERS });
+    await seed(request, 'global', { hireOffers: FIXTURE_HIRE_OFFERS });
   });
 
   const isPhone = (page: Page) => page.viewportSize()!.width < 768;
@@ -425,7 +434,7 @@ test.describe('logos and intro video', () => {
 
   test('without logos, no site-name text appears in the footer', async ({ page }) => {
     await page.goto(CONNECTED + '/');
-    await expect(page.locator('footer').getByText('youknowwalid', { exact: true })).toHaveCount(0);
+    await expect(page.locator('footer').getByText('acmestudio', { exact: true })).toHaveCount(0);
   });
 
   test('a video file with no playable picture shows a notice instead of a silent black box', async ({ page, request }) => {
@@ -506,8 +515,7 @@ test.describe('first visit on a new device (no flash of old content)', () => {
   test('the site still appears when the database cannot be reached', async ({ page }) => {
     await page.route('**/rest/v1/**', (route) => route.abort());
     await page.goto(CONNECTED + '/');
-    await expect(page.locator('h1')).toContainText(HERO_NAME);
-    await expect(page.locator('#home').getByText(DEFAULT_CONFIG.brandTagline)).toBeVisible();
+    await expect(page.locator('#home h1')).toBeVisible();
   });
 
   test('the hero heading keeps its size while it is typed (no layout jump)', async ({ page }) => {
@@ -525,9 +533,7 @@ test.describe('zero-configuration mode (no database connected)', () => {
   test('site works with built-in content and no errors', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(PLAIN + '/');
-    await expect(page.locator('h1')).toContainText(HERO_NAME);
-    await expect(page.getByRole('button', { name: 'Brand Identity & Development' })).toBeAttached();
-    await expect(page.getByRole('heading', { name: 'Executive Director' })).toBeAttached();
+    await expect(page.locator('#home h1')).toBeVisible(); // the built-in defaults hold no content: only the page's structure shows
     await expect(page.getByText(PROJECTS_HIDDEN ? 'Not available in your region' : 'Selected projects will be shown here soon.')).toBeAttached();
     await expect(page.getByText('Sarah Johnson')).toHaveCount(0);
     expect(errors).toEqual([]);
@@ -681,7 +687,7 @@ test.describe('admin panel', () => {
     await page.goto(CONNECTED + '/');
     await expect(page.locator('#hire').getByRole('heading', { name: 'Brand Sprint' })).toBeVisible();
     await expect(page.locator('#hire').getByRole('link', { name: 'Start the sprint' })).toBeVisible();
-    await request.post(`${API}/__seed-settings`, { data: { key: 'global', value: { hireOffers: DEFAULT_HIRE_OFFERS } } });
+    await request.post(`${API}/__seed-settings`, { data: { key: 'global', value: { hireOffers: FIXTURE_HIRE_OFFERS } } });
   });
 
   test('admin: edit the "What I Can Do" chips and see them on the site', async ({ page, request }) => {
@@ -696,7 +702,7 @@ test.describe('admin panel', () => {
     await expect(card.getByRole('tab', { name: page.viewportSize()!.width < 768 ? 'Brand' : 'Brand Work' })).toBeVisible();
     await expect(card.getByRole('button', { name: 'Brand Naming' })).toBeVisible();
     await expect(card.getByRole('button', { name: 'Brand Voice' })).toBeVisible();
-    await request.post(`${API}/__seed-settings`, { data: { key: 'global', value: { capabilityGroups: DEFAULT_CAPABILITY_GROUPS } } });
+    await request.post(`${API}/__seed-settings`, { data: { key: 'global', value: { capabilityGroups: FIXTURE_CAPABILITY_GROUPS } } });
   });
 
   test('create, edit and delete a project; changes appear on the public site', async ({ page }) => {
@@ -756,7 +762,7 @@ test.describe('admin panel', () => {
     await page.getByLabel('Industries').fill('Fintech');
     await page.getByLabel('Services', { exact: true }).fill('Motion design');
     await page.getByLabel('Date', { exact: true }).fill('3 March 2025');
-    await page.getByLabel('Designer').fill('Walid');
+    await page.getByLabel('Designer').fill('Alex');
     await page.getByLabel('Tags shown as pills (comma separated)').fill('Alpha, Beta');
     await page.getByLabel('Challenge section title').fill('The brief');
     await typeRich(page, page.getByRole('textbox', { name: /^Challenge text/ }), 'Lead sentence here.\n\nBody paragraph here.');
@@ -858,7 +864,7 @@ test.describe('admin panel', () => {
   test('settings: contact details and social links update the public site', async ({ page }) => {
     await login(page);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByLabel('Public e-mail').fill('hello@walidrahman.com');
+    await page.getByLabel('Public e-mail').fill('hello@acme.example');
     await page.getByRole('button', { name: 'Add a social link' }).click();
     await page.getByLabel('Network 1').fill('LinkedIn');
     await page.getByLabel('Link 1').first().fill('https://linkedin.com/in/example');
@@ -866,19 +872,19 @@ test.describe('admin panel', () => {
     await expect(page.getByText('Settings saved and published.')).toBeVisible();
 
     await page.goto(CONNECTED + '/');
-    await expect(page.getByRole('link', { name: 'hello@walidrahman.com' }).first()).toHaveAttribute('href', 'mailto:hello@walidrahman.com');
+    await expect(page.getByRole('link', { name: 'hello@acme.example' }).first()).toHaveAttribute('href', 'mailto:hello@acme.example');
     await expect(page.getByRole('link', { name: /LinkedIn/ })).toHaveAttribute('href', 'https://linkedin.com/in/example');
   });
 
   test('SEO settings change the page title and description', async ({ page }) => {
     await login(page);
     await page.getByRole('button', { name: 'SEO Settings' }).click();
-    await page.getByLabel('Home page title').fill('Custom Title For Walid');
+    await page.getByLabel('Home page title').fill('Custom Title For Acme');
     await page.getByLabel('Description', { exact: true }).fill('A custom description.');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByText('SEO settings saved.')).toBeVisible();
     await page.goto(CONNECTED + '/');
-    await expect(page).toHaveTitle('Custom Title For Walid');
+    await expect(page).toHaveTitle('Custom Title For Acme');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'A custom description.');
   });
 
@@ -925,28 +931,32 @@ test.describe('checkout with bKash / Nagad', () => {
   const ORDER_ID = '11111111-1111-4111-8111-111111111111';
   const TOKEN = 'a'.repeat(48);
   const order = (status: 'pending' | 'paid') => ({
-    id: ORDER_ID, status, edition: 'english', name: 'Automate Your Facebook Business with AI (English edition)', amount: 2999,
+    id: ORDER_ID, status, edition: FIXTURE_PRODUCT.key, name: FIXTURE_PRODUCT.name, amount: FIXTURE_PRODUCT.price,
     downloadUrl: status === 'paid' ? `/api/download?id=${ORDER_ID}&t=${TOKEN}` : null, emailed: status === 'paid',
   });
+  // What /api/checkout?config=1 would answer: the shop's products, wallets and support e-mail (saved in the admin).
+  const SHOP = { products: [FIXTURE_PRODUCT], wallets: FIXTURE_PAYMENTS.wallets, supportEmail: FIXTURE_PAYMENTS.supportEmail };
+  const checkoutApi = (handler: (route: any) => Promise<unknown> | unknown) => async (route: any) =>
+    route.request().url().includes('config=1') ? route.fulfill({ json: SHOP }) : handler(route);
 
   test('shows the wallet numbers, sends the transaction id and then offers the download', async ({ page }) => {
     const errors = watchErrors(page);
     let submitted: any = null;
     // The preview server has no /api, so the server's answers are simulated here.
-    await page.route(/\/api\/checkout(\?.*)?$/, async (route) => {
+    await page.route(/\/api\/checkout(\?.*)?$/, checkoutApi(async (route) => {
       if (route.request().method() === 'POST') {
         submitted = route.request().postDataJSON();
         await route.fulfill({ json: { ...order('pending'), token: TOKEN } });
       } else {
         await route.fulfill({ json: order('paid') });
       }
-    });
+    }));
 
-    await page.goto(CONNECTED + '/checkout/english');
+    await page.goto(CONNECTED + `/checkout/${FIXTURE_PRODUCT.key}`);
     await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
-    await expect(page.getByTestId('wallet-bkash')).toHaveText('01756520701');
-    await expect(page.getByTestId('wallet-nagad')).toHaveText('01744588644');
-    await expect(page.getByText('৳2,999').first()).toBeVisible();
+    await expect(page.getByTestId('wallet-bkash')).toHaveText(FIXTURE_PAYMENTS.wallets[0].number);
+    await expect(page.getByTestId('wallet-nagad')).toHaveText(FIXTURE_PAYMENTS.wallets[1].number);
+    await expect(page.getByText('৳500').first()).toBeVisible();
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).disableRules(['color-contrast']).analyze();
     expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`)).toEqual([]);
@@ -960,41 +970,60 @@ test.describe('checkout with bKash / Nagad', () => {
     await expect(page).toHaveURL(new RegExp(`/thank-you\\?order=${ORDER_ID}&t=${TOKEN}`));
     await expect(page.getByRole('heading', { name: /Payment confirmed/ })).toBeVisible();
     await expect(page.getByRole('link', { name: /Download:/ })).toHaveAttribute('href', `/api/download?id=${ORDER_ID}&t=${TOKEN}`);
-    expect(submitted).toMatchObject({ edition: 'english', email: 'Buyer@Example.com', wallet: 'nagad', trxId: '71abcd12', sender: '01712345678', website: '' });
+    expect(submitted).toMatchObject({ edition: FIXTURE_PRODUCT.key, email: 'Buyer@Example.com', wallet: 'nagad', trxId: '71abcd12', sender: '01712345678', website: '' });
     expect(errors).toEqual([]);
   });
 
   test('explains a duplicate transaction id in plain words', async ({ page }) => {
-    await page.route(/\/api\/checkout(\?.*)?$/, (route) => route.fulfill({ status: 409, json: { error: 'duplicate' } }));
-    await page.goto(CONNECTED + '/checkout/bangla');
+    await page.route(/\/api\/checkout(\?.*)?$/, checkoutApi((route) => route.fulfill({ status: 409, json: { error: 'duplicate' } })));
+    await page.goto(CONNECTED + `/checkout/${FIXTURE_PRODUCT.key}`);
     await page.getByLabel(/Your email/).fill('buyer@example.com');
     await page.getByLabel('The number you paid from').fill('01712345678');
     await page.getByLabel(/Transaction ID/).fill('8N7A6D5CQ');
     await page.getByRole('button', { name: /verify my payment/ }).click();
     await expect(page.getByRole('alert')).toContainText('already been submitted');
-    await expect(page).toHaveURL(/\/checkout\/bangla$/);
+    await expect(page.getByRole('alert')).toContainText(FIXTURE_PAYMENTS.supportEmail);
+    await expect(page).toHaveURL(new RegExp(`/checkout/${FIXTURE_PRODUCT.key}$`));
   });
 
   test('waits while the payment is not verified yet', async ({ page }) => {
-    await page.route(/\/api\/checkout(\?.*)?$/, (route) => route.fulfill({ json: order('pending') }));
+    await page.route(/\/api\/checkout(\?.*)?$/, checkoutApi((route) => route.fulfill({ json: order('pending') })));
     await page.goto(`${CONNECTED}/thank-you?order=${ORDER_ID}&t=${TOKEN}`);
     await expect(page.getByRole('heading', { name: 'Verifying your payment…' })).toBeVisible();
     await expect(page.getByRole('link', { name: /Download:/ })).toHaveCount(0);
   });
 
-  test('a made-up address and an unknown book are handled', async ({ page }) => {
+  test('a made-up address and an unknown product are handled', async ({ page }) => {
     await page.goto(`${CONNECTED}/thank-you`);
     await expect(page.getByRole('heading', { name: "We couldn't find this order" })).toBeVisible();
     await page.goto(`${CONNECTED}/checkout/nonsense`);
-    await expect(page.getByRole('heading', { name: "We couldn't find that book" })).toBeVisible();
+    await expect(page.getByRole('heading', { name: "We couldn't find that product" })).toBeVisible();
   });
 
-  test('a product set to "english" gets a Buy Now button that opens the checkout page', async ({ page }) => {
+  test('admin: Store setup saves the wallet numbers and a product', async ({ page }) => {
+    await login(page);
+    await page.getByRole('button', { name: 'Store setup' }).click();
+    await page.getByLabel('bKash number').fill('01711111111');
+    await page.getByLabel('Support e-mail').fill('help@acme.example');
+    await page.getByRole('button', { name: 'Save payment details' }).click();
+    await expect(page.getByText('Payment details saved.')).toBeVisible();
+    await page.getByRole('button', { name: 'Add product' }).click();
+    await page.getByLabel('Product code').fill('acme-guide');
+    await page.getByLabel('Name buyers see').fill('The Acme Guide');
+    await page.getByLabel('Price (taka)').fill('500');
+    await page.getByLabel('File in private storage').fill('acme-guide.pdf');
+    await page.getByRole('button', { name: 'Save product' }).click();
+    await expect(page.getByText('Product saved.')).toBeVisible();
+    await expect(page.getByLabel('Product code')).toHaveValue('acme-guide');
+  });
+
+  test('a product whose checkout field holds a product code gets a Buy Now button that opens the checkout page', async ({ page }) => {
+    await page.route(/\/api\/checkout(\?.*)?$/, checkoutApi((route) => route.fulfill({ status: 404, json: {} })));
     await login(page);
     await page.getByRole('button', { name: 'Products' }).click();
     await page.getByRole('button', { name: 'Add new' }).click();
     await page.getByLabel('Title *').fill('English guide');
-    await page.getByLabel(/Checkout link/).fill('english');
+    await page.getByLabel(/Checkout link/).fill(FIXTURE_PRODUCT.key);
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Item created.')).toBeVisible();
     await page.goto(CONNECTED + '/resources');
@@ -1011,7 +1040,7 @@ test.describe('checkout with bKash / Nagad', () => {
     const buy = await page.getByRole('link', { name: 'Buy Now' }).boundingBox();
     expect(buy!.y + buy!.height).toBeLessThanOrEqual(page.viewportSize()!.height); // Buy Now is on screen without scrolling the popup
     await page.getByRole('link', { name: 'Buy Now' }).click();
-    await expect(page).toHaveURL(/\/checkout\/english$/);
+    await expect(page).toHaveURL(new RegExp(`/checkout/${FIXTURE_PRODUCT.key}$`));
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     for (const id of ['bkash', 'nagad']) {
