@@ -287,3 +287,24 @@ describe('article page for crawlers without JavaScript', () => {
     expect(html.match(/<h1>/g)).toHaveLength(1);
   });
 });
+
+describe('RSS feed', () => {
+  it('lists published articles with their address, date and summary, and escapes text', async () => {
+    const { buildFeed } = await import('../../api/feed.js');
+    const xml = buildFeed({
+      site: 'https://acme.test', name: 'Acme & Co', description: 'Notes.', authorName: 'Jane Doe',
+      posts: [{ slug: 'post-a', title: 'A <b> post', excerpt: 'Short.', created_at: '2026-05-01T00:00:00Z' }, { slug: '', title: 'No address' }],
+    });
+    expect(xml).toContain('<title>Acme &amp; Co</title>');
+    expect(xml).toContain('<link>https://acme.test/blog/post-a</link>');
+    expect(xml).toContain('<title>A &lt;b&gt; post</title>');
+    expect(xml).toContain('<dc:creator>Jane Doe</dc:creator>');
+    expect(xml).toContain('rel="self"');
+    expect(xml).not.toContain('No address');
+  });
+  it('is announced in every page head', () => {
+    const html = buildPageHtml('<html><head></head><body></body></html>', { siteUrl: 'https://acme.test', siteName: 'Acme' }, {}, '/');
+    expect(html).toContain('<link rel="alternate" type="application/rss+xml"');
+    expect(html).toContain('https://acme.test/feed.xml');
+  });
+});
