@@ -78,6 +78,7 @@ describe('page renderer', () => {
     expect(routeOf('/').kind).toBe('home');
     expect(routeOf('/articles').kind).toBe('fixed');
     expect(routeOf('/blog/hello')).toEqual({ kind: 'blog', key: 'hello' });
+    expect(routeOf('/products')).toEqual({ kind: 'redirect', to: '/resources' });
     expect(routeOf('/projects/case')).toEqual({ kind: 'project', key: 'case' });
     expect(routeOf('/checkout/english').kind).toBe('private');
     expect(routeOf('/admin').kind).toBe('private');

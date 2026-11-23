@@ -56,6 +56,7 @@ export function pickPage(kind, row) {
       published: row.created_at,
       modified: row.updated_at,
       author: row.author,
+      content: row.content,
     };
   }
   // The admin's bold / italic / alignment marks (see src/lib/richtext.ts) must not show up in a shared description.
@@ -81,6 +82,25 @@ const absoluteImage = (url, base) => {
 
 const clean = (v) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '');
 const paragraphs = (v) => (typeof v === 'string' ? v.split(/\n\s*\n/).map(clean).filter(Boolean) : []);
+
+
+/** The admin's bold / italic / alignment marks removed: plain words only. */
+export const stripMarks = (t) => String(t || '')
+  .replace(/^\s*\[(?:left|justify|right|center)\][ \t]?/, '')
+  .replace(/\*\*\*(\S(?:[^*\n]*?\S)?)\*\*\*|\*\*(\S(?:[\s\S]*?\S)?)\*\*|\*(\S(?:[^*\n]*?\S)?)\*/g, (_m, a, b, c) => a ?? b ?? c);
+
+/** An article's text as plain paragraphs (built only from the saved article). */
+export const articleParagraphs = (content) => paragraphs(content).map((p) => clean(stripMarks(p))).filter(Boolean);
+
+/** The plain-HTML copy of an article page for crawlers without JavaScript. */
+export function buildArticleMain({ title, description, content, published }) {
+  const out = [`<h1>${esc(clean(title))}</h1>`];
+  const lead = clean(description);
+  if (lead) out.push(`<p>${esc(lead)}</p>`);
+  if (published) out.push(`<p><time datetime="${esc(String(published))}">${esc(String(published).slice(0, 10))}</time></p>`);
+  for (const p of articleParagraphs(content)) out.push(`<p>${esc(p)}</p>`);
+  return `<main id="static-content" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">\n      ${out.join('\n      ')}\n    </main>`;
+}
 
 /**
  * The plain-HTML copy of a page that crawlers without JavaScript read (the app replaces it when it starts).
@@ -122,10 +142,10 @@ export function buildStaticMain({ seo, global, meta, description, faq = /** @typ
 }
 
 /** What a visitor with JavaScript switched off sees. */
-export function buildNoscriptMain({ seo, global, description }) {
+export function buildNoscriptMain({ seo, global, description, heading = '' }) {
   const email = clean(global?.contactEmail);
   return `<main style="font-family:system-ui,sans-serif;max-width:640px;margin:0 auto;padding:96px 24px;line-height:1.6">
-        <h1>${esc(seo.siteName)}</h1>
+        <h1>${esc(heading || seo.siteName)}</h1>
         ${description ? `<p>${esc(description)}</p>` : ''}
         <p>This website needs JavaScript to display its full content.${email ? ` You can reach us at <a href="mailto:${esc(email)}">${esc(email)}</a>.` : ''}</p>
       </main>`;
@@ -222,8 +242,11 @@ export function buildPageHtml(template, seoSettings, page, path, extra = {}) {
   const faq = (Array.isArray(meta?.faq_items) ? meta.faq_items : [])
     .map((i) => ({ question: clean(i?.question), answer: clean(i?.answer) }))
     .filter((i) => i.question && i.answer);
-  const staticMain = withBody ? buildStaticMain({ seo, global, meta, description, faq }) : '';
-  const noscriptMain = buildNoscriptMain({ seo, global, description });
+  const staticMain = !withBody ? ''
+    : kind === 'blog' ? buildArticleMain({ title: page.title, description, content: page.content, published: page.published })
+    : buildStaticMain({ seo, global, meta, description, faq });
+  // A page's own heading in the no-JavaScript view; with a plain copy of the page present, no second top heading.
+  const noscriptMain = buildNoscriptMain({ seo, global, description, heading: kind === 'blog' ? page.title : '' }).replace(staticMain ? /<h1>([\s\S]*?)<\/h1>/ : /$^/, '<p><strong>$1</strong></p>');
 
   let html = template
     .replace(/<script\b[^>]*\bid\s*=\s*["']aeo-jsonld-home[^"']*["'][^>]*>[\s\S]*?<\/script>\s*/gi, '')
