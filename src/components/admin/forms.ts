@@ -2,7 +2,7 @@ import { Collection } from '../../lib/rows';
 import { slugify } from '../../lib/text';
 import {
   normalizeBlogPost, normalizePricingPlan, normalizeProduct, normalizeProject,
-  normalizeResumeItem, normalizeService, normalizeTestimonial,
+  normalizeResumeItem, normalizeTestimonial,
 } from '../../lib/schema-defaults';
 
 export type FieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'image' | 'tags' | 'lines' | 'select' | 'gallery';
@@ -26,7 +26,7 @@ export interface Field {
 
 const order: Field = { name: 'order', label: 'Display order (lower numbers come first)', type: 'number', half: true };
 
-export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular: string; fields: Field[] }> = {
+export const FORMS: Record<Exclude<Collection, 'contactSubmissions' | 'services' | 'skills'>, { singular: string; fields: Field[] }> = {
   projects: {
     singular: 'project',
     fields: [
@@ -63,15 +63,6 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       order,
     ],
   },
-  services: {
-    singular: 'service',
-    fields: [
-      { name: 'title', label: 'Service title', required: true },
-      { name: 'iconName', label: 'Icon (Auto picks one for you; if two services choose the same icon, the second gets a different one)', type: 'select', options: ['Auto', 'Palette', 'Braces', 'Megaphone', 'Laptop', 'Layers', 'PenTool', 'Compass', 'Sparkles', 'Camera', 'Code', 'Globe', 'LineChart', 'Rocket', 'Target', 'Video', 'ShoppingBag', 'Smartphone', 'Search', 'Briefcase', 'Lightbulb'], half: true },
-      { name: 'description', label: 'Description', type: 'textarea', rows: 4, required: true, rich: true },
-      order,
-    ],
-  },
   blogPosts: {
     singular: 'blog post',
     fields: [
@@ -96,14 +87,6 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { name: 'company', label: 'Company', required: true, half: true },
       { name: 'year', label: 'Years', required: true, half: true, placeholder: '2020 - 2022' },
       { name: 'desc', label: 'Description', type: 'textarea', rows: 4, rich: true },
-      order,
-    ],
-  },
-  skills: {
-    singular: 'skill',
-    fields: [
-      { name: 'name', label: 'Skill name', required: true },
-      { name: 'level', label: 'Level (0 – 100)', type: 'number', required: true, half: true },
       order,
     ],
   },
@@ -159,10 +142,8 @@ export type FormCollection = keyof typeof FORMS;
 
 const NEW_DEFAULTS: Partial<Record<FormCollection, Record<string, any>>> = {
   projects: { published: true },
-  skills: { level: 80 },
   products: { published: true, featured: true },
   pricingPlans: { period: '/month', buttonText: 'Get Started' },
-  services: { iconName: 'Auto' },
 };
 
 /** Database item -> string values for the form inputs. */
@@ -204,17 +185,11 @@ export function toPayload(tab: FormCollection, values: Record<string, any>): Rec
   }
   switch (tab) {
     case 'projects': return normalizeProject(raw);
-    case 'services': return normalizeService(raw);
     case 'blogPosts': return normalizeBlogPost(raw);
     case 'resume': return normalizeResumeItem(raw);
     case 'testimonials': return normalizeTestimonial(raw);
     case 'pricingPlans': return normalizePricingPlan(raw);
     case 'products': return normalizeProduct(raw);
-    case 'skills': {
-      const level = Number(raw.level);
-      if (!Number.isFinite(level) || level < 0 || level > 100) throw new Error('Skill level must be a number from 0 to 100.');
-      return { name: raw.name, level: Math.round(level), order: raw.order ?? 0 };
-    }
   }
 }
 

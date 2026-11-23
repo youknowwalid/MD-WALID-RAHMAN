@@ -17,6 +17,7 @@ export const FIXTURE_HIRE_OFFERS = [
     name: 'Fixed Project', tag: 'Fixed Cost',
     description: 'Best for one-off builds with a clear scope.',
     features: ['Defined scope & timeline', 'Milestone-based delivery', 'Custom quote per project', 'Ideal for one-time builds'],
+    details: [{ label: 'Starting at', value: '25k BDT' }, { label: 'Who works on it', value: 'Me plus the team' }],
     buttonText: 'Request Proposal', buttonUrl: '/#contact', dark: false, hidden: false,
   },
   {

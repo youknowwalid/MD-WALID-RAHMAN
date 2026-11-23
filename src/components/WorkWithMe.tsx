@@ -27,6 +27,7 @@ export default function WorkWithMe({ offers, heading, lead }: { offers: HireOffe
           {shown.map((o, i) => {
             const href = safeUrl(o.buttonUrl) || '/#contact';
             const features = o.features.map((f) => f.trim()).filter(Boolean);
+            const details = (o.details || []).filter((d) => d && d.label?.trim() && d.value?.trim());
             return (
               <article
                 key={`${o.name}-${i}`}
@@ -77,6 +78,17 @@ export default function WorkWithMe({ offers, heading, lead }: { offers: HireOffe
                       </li>
                     ))}
                   </ul>
+                )}
+
+                {details.length > 0 && (
+                  <dl className={cn('mt-7 space-y-2.5 border-t pt-5 text-[14px] md:text-[15px]', o.dark ? 'border-white/15' : 'border-border-subtle')}>
+                    {details.map((d, j) => (
+                      <div key={j} className="flex items-baseline justify-between gap-6">
+                        <dt className={o.dark ? 'text-white/60' : 'text-text-muted'}>{d.label}</dt>
+                        <dd className="text-right font-medium">{d.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 )}
 
                 {o.buttonText && (
