@@ -233,12 +233,20 @@ test.describe('logos and intro video', () => {
     const width = page.viewportSize()!.width;
     if (width >= 1024) {
       // The card is exactly as tall as the left side: its top meets the logo, its bottom meets the social icons and the last contact line.
-      const logo = (await footer.locator('img[src$="f.png"]').boundingBox())!;
-      const social = (await footer.getByRole('link', { name: /LinkedIn/ }).boundingBox())!;
-      const phone = (await footer.locator('a[href^="tel:"]').boundingBox())!;
-      expect(Math.abs(c.y - logo.y)).toBeLessThanOrEqual(2);
-      expect(Math.abs(c.y + c.height - (social.y + social.height))).toBeLessThanOrEqual(2);
-      expect(Math.abs(c.y + c.height - (phone.y + phone.height))).toBeLessThanOrEqual(3);
+      // Read every box in one instant, so a late layout shift cannot sit between two measurements.
+      const m = await page.evaluate(() => {
+        const box = (el: Element | null) => { const r = el!.getBoundingClientRect(); return { y: r.y, height: r.height }; };
+        const f = document.querySelector('footer')!;
+        return {
+          card: box(f.querySelector('[data-testid="founder-card"]')),
+          logo: box(f.querySelector('img[src$="f.png"]')),
+          social: box(f.querySelector('a[aria-label*="LinkedIn"]')),
+          phone: box(f.querySelector('a[href^="tel:"]')),
+        };
+      });
+      expect(Math.abs(m.card.y - m.logo.y)).toBeLessThanOrEqual(2);
+      expect(Math.abs(m.card.y + m.card.height - (m.social.y + m.social.height))).toBeLessThanOrEqual(2);
+      expect(Math.abs(m.card.y + m.card.height - (m.phone.y + m.phone.height))).toBeLessThanOrEqual(3);
     } else if (width < 768) {
       const b = (await card.getByRole('button', { name: 'Read my story' }).boundingBox())!;
       expect(b.width).toBeGreaterThan(c.width - 40); // a full-width button on phones
