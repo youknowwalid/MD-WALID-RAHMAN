@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, Briefcase, FileText,
-  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, Cpu, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles, Search, CreditCard,
+  Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, FileText,
+  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles, Search, CreditCard,
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
@@ -31,9 +31,7 @@ const TABS = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
   { id: 'capabilities', label: 'What I Can Do', icon: Sparkles },
-  { id: 'services', label: 'Services (old)', icon: Briefcase },
   { id: 'resume', label: 'Resume', icon: FileText },
-  { id: 'skills', label: 'Skills (old)', icon: Cpu },
   { id: 'testimonials', label: 'Feedback', icon: Users },
   { id: 'clientLogos', label: 'Client Logos', icon: Building2 },
   { id: 'team', label: 'Team', icon: UserRound },

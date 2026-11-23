@@ -9,7 +9,10 @@ import RichTextArea from './RichTextArea';
 
 interface Props { onToast: (type: 'success' | 'error', message: string) => void }
 
-const blank = (): HireOffer => ({ name: '', tag: '', description: '', features: [], buttonText: 'Book a Call', buttonUrl: '/#contact', dark: false, hidden: false });
+const detailsToText = (d: HireOffer['details']) => (d || []).map((x) => `${x.label}: ${x.value}`).join('\n');
+const textToDetails = (t: string) => t.split('\n').map((l) => { const k = l.indexOf(':'); return k > 0 ? { label: l.slice(0, k).trim(), value: l.slice(k + 1).trim() } : null; }).filter((d): d is { label: string; value: string } => !!d && !!d.label && !!d.value);
+
+const blank = (): HireOffer => ({ name: '', tag: '', description: '', features: [], details: [], buttonText: 'Book a Call', buttonUrl: '/#contact', dark: false, hidden: false });
 
 export default function HireOffers({ onToast }: Props) {
   const { refresh } = useSiteConfig();
@@ -41,6 +44,7 @@ export default function HireOffers({ onToast }: Props) {
         hireOffers: rows.map((r) => ({
           name: r.name.trim(), tag: r.tag.trim(), description: r.description.trim(),
           features: r.features.map((f) => f.trim()).filter(Boolean),
+          details: (r.details || []).filter((d) => d.label.trim() && d.value.trim()),
           buttonText: r.buttonText.trim(), buttonUrl: r.buttonUrl.trim(), dark: r.dark, hidden: r.hidden,
         })),
       });
@@ -89,6 +93,10 @@ export default function HireOffers({ onToast }: Props) {
             <div>
               <label htmlFor={`hire-features-${i}`} className={labelCls}>Checklist (one line per point)</label>
               <textarea id={`hire-features-${i}`} rows={4} value={row.features.join('\n')} onChange={(e) => patch(i, { features: e.target.value.split('\n') })} className={inputCls} />
+            </div>
+            <div>
+              <label htmlFor={`hire-details-${i}`} className={labelCls}>Fact lines (one per line, written as “Label: value”)</label>
+              <textarea key={`d-${i}-${row.name}`} id={`hire-details-${i}`} rows={3} defaultValue={detailsToText(row.details)} onBlur={(e) => patch(i, { details: textToDetails(e.target.value) })} className={inputCls} placeholder={'Starting at: 25k BDT\nTimeline: 2–3 weeks\nWho works on it: Me plus the team'} />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>

@@ -9,7 +9,9 @@ export interface ClientLogo { name: string; image: string; url: string; hidden: 
 export interface TeamMember { name: string; role: string; photo: string; quote: string; hidden: boolean }
 export const TEAM_QUOTE_MAX = 100;
 /** One card of the "Work with me" section (stored under site_settings.global). */
-export interface HireOffer { name: string; tag: string; description: string; features: string[]; buttonText: string; buttonUrl: string; dark: boolean; hidden: boolean }
+/** One small fact line on a hire card, e.g. "Starting at" / "25k BDT". */
+export interface HireDetail { label: string; value: string }
+export interface HireOffer { name: string; tag: string; description: string; features: string[]; details?: HireDetail[]; buttonText: string; buttonUrl: string; dark: boolean; hidden: boolean }
 export const DEFAULT_HIRE_OFFERS: HireOffer[] = [];
 /** One tab of the "What I can do" card: a category name (and a shorter name for phones) with its small service chips. */
 export interface CapabilityGroup { name: string; short: string; items: string[] }

@@ -320,6 +320,8 @@ test.describe('logos and intro video', () => {
     await expect(hire.getByRole('link', { name: 'Request Proposal' })).toHaveAttribute('href', '/#contact');
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
+    await expect(hire.getByText('Starting at')).toBeVisible();
+    await expect(hire.getByText('25k BDT')).toBeVisible();
     await expect(page.getByText('Pricing Plans')).toHaveCount(0);
     await expect(page.locator('i.home-dot')).toHaveCount(0); // the small section pills are gone
     // The buttons sit clear of the checklist, on one line, at the bottom of both cards.
