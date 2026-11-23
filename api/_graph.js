@@ -113,7 +113,13 @@ export function buildGraph({ site, seo, global, discovery, page, meta, author, u
   const id = ids(site);
   const graph = [entityNode({ site, seo, global, discovery })];
   const founder = founderNode({ site, global });
-  if (founder && graph[0]['@type'] !== 'Person') graph.push(founder);
+  // One person, one node: when the article's author is the founder (same name, in full or in short), the author
+  // takes the founder's address and the separate founder node is not written.
+  const norm = (v) => text(v).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const fName = norm(founder?.name);
+  const aName = norm(author?.name);
+  const authorIsFounder = Boolean(founder && author?.slug && fName && aName && (aName.includes(fName) || fName.includes(aName)));
+  if (founder && !authorIsFounder && graph[0]['@type'] !== 'Person') graph.push(founder);
 
   graph.push({
     '@type': 'WebSite',
@@ -139,7 +145,7 @@ export function buildGraph({ site, seo, global, discovery, page, meta, author, u
   if (kind === 'project') crumbs.push({ name: 'Projects', url: `${site}/#projects` });
   if (kind !== 'home') crumbs.push({ name, url });
 
-  const authorId = author?.slug ? `${site}/#author-${author.slug}` : null;
+  const authorId = authorIsFounder ? id.founder : author?.slug ? `${site}/#author-${author.slug}` : null;
   if (author?.slug && text(author.name)) {
     const same = Array.isArray(author.same_as) ? author.same_as.map(text).filter(isHttp) : [];
     const knows = Array.isArray(author.knows_about) ? author.knows_about.map(text).filter(Boolean) : [];
@@ -152,6 +158,7 @@ export function buildGraph({ site, seo, global, discovery, page, meta, author, u
       ...(isHttp(text(author.avatar_url)) ? { image: text(author.avatar_url) } : {}),
       ...(same.length ? { sameAs: same } : {}),
       ...(knows.length ? { knowsAbout: knows } : {}),
+      ...(authorIsFounder && fName !== aName ? { alternateName: text(founder.name) } : {}),
       worksFor: { '@id': id.entity },
     });
   }

@@ -308,3 +308,19 @@ describe('RSS feed', () => {
     expect(html).toContain('https://acme.test/feed.xml');
   });
 });
+
+describe('author who is the founder', () => {
+  it('is written once, under the founder address', () => {
+    const graph = buildGraph({
+      site: 'https://acme.test', seo: mergeSeo({ siteUrl: 'https://acme.test', siteName: 'Acme' }), global: { founderName: 'Jane Doe', founderRole: 'Founder' },
+      discovery: {}, page: { title: 'Post', type: 'article' }, meta: { schema_type: 'BlogPosting' },
+      author: { slug: 'jane-doe', name: 'Dr. Jane Doe', job_title: 'Founder', same_as: [], knows_about: [] },
+      url: 'https://acme.test/blog/post', path: '/blog/post', kind: 'blog', description: 'd', imageUrl: '',
+    });
+    const people = graph['@graph'].filter((n: any) => n['@type'] === 'Person');
+    expect(people).toHaveLength(1);
+    expect(people[0]['@id']).toBe('https://acme.test/#founder');
+    const post = graph['@graph'].find((n: any) => n['@type'] === 'BlogPosting');
+    expect(post.author).toEqual({ '@id': 'https://acme.test/#founder' });
+  });
+});
