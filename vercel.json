@@ -11,6 +11,7 @@
     { "source": "/robots.txt", "destination": "/api/robots" },
     { "source": "/llms.txt", "destination": "/api/llms" },
     { "source": "/llms-full.txt", "destination": "/api/llms?full=1" },
+    { "source": "/:key([a-f0-9]{32}).txt", "destination": "/api/indexnow?key=:key" },
     { "source": "/", "destination": "/api/render?path=/" },
     { "source": "/:path*", "destination": "/api/render?path=/:path*" }
   ],

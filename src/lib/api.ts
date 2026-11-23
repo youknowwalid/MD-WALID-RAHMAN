@@ -84,7 +84,7 @@ export async function getRow<T = any>(collection: Collection, key: string): Prom
   }
 }
 
-export type SettingsKey = 'global' | 'hero' | 'seo';
+export type SettingsKey = 'global' | 'hero' | 'seo' | 'discovery';
 
 type SettingsRows = { key: SettingsKey; value: any }[] | null;
 declare global { interface Window { __settings?: Promise<SettingsRows> } }
