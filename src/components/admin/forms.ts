@@ -26,7 +26,7 @@ export interface Field {
 
 const order: Field = { name: 'order', label: 'Display order (lower numbers come first)', type: 'number', half: true };
 
-export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular: string; fields: Field[] }> = {
+export const FORMS: Record<Exclude<Collection, 'contactSubmissions' | 'services' | 'skills'>, { singular: string; fields: Field[] }> = {
   projects: {
     singular: 'project',
     fields: [
