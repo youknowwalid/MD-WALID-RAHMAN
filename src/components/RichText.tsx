@@ -19,7 +19,9 @@ export function RichInline({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         p.href ? (
-          <InlineLink key={i} href={p.href} className={`${p.bold ? 'font-bold' : ''} ${p.italic ? 'italic' : ''}`.trim()}>{p.text}</InlineLink>
+          <React.Fragment key={i}>
+            <InlineLink href={p.href} className={`${p.bold ? 'font-bold' : ''} ${p.italic ? 'italic' : ''}`.trim()}>{p.text}</InlineLink>
+          </React.Fragment>
         ) : p.bold || p.italic ? (
           <span key={i} className={`${p.bold ? 'font-bold' : ''} ${p.italic ? 'italic' : ''}`.trim()}>{p.text}</span>
         ) : (
