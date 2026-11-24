@@ -4,17 +4,22 @@
  * The saved text stays plain text, so every existing text keeps working:
  *   **bold**   *italic*   ***bold and italic***
  *   [left] / [justify] / [right] at the very start of a paragraph sets that paragraph's alignment.
+ *   [link text](/services/web-development)   a link: only a page of this site (starts with /) or an https:// address.
  * Nothing here ever produces HTML: the page turns the result into normal React elements.
  */
 
 export type Align = 'left' | 'justify' | 'right';
 export type InlineFormat = 'bold' | 'italic' | 'regular';
 
-export interface Inline { text: string; bold: boolean; italic: boolean }
+export interface Inline { text: string; bold: boolean; italic: boolean; href?: string; raw?: string }
 
 const ALIGN_MARK = /^\[(left|justify|right)\][ \t]?/;
 /** bold+italic, bold, italic — in that order. A mark must touch the word (so "5 * 3 * 4" stays as typed). */
 const INLINE_SRC = '\\*\\*\\*(\\S(?:[^*\\n]*?\\S)?)\\*\\*\\*|\\*\\*(\\S(?:[\\s\\S]*?\\S)?)\\*\\*|\\*(\\S(?:[^*\\n]*?\\S)?)\\*';
+
+/** [text](address): the address is a page of this site ("/…", not "//…") or an https:// address. Nothing else is a link. */
+const LINK_SRC = '\\[([^\\]\\n]+)\\]\\((\\/(?!\\/)[^\\s)]*|https:\\/\\/[^\\s)]+)\\)';
+const PARSE_SRC = `${INLINE_SRC}|${LINK_SRC}`;
 
 /** Splits a paragraph into its alignment (if any) and the rest of the text. */
 export const splitAlign = (paragraph: string): { align?: Align; text: string } => {
@@ -31,10 +36,11 @@ export function parseInline(src: string, bold = false, italic = false): Inline[]
   const out: Inline[] = [];
   let rest = src;
   while (rest) {
-    const m = new RegExp(INLINE_SRC).exec(rest);
+    const m = new RegExp(PARSE_SRC).exec(rest);
     if (!m) { out.push({ text: rest, bold, italic }); break; }
     if (m.index > 0) out.push({ text: rest.slice(0, m.index), bold, italic });
-    if (m[1] !== undefined) out.push({ text: m[1], bold: true, italic: true });
+    if (m[4] !== undefined) out.push({ text: m[4], bold, italic, href: m[5], raw: m[0] });
+    else if (m[1] !== undefined) out.push({ text: m[1], bold: true, italic: true });
     else if (m[2] !== undefined) out.push(...parseInline(m[2], true, italic));
     else out.push(...parseInline(m[3], bold, true));
     rest = rest.slice(m.index + m[0].length);
@@ -80,6 +86,7 @@ export function applyInlineFormat(value: string, start: number, end: number, fmt
     if (rs < e && re > s) { s = Math.min(s, rs); e = Math.max(e, re); }
   }
   const sel = value.slice(s, e);
+  if (new RegExp(LINK_SRC).test(sel)) return { value, start, end }; // a link keeps its address: bold and italic leave it alone
   const lead = /^\s*/.exec(sel)![0];
   const trail = sel.length > lead.length ? /\s*$/.exec(sel)![0] : '';
   const core = sel.slice(lead.length, sel.length - trail.length);
