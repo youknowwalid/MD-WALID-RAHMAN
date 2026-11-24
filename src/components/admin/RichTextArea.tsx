@@ -29,7 +29,7 @@ interface Props {
 
 function appendInline(parent: HTMLElement, text: string) {
   for (const seg of parseInline(text)) {
-    let node: Node = document.createTextNode(seg.text);
+    let node: Node = document.createTextNode(seg.raw ?? seg.text); // a link stays as typed: [text](address)
     if (seg.italic) { const i = document.createElement('i'); i.appendChild(node); node = i; }
     if (seg.bold) { const b = document.createElement('b'); b.appendChild(node); node = b; }
     parent.appendChild(node);

@@ -1,5 +1,16 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Align, parseInline, splitAlign, splitParagraphs } from '../lib/richtext';
+
+const LINK_CLASS = 'text-accent underline underline-offset-4 decoration-accent/50 hover:decoration-accent transition-colors';
+
+/** A page of this site is a normal in-app link; an https address opens as an ordinary link. */
+function InlineLink({ href, className, children }: { href: string; className: string; children: React.ReactNode }) {
+  const cls = `${LINK_CLASS} ${className}`.trim();
+  return href.startsWith('/')
+    ? <Link to={href} className={cls}>{children}</Link>
+    : <a href={href} className={cls} rel="noopener">{children}</a>;
+}
 
 /** Bold and italic pieces of one line of text, as normal elements (no HTML is ever injected). */
 export function RichInline({ text }: { text: string }) {
@@ -7,7 +18,9 @@ export function RichInline({ text }: { text: string }) {
   return (
     <>
       {parts.map((p, i) =>
-        p.bold || p.italic ? (
+        p.href ? (
+          <InlineLink key={i} href={p.href} className={`${p.bold ? 'font-bold' : ''} ${p.italic ? 'italic' : ''}`.trim()}>{p.text}</InlineLink>
+        ) : p.bold || p.italic ? (
           <span key={i} className={`${p.bold ? 'font-bold' : ''} ${p.italic ? 'italic' : ''}`.trim()}>{p.text}</span>
         ) : (
           <React.Fragment key={i}>{p.text}</React.Fragment>

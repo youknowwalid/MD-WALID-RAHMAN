@@ -52,3 +52,25 @@ describe('toolbar: alignment', () => {
     expect(b.value).toBe('[justify] First para\n\n[justify] Second para\n\n### Head'); // headings are left alone
   });
 });
+
+describe('links in texts', () => {
+  it('reads [text](address) for pages of this site and https addresses only', () => {
+    const segs = parseInline('See [our web work](/services/web-development) and [a site](https://example.com/x), not [bad](javascript:alert(1)), [proto](//evil.test) or [none]().');
+    const links = segs.filter((s) => s.href);
+    expect(links.map((s) => [s.text, s.href])).toEqual([['our web work', '/services/web-development'], ['a site', 'https://example.com/x']]);
+    expect(links[0].raw).toBe('[our web work](/services/web-development)');
+    expect(segs.filter((s) => !s.href).map((s) => s.text).join('')).toContain('[bad](javascript:alert(1))');
+  });
+
+  it('keeps bold and italic around and inside a link, and the alignment mark', () => {
+    const segs = parseInline('**bold [here](/a)** and *[there](/b)*');
+    expect(segs.filter((s) => s.href).map((s) => [s.text, s.bold, s.italic])).toEqual([['here', true, false], ['there', false, true]]);
+    expect(splitAlign('[left] go [here](/a)')).toEqual({ align: 'left', text: 'go [here](/a)' });
+  });
+
+  it('shows only the link words in plain-text places, and the toolbar leaves a link alone', () => {
+    expect(stripFormatting('Read [the plan](/services/ai-automation) now')).toBe('Read the plan now');
+    const v = 'Read [the plan](/services/ai-automation) now';
+    expect(applyInlineFormat(v, 5, 41, 'bold').value).toBe(v);
+  });
+});

@@ -63,6 +63,7 @@ export function pickPage(kind, row) {
   // The admin's bold / italic / alignment marks (see src/lib/richtext.ts) must not show up in a shared description.
   const plain = (t) => t
     .replace(/^\s*\[(?:left|justify|right)\][ \t]?/, '')
+    .replace(LINK_RE, '$1')
     .replace(/\*\*\*(\S(?:[^*\n]*?\S)?)\*\*\*|\*\*(\S(?:[\s\S]*?\S)?)\*\*|\*(\S(?:[^*\n]*?\S)?)\*/g, (m, a, b, c) => a ?? b ?? c);
   const lead = (row.content || '').split(/\n\s*\n/).map((t) => plain(t.trim())).filter(Boolean)[0];
   return {
@@ -85,13 +86,30 @@ const clean = (v) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : ''
 const paragraphs = (v) => (typeof v === 'string' ? v.split(/\n\s*\n/).map(clean).filter(Boolean) : []);
 
 
-/** The admin's bold / italic / alignment marks removed: plain words only. */
+/** [text](address): a page of this site ("/…") or an https:// address. Mirrors src/lib/richtext.ts. */
+const LINK_RE = /\[([^\]\n]+)\]\((?:\/(?!\/)[^\s)]*|https:\/\/[^\s)]+)\)/g;
+
+/** The admin's bold / italic / alignment / link marks removed: plain words only. */
 export const stripMarks = (t) => String(t || '')
   .replace(/^\s*\[(?:left|justify|right|center)\][ \t]?/, '')
+  .replace(LINK_RE, '$1')
   .replace(/\*\*\*(\S(?:[^*\n]*?\S)?)\*\*\*|\*\*(\S(?:[\s\S]*?\S)?)\*\*|\*(\S(?:[^*\n]*?\S)?)\*/g, (_m, a, b, c) => a ?? b ?? c);
 
 /** An article's text as plain paragraphs (built only from the saved article). */
 export const articleParagraphs = (content) => paragraphs(content).map((p) => clean(stripMarks(p))).filter(Boolean);
+
+/** One paragraph as safe HTML: marks removed, and each [text](address) written as a real link. */
+const linkedText = (p) => {
+  const links = [];
+  // Links are set aside first, so bold and italic marks around them are still removed cleanly.
+  const marked = clean(String(p || '')).replace(new RegExp(LINK_RE.source, 'g'), (m, text) => {
+    links.push({ text, url: /\]\(([^)]*)\)$/.exec(m)[1] });
+    return `\u0001${links.length - 1}\u0001`;
+  });
+  return esc(stripMarks(marked))
+    .replace(/\u0001(\d+)\u0001/g, (_m, i) => `<a href="${esc(links[+i].url)}">${esc(stripMarks(links[+i].text))}</a>`)
+    .replace(/\s+/g, ' ').trim();
+};
 
 /** The plain-HTML copy of an article page for crawlers without JavaScript. */
 export function buildArticleMain({ title, description, content, published }) {
@@ -99,7 +117,7 @@ export function buildArticleMain({ title, description, content, published }) {
   const lead = clean(description);
   if (lead) out.push(`<p>${esc(lead)}</p>`);
   if (published) out.push(`<p><time datetime="${esc(String(published))}">${esc(String(published).slice(0, 10))}</time></p>`);
-  for (const p of articleParagraphs(content)) out.push(`<p>${esc(p)}</p>`);
+  for (const p of paragraphs(content)) out.push(`<p>${linkedText(p)}</p>`);
   return `<main id="static-content" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">\n      ${out.join('\n      ')}\n    </main>`;
 }
 

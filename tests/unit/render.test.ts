@@ -3,6 +3,7 @@ import handler, { requestedPath, routeOf } from '../../api/render.js';
 import sitemapHandler from '../../api/sitemap.js';
 import llmsHandler from '../../api/llms.js';
 import { cleanServices as cleanServicesServer } from '../../api/_services.js';
+import { buildArticleMain, stripMarks } from '../../api/_head.js';
 import { cleanServices } from '../../src/lib/services';
 
 // A tiny stand-in for the database, so the page renderer can be run end to end. Made-up data only.
@@ -339,5 +340,24 @@ describe('service pages', () => {
     expect(cleanServicesServer(saved)).toEqual(cleanServices(saved));
     expect(cleanServices(saved).map((x) => x.slug)).toEqual(['web-development']);
     expect(cleanServices(saved, { includeHidden: true }).map((x) => x.slug)).toEqual(['web-development', 'hidden-one']);
+  });
+});
+
+describe('links inside articles', () => {
+  it('writes a real link into the plain copy for crawlers, and only for safe addresses', () => {
+    const html = buildArticleMain({
+      title: 'T', description: 'D', published: '',
+      content: 'We build **fast** sites, see [web development](/services/web-development) or [a guide](https://example.com/g?a=1&b=2).\n\nNot [bad](javascript:alert(1)) or [x](//evil.test).',
+    });
+    expect(html).toContain('<a href="/services/web-development">web development</a>');
+    expect(html).toContain('<a href="https://example.com/g?a=1&amp;b=2">a guide</a>');
+    expect(html).toContain('We build fast sites, see ');
+    expect(html).not.toContain('href="javascript');
+    expect(html).not.toContain('href="//evil');
+    expect(html).toContain('Not [bad](javascript:alert(1)) or [x](//evil.test).');
+  });
+
+  it('keeps only the link words wherever plain text is needed', () => {
+    expect(stripMarks('Read [the plan](/services/ai-automation) **now**')).toBe('Read the plan now');
   });
 });
