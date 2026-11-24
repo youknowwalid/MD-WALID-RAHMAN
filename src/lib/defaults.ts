@@ -131,14 +131,11 @@ export interface SeoConfig {
 }
 
 export const DEFAULT_HEADER_LINKS: HeaderLink[] = [
-  { label: 'Home', url: '/#home' },
   { label: 'About', url: '/#about' },
-  { label: 'Resume', url: '/#resume' },
   { label: 'Services', url: '/#services' },
-  { label: 'Projects', url: '/#projects' },
+  { label: 'Pricing', url: '/#hire' },
+  { label: 'Blog', url: '/articles' },
   { label: 'Resources', url: '/#resources' },
-  { label: 'Contact', url: '/#contact' },
-  { label: 'Blog', url: '/#blog' },
 ];
 
 export const DEFAULT_PRIVACY_POLICY = `This website is operated by its owner, whose contact details are shown in the Contact section.

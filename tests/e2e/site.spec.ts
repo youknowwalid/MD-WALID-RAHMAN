@@ -56,9 +56,9 @@ test.describe('public site (connected)', () => {
     await page.goto(CONNECTED + '/');
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
     const nav = isMobile ? page.locator('#mobile-menu') : page.getByRole('navigation', { name: 'Main' });
-    await nav.getByRole('link', { name: 'Contact' }).click();
-    await expect(page).toHaveURL(/#contact$/);
-    await expect(page.locator('#contact')).toBeInViewport();
+    await nav.getByRole('link', { name: 'About' }).click();
+    await expect(page).toHaveURL(/#about$/);
+    await expect(page.locator('#about')).toBeInViewport();
     // Resources link is hidden while there are no products
     await expect(page.getByRole('link', { name: 'Resources' })).toHaveCount(0);
   });
