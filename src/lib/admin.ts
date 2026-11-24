@@ -72,12 +72,23 @@ export const listAll = async (collection: Collection): Promise<any[]> => {
   fail(error);
   return (data ?? []).map((r) => fromRow(collection, r));
 };
+/** True when the database does not have the résumé "image" column yet (the 20261125 migration has not been run). */
+const lacksResumeImage = (collection: Collection, error: { message?: string } | null) =>
+  collection === 'resume' && !!error && /\bimage\b/i.test(error.message || '') && /column|schema cache/i.test(error.message || '');
+/** Until that migration is run, entries still save; only their timeline picture is left out. */
+const withoutImage = (row: Record<string, any>) => { const { image: _image, ...rest } = row; return rest; };
+
 export const addRow = async (collection: Collection, data: Record<string, any>) => {
-  fail((await getClient().from(TABLES[collection]).insert(toRow(collection, data))).error);
+  const row = toRow(collection, data);
+  let { error } = await getClient().from(TABLES[collection]).insert(row);
+  if (lacksResumeImage(collection, error)) ({ error } = await getClient().from(TABLES[collection]).insert(withoutImage(row)));
+  fail(error);
 };
 export const updateRow = async (collection: Collection, id: string, data: Record<string, any>) => {
   if (!id) throw new Error('Missing item id.');
-  const { data: rows, error } = await getClient().from(TABLES[collection]).update(toRow(collection, data)).eq('id', id).select('id');
+  const row = toRow(collection, data);
+  let { data: rows, error } = await getClient().from(TABLES[collection]).update(row).eq('id', id).select('id');
+  if (lacksResumeImage(collection, error)) ({ data: rows, error } = await getClient().from(TABLES[collection]).update(withoutImage(row)).eq('id', id).select('id'));
   fail(error);
   if (!rows?.length) throw new Error('Nothing was saved. Your session may have expired — please sign in again.');
 };
