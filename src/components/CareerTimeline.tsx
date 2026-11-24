@@ -86,7 +86,7 @@ function useScrollVars(rootRef: React.RefObject<HTMLElement | null>, listRef: Re
 
 interface EntryProps { item: ResumeItem; index: number; placed: Placed | null; src: string }
 
-function Entry({ item, index, placed, src }: EntryProps) {
+function Entry({ item, index, placed, src }: EntryProps & React.Attributes) {
   const ref = useRef<HTMLLIElement>(null);
   const seen = useSeenOnce(ref, 0.2);
   const slot = placed ? placed.slot : null;
