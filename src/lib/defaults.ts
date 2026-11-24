@@ -114,7 +114,6 @@ export interface HeroConfig {
   cvUrl: string;
   /** Career timeline artwork (all transparent PNG/WebP). Empty = built-in demo picture. */
   timelinePortrait: string;
-  timelineSignature: string;
   timelineSkyline: string;
   timelineMaps: string;
 }
@@ -245,7 +244,6 @@ export const DEFAULT_HERO: HeroConfig = {
   heroPortrait: '',
   cvUrl: '',
   timelinePortrait: '',
-  timelineSignature: '',
   timelineSkyline: '',
   timelineMaps: '',
 };

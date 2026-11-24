@@ -421,7 +421,7 @@ export default function Home() {
 
   const featuredProject = projects[0];
   const guide = products[0];
-  // The side column holds the premium guide and the current focus, as in the design. With no
+  // The side column holds the premium guide. With no
   // products published, the next project takes the guide's place so the column is never half empty.
   const sideProject = guide ? undefined : projects[1];
   const remainingProjects = projects.slice(guide ? 1 : 2);

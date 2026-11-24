@@ -1,8 +1,7 @@
 /* ============================================================================
    Career timeline (home page, #resume)
-   Mobile first:  under 768px   a vertical timeline down the left edge
-                  768 - 1179px  a two-sided vertical timeline (zigzag)
-                  1180px and up the editorial composition: one canvas that scales as a whole
+   Under 1180px   a compact timeline: two staggered columns either side of a dotted line
+   1180px and up  the editorial composition: one short canvas that scales as a whole
    The composition's numbers live in src/lib/careerTimeline.ts; the canvas is 1774 units wide,
    so "X units" below is written as calc(X / 1774 * 100cqw).
    ========================================================================== */
@@ -10,98 +9,93 @@
   --ct-ink: #111111;
   --ct-muted: #3d4350;
   --ct-soft: #5b6270;
+  --ct-p: 0;
   background: #ffffff;
   color: var(--ct-ink);
-  padding: 36px 20px 52px;
+  padding: 22px 16px 26px;
   overflow-x: clip;
 }
 .ct-stage { max-width: 1600px; margin: 0 auto; }
 .ct-canvas { position: relative; display: flex; flex-direction: column; align-items: center; }
 .ct img { display: block; max-width: 100%; }
 
-/* ---- Phones: portrait, signature, a strip of skyline, then the timeline ---- */
+/* ---- Under 1180px: portrait, a strip of skyline, then two staggered columns ---- */
 .ct-axis, .ct-links { display: none; }
 .ct-portrait {
-  order: 1; width: min(74vw, 300px); height: auto; aspect-ratio: 4 / 5;
+  order: 1; position: relative; z-index: 1;
+  width: min(46vw, 190px); height: auto; aspect-ratio: 235 / 262;
   object-fit: contain; object-position: center bottom;
-}
-.ct-sign {
-  order: 2; width: min(46vw, 180px); height: auto; aspect-ratio: 2 / 1;
-  object-fit: contain; margin-top: -14px;
+  transform: translateY(calc(var(--ct-p) * -10px));
 }
 .ct-skyline {
-  order: 3; width: 100%; height: 60px; margin-top: 6px;
-  object-fit: cover; object-position: center bottom;
+  order: 2; position: relative; z-index: 0;
+  width: 100%; max-width: 560px; height: auto; aspect-ratio: 1180 / 104;
+  object-fit: cover; object-position: center bottom; margin-top: -26px;
+  transform: translateY(calc(var(--ct-p) * 6px));
 }
 .ct-list {
-  order: 4; position: relative; width: 100%; max-width: 520px;
-  margin: 26px 0 0; padding: 0 0 0 60px; list-style: none;
+  order: 3; position: relative; width: 100%; max-width: 560px;
+  margin: 8px auto 0; padding: 0 0 44px; list-style: none;
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: 44px;
 }
-/* the dotted axis, running down the left edge */
-.ct-list::before {
-  content: ""; position: absolute; left: 22.5px; top: 0; bottom: 8px; width: 0;
-  border-left: 3px dotted var(--ct-ink);
+/* the dotted line down the middle, and the lime line that fills it as you scroll */
+.ct-list::before, .ct-list::after {
+  content: ""; position: absolute; left: 50%; top: 0; pointer-events: none;
 }
-.ct-item { position: relative; padding: 0 0 34px; }
-.ct-item:last-child { padding-bottom: 0; }
-.ct-photo {
-  display: block; width: 100%; max-width: 420px; height: auto;
+.ct-list::before { bottom: 50px; margin-left: -1.5px; width: 0; border-left: 3px dotted var(--ct-ink); }
+.ct-list::after {
+  margin-left: -2.5px; width: 5px; border-radius: 3px; background: var(--color-accent);
+  height: min(var(--ct-fill, 0px), calc(100% - 50px));
 }
+.ct-item { position: relative; padding: 0 0 12px; }
+.ct-item:nth-child(odd)  { grid-column: 1; text-align: right; }
+.ct-item:nth-child(even) { grid-column: 2; text-align: left; top: 44px; }
+.ct-photo { display: block; width: 100%; height: auto; }
+.ct-item:nth-child(odd) .ct-photo { margin-left: auto; }
 .ct-badge {
-  position: absolute; left: -60px; top: 8px; z-index: 1;
+  position: absolute; top: 4px; z-index: 2;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 48px; height: 48px; border-radius: 50%;
+  width: 38px; height: 38px; border-radius: 50%;
   background: var(--color-accent); color: var(--ct-ink);
-  box-shadow: 0 0 0 4px #ffffff;
-  font-size: 10.5px; font-weight: 700; line-height: 1.1; text-align: center; white-space: nowrap;
+  box-shadow: 0 0 0 3px #ffffff;
+  font-size: 8.5px; font-weight: 800; line-height: 1.05; text-align: center; white-space: nowrap;
 }
-.ct-text { margin-top: 10px; }
-.ct-role { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
-.ct-org { margin: 2px 0 0; font-size: 13px; font-weight: 500; color: var(--ct-muted); }
-.ct-desc { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--ct-soft); }
+.ct-item:nth-child(odd)  .ct-badge { right: -41px; }
+.ct-item:nth-child(even) .ct-badge { left: -41px; }
+.ct-text { margin-top: 5px; }
+.ct-role { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+.ct-org { margin: 2px 0 0; font-size: 11.5px; font-weight: 500; line-height: 1.25; color: var(--ct-muted); }
+.ct-desc { display: none; margin: 5px 0 0; font-size: 12px; line-height: 1.4; color: var(--ct-soft); }
 .ct-maps {
-  order: 5; width: min(78%, 340px); height: auto; aspect-ratio: 503 / 105;
-  object-fit: contain; margin-top: 30px;
+  order: 4; width: min(46%, 176px); height: auto; aspect-ratio: 503 / 105;
+  object-fit: contain; margin-top: 2px;
 }
 
-@media (min-width: 480px) {
-  .ct-role { font-size: 17px; }
-  .ct-org { font-size: 14px; }
-  .ct-badge { width: 52px; height: 52px; left: -62px; font-size: 11px; }
-  .ct-list { padding-left: 62px; }
-  .ct-list::before { left: 24.5px; }
-}
-
-/* ---- Tablets: the timeline runs down the middle, entries alternate sides ---- */
+/* ---- Tablets and large phones: a little more room, and the one-line descriptions come back ---- */
 @media (min-width: 768px) {
-  .ct { padding: 48px 32px 64px; }
-  .ct-portrait { width: min(36vw, 330px); }
-  .ct-sign { width: 200px; }
-  .ct-skyline { height: 90px; }
-  .ct-list {
-    display: grid; grid-template-columns: 1fr 1fr; max-width: 940px;
-    margin-top: 34px; padding: 0;
-  }
-  .ct-list::before { left: 50%; margin-left: -1.5px; }
-  .ct-item { padding: 0 0 28px; }
-  .ct-item:nth-child(odd)  { grid-column: 1; padding-right: 60px; text-align: right; }
-  .ct-item:nth-child(even) { grid-column: 2; padding-left: 60px; margin-top: 64px; }
-  .ct-item:nth-child(odd) .ct-photo { margin-left: auto; }
-  .ct-item:nth-child(odd) .ct-badge  { left: auto; right: -30px; }
-  .ct-item:nth-child(even) .ct-badge { left: -30px; }
-  .ct-badge { width: 60px; height: 60px; font-size: 12px; }
-  .ct-role { font-size: 18px; }
-  .ct-org { font-size: 14px; }
-  .ct-desc { font-size: 13px; }
-  .ct-maps { margin-top: 40px; }
+  .ct { padding: 30px 24px 36px; }
+  .ct-portrait { width: 230px; }
+  .ct-skyline { max-width: 600px; margin-top: -32px; }
+  .ct-list { max-width: 600px; column-gap: 60px; }
+  .ct-item:nth-child(even) { top: 56px; }
+  .ct-list { padding-bottom: 60px; }
+  .ct-list::before { bottom: 66px; }
+  .ct-list::after { height: min(var(--ct-fill, 0px), calc(100% - 66px)); }
+  .ct-badge { width: 52px; height: 52px; font-size: 10.5px; }
+  .ct-item:nth-child(odd)  .ct-badge { right: -56px; }
+  .ct-item:nth-child(even) .ct-badge { left: -56px; }
+  .ct-role { font-size: 17px; }
+  .ct-org { font-size: 13px; }
+  .ct-desc { display: block; font-size: 12.5px; }
+  .ct-maps { width: 220px; }
 }
 
 /* ---- Wide screens: the editorial composition ---- */
 @media (min-width: 1180px) {
-  .ct { padding: 36px 24px 56px; }
+  .ct { padding: 26px 24px 32px; }
   .ct:not(.ct--list) .ct-canvas {
     display: block; container-type: inline-size;
-    width: 100%; max-width: 1600px; margin: 0 auto; aspect-ratio: 1774 / 960;
+    width: 100%; max-width: 1600px; margin: 0 auto; aspect-ratio: 1774 / 640;
   }
   .ct:not(.ct--list) .ct-canvas .ct-axis,
   .ct:not(.ct--list) .ct-canvas .ct-links {
@@ -109,64 +103,66 @@
   }
   .ct:not(.ct--list) .ct-canvas .ct-skyline,
   .ct:not(.ct--list) .ct-canvas .ct-portrait,
-  .ct:not(.ct--list) .ct-canvas .ct-sign,
   .ct:not(.ct--list) .ct-canvas .ct-maps,
   .ct:not(.ct--list) .ct-canvas .ct-photo {
     position: absolute; left: var(--x); top: var(--y); width: var(--w); height: var(--h);
     max-width: none; margin: 0; aspect-ratio: auto; order: 0;
     object-fit: contain; object-position: center;
   }
-  .ct:not(.ct--list) .ct-canvas .ct-skyline { z-index: 0; object-position: center bottom; }
+  .ct:not(.ct--list) .ct-canvas .ct-skyline { z-index: 0; object-position: center bottom; margin-top: 0; transform: translateY(calc(var(--ct-p) * 12px)); }
   .ct:not(.ct--list) .ct-canvas .ct-maps { z-index: 0; }
-  .ct:not(.ct--list) .ct-canvas .ct-portrait { z-index: 3; object-position: center bottom; }
-  .ct:not(.ct--list) .ct-canvas .ct-sign { z-index: 3; }
+  .ct:not(.ct--list) .ct-canvas .ct-portrait { z-index: 3; object-position: center bottom; transform: translateY(calc(var(--ct-p) * -22px)); }
   .ct:not(.ct--list) .ct-canvas .ct-photo { z-index: 3; }
+  .ct:not(.ct--list) .ct-canvas .ct-item[data-side="up"] .ct-photo { object-position: center bottom; }
+  .ct:not(.ct--list) .ct-canvas .ct-item[data-side="down"] .ct-photo { object-position: center top; }
 
   .ct:not(.ct--list) .ct-canvas .ct-list {
     position: static; display: block; width: auto; max-width: none; margin: 0; padding: 0; order: 0;
   }
-  .ct:not(.ct--list) .ct-canvas .ct-list::before { display: none; }
+  .ct:not(.ct--list) .ct-canvas .ct-list::before,
+  .ct:not(.ct--list) .ct-canvas .ct-list::after { display: none; }
   .ct:not(.ct--list) .ct-canvas .ct-item {
-    position: static; margin: 0; padding: 0; text-align: left; grid-column: auto; grid-row: auto;
+    position: static; margin: 0; padding: 0; text-align: left; grid-column: auto; top: auto;
   }
   .ct:not(.ct--list) .ct-canvas .ct-badge {
     position: absolute; left: var(--cx); top: var(--cy); right: auto; translate: -50% -50%; z-index: 4;
-    width: clamp(50px, 4.9cqw, 72px); height: clamp(50px, 4.9cqw, 72px);
-    font-size: clamp(10px, 0.95cqw, 15px);
+    width: clamp(44px, 3.85cqw, 66px); height: clamp(44px, 3.85cqw, 66px);
+    font-size: clamp(9.5px, 0.82cqw, 14px); box-shadow: none;
   }
   .ct:not(.ct--list) .ct-canvas .ct-text {
     position: absolute; left: var(--tx); top: var(--ty); width: var(--tw); margin: 0; z-index: 4;
     text-shadow: 0 0 6px #ffffff, 0 0 3px #ffffff;
   }
-  .ct:not(.ct--list) .ct-canvas .ct-role { font-size: clamp(13px, 1.25cqw, 21px); }
-  .ct:not(.ct--list) .ct-canvas .ct-org { font-size: clamp(11.5px, 0.92cqw, 15px); }
+  .ct:not(.ct--list) .ct-canvas .ct-role { font-size: clamp(13px, 1.3cqw, 22px); }
+  .ct:not(.ct--list) .ct-canvas .ct-org { font-size: clamp(11.5px, 0.93cqw, 16px); margin-top: 0.15em; }
   .ct:not(.ct--list) .ct-canvas .ct-desc {
-    margin-top: 0.45em; font-size: clamp(11px, 0.8cqw, 13.5px); line-height: 1.4;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    display: -webkit-box; margin-top: 0.4em; font-size: clamp(11px, 0.82cqw, 14px); line-height: 1.35;
+    -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
 
-  .ct-axis-line { stroke: var(--ct-ink); stroke-width: 3.2; stroke-dasharray: 0.01 9.5; stroke-linecap: round; fill: none; }
-  .ct-link { stroke: var(--color-accent); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; fill: none; }
+  .ct-axis-line { stroke: var(--ct-ink); stroke-width: 3.4; stroke-dasharray: 0.01 11; stroke-linecap: round; fill: none; }
+  .ct-link { stroke: var(--color-accent); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; fill: none; }
   .ct-dot { fill: var(--color-accent); }
   .ct-dot-core { fill: #6b6f76; }
 }
-
-/* ---- Motion: plays once, when the section scrolls into view ---- */
-.ct-rise { transition: opacity 0.4s ease, translate 0.4s ease; transition-delay: calc(260ms + var(--i, 0) * 80ms); }
-.ct-rise-portrait { transition: opacity 0.6s ease, translate 0.6s ease; }
-.ct-pop { transition: opacity 0.25s ease, scale 0.25s ease; transition-delay: calc(200ms + var(--i, 0) * 80ms); }
-.ct-fade-slow { transition: opacity 0.7s ease 0.1s; }
-.ct-fade-late { transition: opacity 0.4s ease 0.9s; }
-.ct-axis { transition: clip-path 1s ease; }
-.ct-link { transition: stroke-dashoffset 0.3s ease; transition-delay: calc(300ms + var(--i, 0) * 250ms); }
-.ct-dot, .ct-dot-core {
-  transform-box: fill-box; transform-origin: center;
-  transition: opacity 0.25s ease, scale 0.25s ease; transition-delay: calc(250ms + var(--i, 0) * 250ms);
+/* more than seven entries on a wide screen: the compact list, a little narrower than the page */
+@media (min-width: 1180px) {
+  .ct--list .ct-portrait { width: 240px; }
+  .ct--list .ct-list, .ct--list .ct-skyline { max-width: 600px; }
 }
 
-.ct-armed:not(.is-in) .ct-rise { opacity: 0; translate: 0 14px; }
-.ct-armed:not(.is-in) .ct-rise-portrait { opacity: 0; translate: 0 22px; }
-.ct-armed:not(.is-in) .ct-pop { opacity: 0; scale: 0.6; }
+/* ---- Motion: plays once, as things scroll into view ---- */
+/* Pieces that belong to the whole section: portrait, skyline, maps (and, on the canvas, the axis and every entry) */
+.ct-rise-portrait { transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s, translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s; }
+.ct-fade-slow { transition: opacity 0.8s ease 0.4s; }
+.ct-fade-late { transition: opacity 0.8s ease 1.4s; }
+.ct-axis { transition: clip-path 1.6s cubic-bezier(0.4, 0.1, 0.2, 1) 0.1s; }
+.ct-link { transition: stroke-dashoffset 0.8s ease; transition-delay: calc(900ms + var(--i, 0) * 160ms); }
+.ct-dot, .ct-dot-core {
+  transform-box: fill-box; transform-origin: center;
+  transition: opacity 0.4s ease, scale 0.4s ease; transition-delay: calc(1200ms + var(--i, 0) * 160ms);
+}
+.ct-armed:not(.is-in) .ct-rise-portrait { opacity: 0; translate: 0 34px; }
 .ct-armed:not(.is-in) .ct-fade-slow,
 .ct-armed:not(.is-in) .ct-fade-late { opacity: 0; }
 .ct-armed:not(.is-in) .ct-axis { clip-path: inset(0 100% 0 0); }
@@ -174,15 +170,29 @@
 .ct-armed:not(.is-in) .ct-dot,
 .ct-armed:not(.is-in) .ct-dot-core { opacity: 0; scale: 0.2; }
 
+/* On the canvas, every entry follows the section, one after another from left to right */
+.ct-armed:not(.ct--cards) .ct-rise { transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: calc(500ms + var(--i, 0) * 160ms); }
+.ct-armed:not(.ct--cards) .ct-text.ct-rise { transition-delay: calc(850ms + var(--i, 0) * 160ms); }
+.ct-armed:not(.ct--cards) .ct-pop { transition: opacity 0.4s ease, scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); transition-delay: calc(750ms + var(--i, 0) * 160ms); }
+.ct-armed:not(.ct--cards):not(.is-in) .ct-rise { opacity: 0; translate: 0 34px; }
+.ct-armed:not(.ct--cards):not(.is-in) .ct-pop { opacity: 0; scale: 0.4; }
+
+/* In the compact list, each entry arrives from its own side as it is scrolled to */
+.ct--cards .ct-rise { transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.ct--cards .ct-text.ct-rise { transition-delay: 0.12s; }
+.ct--cards .ct-pop { transition: opacity 0.4s ease 0.1s, scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s; }
+.ct-armed.ct--cards .ct-item:not(.is-in) .ct-rise { opacity: 0; translate: 26px 0; }
+.ct-armed.ct--cards .ct-item:nth-child(odd):not(.is-in) .ct-rise { translate: -26px 0; }
+.ct-armed.ct--cards .ct-item:not(.is-in) .ct-pop { opacity: 0; scale: 0.4; }
+.ct--cards .ct-maps.ct-fade-late { transition-delay: 0.3s; }
+
 @media (prefers-reduced-motion: reduce) {
   .ct *, .ct *::before, .ct *::after { transition: none !important; animation: none !important; }
-  .ct-armed:not(.is-in) .ct-rise,
-  .ct-armed:not(.is-in) .ct-rise-portrait { opacity: 1; translate: none; }
-  .ct-armed:not(.is-in) .ct-pop { opacity: 1; scale: 1; }
-  .ct-armed:not(.is-in) .ct-fade-slow,
-  .ct-armed:not(.is-in) .ct-fade-late { opacity: 1; }
-  .ct-armed:not(.is-in) .ct-axis { clip-path: none; }
-  .ct-armed:not(.is-in) .ct-link { stroke-dashoffset: 0; }
-  .ct-armed:not(.is-in) .ct-dot,
-  .ct-armed:not(.is-in) .ct-dot-core { opacity: 1; scale: 1; }
+  .ct-armed .ct-rise, .ct-armed .ct-rise-portrait { opacity: 1 !important; translate: none !important; }
+  .ct-armed .ct-pop { opacity: 1 !important; scale: 1 !important; }
+  .ct-armed .ct-fade-slow, .ct-armed .ct-fade-late { opacity: 1 !important; }
+  .ct-armed .ct-axis { clip-path: none !important; }
+  .ct-armed .ct-link { stroke-dashoffset: 0 !important; }
+  .ct-armed .ct-dot, .ct-armed .ct-dot-core { opacity: 1 !important; scale: 1 !important; }
+  .ct-list::after { height: calc(100% - 50px); }
 }

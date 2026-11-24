@@ -12,7 +12,7 @@ interface Props { onToast: (type: 'success' | 'error', message: string) => void 
 type Form = {
   siteTitle: string; siteLogo: string; footerLogo: string; favicon: string;
   heroPortrait: string; cvUrl: string;
-  timelinePortrait: string; timelineSignature: string; timelineSkyline: string; timelineMaps: string;
+  timelinePortrait: string; timelineSkyline: string; timelineMaps: string;
   wordmarkLight: string; wordmarkAccent: string;
   brandTagline: string; globalCtaText: string; globalCtaUrl: string; heroCtaText: string; heroSecondaryText: string;
   heroStats: HeroStat[];
@@ -75,7 +75,7 @@ export default function SettingsPanel({ onToast }: Props) {
       setF({
         siteTitle: c.siteTitle, siteLogo: c.siteLogo, footerLogo: c.footerLogo, favicon: c.favicon,
         heroPortrait: h.heroPortrait, cvUrl: h.cvUrl,
-        timelinePortrait: h.timelinePortrait, timelineSignature: h.timelineSignature, timelineSkyline: h.timelineSkyline, timelineMaps: h.timelineMaps,
+        timelinePortrait: h.timelinePortrait, timelineSkyline: h.timelineSkyline, timelineMaps: h.timelineMaps,
         wordmarkLight: c.wordmarkLight, wordmarkAccent: c.wordmarkAccent,
         brandTagline: c.brandTagline, globalCtaText: c.globalCtaText, globalCtaUrl: c.globalCtaUrl, heroCtaText: c.heroCtaText, heroSecondaryText: c.heroSecondaryText,
         heroStats: c.heroStats,
@@ -101,7 +101,7 @@ export default function SettingsPanel({ onToast }: Props) {
     try {
       await patchSettings('hero', {
         heroPortrait: f.heroPortrait, cvUrl: f.cvUrl.trim(),
-        timelinePortrait: f.timelinePortrait, timelineSignature: f.timelineSignature, timelineSkyline: f.timelineSkyline, timelineMaps: f.timelineMaps,
+        timelinePortrait: f.timelinePortrait, timelineSkyline: f.timelineSkyline, timelineMaps: f.timelineMaps,
       });
       await patchSettings('global', {
         siteTitle: f.siteTitle.trim(), wordmarkLight: f.wordmarkLight.trim(), wordmarkAccent: f.wordmarkAccent.trim(),
@@ -186,13 +186,16 @@ export default function SettingsPanel({ onToast }: Props) {
           </div>
         </Card>
 
-        <Card title="Career timeline" hint="The artwork on the Journey section. Each job's own picture is set under Resume. Anything left empty shows a built-in demo picture. Use transparent PNG or WebP files.">
+        <Card title="Career timeline" hint="The artwork on the Journey section of the home page. Each job's own picture is set under Resume. Anything left empty shows a built-in demo picture. Use transparent PNG or WebP files (the torn-paper cut-out look is part of the picture itself).">
           <div className="grid sm:grid-cols-2 gap-6">
-            <ImageField label="Centre portrait (about 4:5, transparent)" value={f.timelinePortrait} onChange={set('timelinePortrait')} maxSide={1200} />
-            <ImageField label="Handwritten signature (about 2:1, transparent)" value={f.timelineSignature} onChange={set('timelineSignature')} maxSide={800} />
-            <ImageField label="City skyline strip (very wide, about 2400 × 220)" value={f.timelineSkyline} onChange={set('timelineSkyline')} maxSide={2400} />
-            <ImageField label="Country maps (about 16:5, transparent)" value={f.timelineMaps} onChange={set('timelineMaps')} maxSide={1200} />
+            <ImageField label="Centre portrait" value={f.timelinePortrait} onChange={set('timelinePortrait')} maxSide={1000}
+              hint="Recommended: 900 × 1000 px (portrait, 9:10), transparent PNG/WebP. Shown about 235 px wide on desktop." />
+            <ImageField label="City skyline strip" value={f.timelineSkyline} onChange={set('timelineSkyline')} maxSide={2400}
+              hint="Recommended: 2400 × 210 px (very wide and thin, about 11:1), transparent PNG/WebP. It sits behind the dotted line." />
+            <ImageField label="Country maps strip" value={f.timelineMaps} onChange={set('timelineMaps')} maxSide={1000}
+              hint="Recommended: 1000 × 210 px (wide, about 4.8:1), transparent PNG/WebP. Shown at the very bottom." />
           </div>
+          <p className="text-xs text-gray-400">Job pictures (Resume → each entry → Career timeline picture): 1200 × 520 px, landscape, transparent PNG/WebP. Anything from 3:2 to 8:3 fits.</p>
         </Card>
 
         <Card title="About section">

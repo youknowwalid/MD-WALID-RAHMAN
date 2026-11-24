@@ -4,19 +4,19 @@
  * On wide screens the timeline is a fixed composition drawn on a virtual canvas that is
  * CANVAS_W x CANVAS_H units; every position below is in those units and is turned into a
  * percentage by the component, so the whole picture scales with the screen. Narrower screens
- * switch to a vertical timeline and ignore these numbers.
+ * switch to a compact two-column timeline and ignore these numbers.
  *
  * Nothing here is content: the words and pictures come from the résumé entries and settings
  * the owner edits in the admin. This file only says WHERE seven entries can sit.
  */
 
 export const CANVAS_W = 1774;
-export const CANVAS_H = 960;
+export const CANVAS_H = 640;
 /** The dotted axis that runs through the middle of the composition. */
-export const AXIS_Y = 571;
+export const AXIS_Y = 340;
 /** Radius of the lime date circle. */
-export const BADGE_R = 43.5;
-/** The composition has room for this many entries; more than that falls back to the vertical timeline. */
+export const BADGE_R = 34;
+/** The composition has room for this many entries; more than that falls back to the compact two-column list. */
 export const MAX_CANVAS_ITEMS = 7;
 
 export type SlotId = 'u1' | 'd1' | 'u2' | 'd2' | 'd3' | 'u3' | 'u4';
@@ -27,7 +27,7 @@ export interface Slot {
   id: SlotId;
   /** Above or below the axis. */
   side: 'up' | 'down';
-  /** Where the collage picture sits (the picture is fitted inside this box). */
+  /** Where the collage picture sits (the picture is fitted inside this box, against the edge that faces the text). */
   photo: Box;
   /** Centre of the lime date circle. */
   badge: { cx: number; cy: number };
@@ -37,27 +37,46 @@ export interface Slot {
   dotX: number;
 }
 
-/** The seven places in the approved composition, named by side and left-to-right order. */
+/** Pictures above the axis end at this line and the text starts under it. */
+const UP_BOTTOM = 178;
+/** Pictures below the axis start here. */
+const DOWN_TOP = 362;
+
+const up = (id: SlotId, x: number, w: number, textW: number, dotX: number): Slot => ({
+  id, side: 'up',
+  photo: { x, y: UP_BOTTOM - 172, w, h: 172 },
+  badge: { cx: x + 52, cy: UP_BOTTOM + 24 },
+  text: { x: x + 96, y: UP_BOTTOM, w: textW },
+  dotX,
+});
+const down = (id: SlotId, x: number, w: number, textW: number, dotX: number): Slot => ({
+  id, side: 'down',
+  photo: { x, y: DOWN_TOP, w, h: 128 },
+  badge: { cx: x + 52, cy: DOWN_TOP + 152 },
+  text: { x: x + 96, y: DOWN_TOP + 128, w: textW },
+  dotX,
+});
+
+/** The seven places in the compact composition, named by side and left-to-right order. */
 export const SLOTS: Record<SlotId, Slot> = {
-  u1: { id: 'u1', side: 'up',   photo: { x: 35,   y: 189, w: 321, h: 193 }, badge: { cx: 90.5,   cy: 406.5 }, text: { x: 147,  y: 386, w: 215 }, dotX: 147 },
-  d1: { id: 'd1', side: 'down', photo: { x: 179,  y: 584, w: 388, h: 152 }, badge: { cx: 255,    cy: 729.5 }, text: { x: 323,  y: 714, w: 255 }, dotX: 232 },
-  u2: { id: 'u2', side: 'up',   photo: { x: 368,  y: 190, w: 324, h: 196 }, badge: { cx: 442.5,  cy: 406.5 }, text: { x: 503,  y: 386, w: 195 }, dotX: 320 },
-  d2: { id: 'd2', side: 'down', photo: { x: 662,  y: 588, w: 384, h: 150 }, badge: { cx: 703.5,  cy: 729.5 }, text: { x: 770,  y: 714, w: 300 }, dotX: 615 },
-  d3: { id: 'd3', side: 'down', photo: { x: 1166, y: 591, w: 376, h: 141 }, badge: { cx: 1214.5, cy: 729.5 }, text: { x: 1289, y: 714, w: 300 }, dotX: 1140 },
-  u3: { id: 'u3', side: 'up',   photo: { x: 1120, y: 174, w: 254, h: 217 }, badge: { cx: 1157,   cy: 404.5 }, text: { x: 1219, y: 386, w: 180 }, dotX: 1015 },
-  u4: { id: 'u4', side: 'up',   photo: { x: 1399, y: 208, w: 335, h: 193 }, badge: { cx: 1499,   cy: 406 },   text: { x: 1559, y: 386, w: 195 }, dotX: 1411 },
+  u1: up('u1', 36, 268, 240, 150),
+  d1: down('d1', 182, 300, 290, 240),
+  u2: up('u2', 372, 268, 250, 335),
+  d2: down('d2', 700, 300, 290, 640),
+  u3: up('u3', 1050, 200, 195, 1000),
+  d3: down('d3', 1210, 310, 290, 1110),
+  u4: up('u4', 1360, 300, 290, 1420),
 };
 
 /** The fixed pieces around the entries, with the box each one is fitted into. */
 export const FIXED = {
-  portrait:  { x: 690,  y: 13,  w: 415,  h: 463 } as Box,
-  signature: { x: 550,  y: 70,  w: 194,  h: 114 } as Box,
+  portrait: { x: 775, y: 0,   w: 235,  h: 262 } as Box,
   /** A wide strip that stands on the axis. */
-  skyline:   { x: 157,  y: 407, w: 1536, h: 160 } as Box,
-  maps:      { x: 597,  y: 830, w: 520,  h: 120 } as Box,
+  skyline:  { x: 300, y: 238, w: 1180, h: 104 } as Box,
+  maps:     { x: 762, y: 590, w: 250,  h: 52 } as Box,
 };
 
-/** Which slots are used for N entries, in the order of the entries (oldest first). */
+/** Which slots are used for N entries, in the order of the entries (oldest first, so left to right). */
 const SLOT_TABLE: Record<number, SlotId[]> = {
   1: ['u2'],
   2: ['u1', 'd2'],
@@ -65,14 +84,14 @@ const SLOT_TABLE: Record<number, SlotId[]> = {
   4: ['u1', 'd1', 'd2', 'u4'],
   5: ['u1', 'd1', 'u2', 'd2', 'u4'],
   6: ['u1', 'd1', 'u2', 'd2', 'd3', 'u4'],
-  7: ['u1', 'd1', 'u2', 'd2', 'd3', 'u3', 'u4'],
+  7: ['u1', 'd1', 'u2', 'd2', 'u3', 'd3', 'u4'],
 };
 
 export interface Placed { slot: Slot; /** Where this entry's line meets the axis. */ dotX: number }
 
 /**
  * Places `count` entries (oldest first) on the canvas, or returns null when they do not fit
- * (then the component uses the vertical timeline). The dots on the axis always run left to
+ * (then the component uses the compact two-column list). The dots on the axis always run left to
  * right in the order of the entries, so the axis never misstates the order; a line may slant
  * a little further for that, but it never changes which entry comes first.
  */
