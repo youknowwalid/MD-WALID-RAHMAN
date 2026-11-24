@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Briefcase, Code, Compass, Layers, Palette, Rocket, Target, type LucideIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight, Briefcase, Code, Compass, Layers, Palette, Rocket, Target, type LucideIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { CapabilityGroup } from '../lib/defaults';
+import { chipKey } from '../lib/services';
 
 const ICONS: LucideIcon[] = [Briefcase, Code, Palette, Layers, Target, Rocket, Compass];
 
 /** "What I can do": the categories as tabs, and the small services of the chosen category as chips.
     The card keeps the same height on every tab, so the page never jumps. Tapping a chip only highlights it. */
-export default function Capabilities({ heading, eyebrow, groups }: { heading: string; eyebrow: string; groups: CapabilityGroup[] }) {
+export default function Capabilities({ heading, eyebrow, groups, links = {} }: { heading: string; eyebrow: string; groups: CapabilityGroup[]; links?: Record<string, string> }) {
   const [tab, setTab] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const active = Math.min(tab, groups.length - 1);
@@ -60,6 +62,20 @@ export default function Capabilities({ heading, eyebrow, groups }: { heading: st
       <div id="cap-panel" role="tabpanel" aria-labelledby={`cap-tab-${active}`} className="relative mt-3 flex min-h-[108px] flex-wrap content-start gap-1.5 md:mt-3.5 md:min-h-0 md:gap-2">
         {group.items.map((item) => {
           const on = picked === item;
+          const to = links[chipKey(item)];
+          // A chip that has a page of its own is a link to it; the others only highlight when tapped.
+          if (to) {
+            return (
+              <Link
+                key={item}
+                to={to}
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-accent/60 bg-accent/10 px-2.5 text-[12px] font-medium text-white transition-colors hover:bg-accent/20 md:h-10 md:gap-2 md:px-4 md:text-[14.5px]"
+              >
+                {item}
+                <ArrowUpRight className="h-3.5 w-3.5 text-accent md:h-4 md:w-4" aria-hidden="true" />
+              </Link>
+            );
+          }
           return (
             <button
               key={item}

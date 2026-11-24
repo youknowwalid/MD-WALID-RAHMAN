@@ -334,7 +334,7 @@ export default function ProjectDetail() {
         <main className="relative z-10">
           <div className={`${CONTAINER} pt-28 sm:pt-32`}>
             {/* 1. Back link */}
-            <Link to="/#projects" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+            <Link to="/projects" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" /> All Projects
             </Link>
 

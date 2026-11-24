@@ -28,6 +28,7 @@ import ProjectsLocked from './ProjectsLocked';
 import TeamDeck from './TeamDeck';
 import AutoCarousel from './AutoCarousel';
 import Capabilities from './Capabilities';
+import { chipLinks, cleanServices } from '../lib/services';
 import WorkWithMe from './WorkWithMe';
 import ContactFaq from './ContactFaq';
 import type { FaqItem } from '../lib/discovery';
@@ -699,7 +700,7 @@ export default function Home() {
         {/* WHAT I CAN DO: categories as tabs, services as chips */}
         {capabilityGroups.length > 0 && (
           <section id="services" className="px-3 py-6 md:px-6 md:py-10">
-            <Capabilities heading={(() => { const t = title('whatIDo'); return t === 'What I do' ? DEFAULT_SECTION_TITLES.whatIDo : t; })()} eyebrow={(config.capabilitiesEyebrow || '').trim()} groups={capabilityGroups} />
+            <Capabilities heading={(() => { const t = title('whatIDo'); return t === 'What I do' ? DEFAULT_SECTION_TITLES.whatIDo : t; })()} eyebrow={(config.capabilitiesEyebrow || '').trim()} groups={capabilityGroups} links={chipLinks(cleanServices(config.servicePages))} />
           </section>
         )}
 

@@ -17,6 +17,28 @@ export const DEFAULT_HIRE_OFFERS: HireOffer[] = [];
 export interface CapabilityGroup { name: string; short: string; items: string[] }
 export const DEFAULT_CAPABILITY_GROUPS: CapabilityGroup[] = [];
 export interface HeroStat { value: string; unit: string; label: string }
+/** One step of a service's "how it works" list. */
+export interface ServiceStep { title: string; text: string }
+/** One service with its own page at /services/<slug> (stored under site_settings.global.servicePages). */
+export interface ServicePage {
+  /** A fixed id (uuid): the service's search settings are saved under "service:<id>", so renaming it never loses them. */
+  id: string;
+  slug: string;
+  name: string;
+  /** The text of the matching chip in the home page's "What I can do" card, so that chip links here. */
+  chip: string;
+  summary: string;
+  headline: string;
+  intro: string;
+  image: string;
+  included: string[];
+  steps: ServiceStep[];
+  ctaTitle: string;
+  ctaButton: string;
+  ctaUrl: string;
+  hidden: boolean;
+}
+export const DEFAULT_SERVICE_PAGES: ServicePage[] = [];
 
 /** Branding, contact details and page texts (stored under site_settings.global). */
 export interface SiteConfig {
@@ -81,6 +103,10 @@ export interface SiteConfig {
   /** The "What I can do" card: its tabs and chips, and the small label at its top right. */
   capabilityGroups: CapabilityGroup[];
   capabilitiesEyebrow: string;
+  /** The services that have their own pages, plus the heading and intro of the /services page. */
+  servicePages: ServicePage[];
+  servicesHeading: string;
+  servicesIntro: string;
 }
 
 /** Home-page hero and CV (stored under site_settings.hero). */
@@ -213,6 +239,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
   hireOffers: DEFAULT_HIRE_OFFERS,
   capabilityGroups: DEFAULT_CAPABILITY_GROUPS,
   capabilitiesEyebrow: '',
+  servicePages: DEFAULT_SERVICE_PAGES,
+  servicesHeading: '',
+  servicesIntro: '',
 };
 
 export const DEFAULT_HERO: HeroConfig = {

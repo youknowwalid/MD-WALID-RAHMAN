@@ -71,7 +71,9 @@ test.describe('public site (connected)', () => {
       await expect(page.locator('h1')).toHaveText('Brand One');
       await expect(page).toHaveTitle(FIXTURE_SEO.titleTemplate.replace('%s', 'Brand One'));
       await page.getByRole('link', { name: 'All Projects' }).click();
-      await expect(page).toHaveURL(/\/#projects$/);
+      await expect(page).toHaveURL(/\/projects$/);
+      await expect(page.locator('h1')).toHaveText('Projects');
+      await page.goto(CONNECTED + '/');
     }
 
     await page.locator('a[href="/blog/hello-world"]').first().click();

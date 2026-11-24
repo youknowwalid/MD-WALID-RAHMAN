@@ -11,7 +11,7 @@ import { friendlyError } from '../forms';
 import { AreaField, Card, Check, GhostButton, RowsEditor, SaveButton, ScoreBadge, TextField, Toaster } from './parts';
 
 export interface PageTarget {
-  key: string; label: string; path: string; kind: 'home' | 'blog' | 'project' | 'page';
+  key: string; label: string; path: string; kind: 'home' | 'blog' | 'project' | 'page' | 'service' | 'services' | 'projects';
   fallbackTitle: string; fallbackDescription: string; fallbackImage: string; author: string;
 }
 

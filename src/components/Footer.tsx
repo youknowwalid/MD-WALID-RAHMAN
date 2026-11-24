@@ -5,6 +5,7 @@ import { useSiteConfig } from '../context/SiteConfigContext';
 import { safeUrl } from '../lib/text';
 import Photo from './Photo';
 import FounderCard from './FounderCard';
+import { cleanServices } from '../lib/services';
 
 const getSocialIcon = (platform: string) => {
   const p = platform.toLowerCase();
@@ -22,6 +23,7 @@ export default function Footer() {
   const { config, hero } = useSiteConfig();
   const phoneDigits = config.officePhone.replace(/[^0-9+]/g, '');
   const socials = config.socialLinks.filter((s) => safeUrl(s.url));
+  const hasServices = cleanServices(config.servicePages).length > 0;
 
   return (
     <footer className="bg-bg-dark border-t border-border-subtle relative z-10 pt-8 pb-20 md:pb-4 overflow-hidden">
@@ -98,6 +100,10 @@ export default function Footer() {
         <div className="pt-4 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
           <p className="text-text-muted text-sm text-center md:text-left">{config.copyrightText}</p>
           <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-0 text-sm font-medium">
+            {hasServices && (<>
+              <li><Link to="/services" className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors">{config.servicesHeading.trim() || 'Services'}</Link></li>
+              <li aria-hidden="true" className="hidden text-text-muted/40 sm:block">•</li>
+            </>)}
             <li><Link to="/terms-of-service" className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors">Terms of Service</Link></li>
             <li aria-hidden="true" className="hidden text-text-muted/40 sm:block">•</li>
             <li><Link to="/privacy-policy" className="inline-flex min-h-11 items-center lg:min-h-0 text-text-muted hover:text-accent transition-colors">Privacy Policy</Link></li>
