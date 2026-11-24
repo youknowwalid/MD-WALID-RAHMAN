@@ -59,6 +59,7 @@ export const normalizeResumeItem = (data: any): ResumeItem => ({
   role: str(data.role) || 'Role',
   company: str(data.company),
   desc: str(data.desc),
+  image: str(data.image),
   order: num(data.order),
   createdAt: data.createdAt,
   updatedAt: data.updatedAt,

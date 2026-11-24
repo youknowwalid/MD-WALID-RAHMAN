@@ -13,7 +13,7 @@ describe('rows mapping', () => {
   it('only writes known columns and blanks empty slugs', () => {
     const row = toRow('projects', { id: 'abc', title: 'T', heroImage: 'h', slug: '', createdAt: 'x', evil: 1, order: 2 });
     expect(row).toEqual({ title: 'T', hero_image: 'h', slug: null, sort_order: 2 });
-    expect(toRow('resume', { desc: 'd' })).toEqual({ description: 'd' });
+    expect(toRow('resume', { desc: 'd', image: 'i.webp' })).toEqual({ description: 'd', image: 'i.webp' });
   });
 });
 

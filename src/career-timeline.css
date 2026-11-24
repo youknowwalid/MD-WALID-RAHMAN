@@ -1,0 +1,188 @@
+/* ============================================================================
+   Career timeline (home page, #resume)
+   Mobile first:  under 768px   a vertical timeline down the left edge
+                  768 - 1179px  a two-sided vertical timeline (zigzag)
+                  1180px and up the editorial composition: one canvas that scales as a whole
+   The composition's numbers live in src/lib/careerTimeline.ts; the canvas is 1774 units wide,
+   so "X units" below is written as calc(X / 1774 * 100cqw).
+   ========================================================================== */
+.ct {
+  --ct-ink: #111111;
+  --ct-muted: #3d4350;
+  --ct-soft: #5b6270;
+  background: #ffffff;
+  color: var(--ct-ink);
+  padding: 36px 20px 52px;
+  overflow-x: clip;
+}
+.ct-stage { max-width: 1600px; margin: 0 auto; }
+.ct-canvas { position: relative; display: flex; flex-direction: column; align-items: center; }
+.ct img { display: block; max-width: 100%; }
+
+/* ---- Phones: portrait, signature, a strip of skyline, then the timeline ---- */
+.ct-axis, .ct-links { display: none; }
+.ct-portrait {
+  order: 1; width: min(74vw, 300px); height: auto; aspect-ratio: 4 / 5;
+  object-fit: contain; object-position: center bottom;
+}
+.ct-sign {
+  order: 2; width: min(46vw, 180px); height: auto; aspect-ratio: 2 / 1;
+  object-fit: contain; margin-top: -14px;
+}
+.ct-skyline {
+  order: 3; width: 100%; height: 60px; margin-top: 6px;
+  object-fit: cover; object-position: center bottom;
+}
+.ct-list {
+  order: 4; position: relative; width: 100%; max-width: 520px;
+  margin: 26px 0 0; padding: 0 0 0 60px; list-style: none;
+}
+/* the dotted axis, running down the left edge */
+.ct-list::before {
+  content: ""; position: absolute; left: 22.5px; top: 0; bottom: 8px; width: 0;
+  border-left: 3px dotted var(--ct-ink);
+}
+.ct-item { position: relative; padding: 0 0 34px; }
+.ct-item:last-child { padding-bottom: 0; }
+.ct-photo {
+  display: block; width: 100%; max-width: 420px; height: auto;
+}
+.ct-badge {
+  position: absolute; left: -60px; top: 8px; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--color-accent); color: var(--ct-ink);
+  box-shadow: 0 0 0 4px #ffffff;
+  font-size: 10.5px; font-weight: 700; line-height: 1.1; text-align: center; white-space: nowrap;
+}
+.ct-text { margin-top: 10px; }
+.ct-role { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.ct-org { margin: 2px 0 0; font-size: 13px; font-weight: 500; color: var(--ct-muted); }
+.ct-desc { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--ct-soft); }
+.ct-maps {
+  order: 5; width: min(78%, 340px); height: auto; aspect-ratio: 503 / 105;
+  object-fit: contain; margin-top: 30px;
+}
+
+@media (min-width: 480px) {
+  .ct-role { font-size: 17px; }
+  .ct-org { font-size: 14px; }
+  .ct-badge { width: 52px; height: 52px; left: -62px; font-size: 11px; }
+  .ct-list { padding-left: 62px; }
+  .ct-list::before { left: 24.5px; }
+}
+
+/* ---- Tablets: the timeline runs down the middle, entries alternate sides ---- */
+@media (min-width: 768px) {
+  .ct { padding: 48px 32px 64px; }
+  .ct-portrait { width: min(36vw, 330px); }
+  .ct-sign { width: 200px; }
+  .ct-skyline { height: 90px; }
+  .ct-list {
+    display: grid; grid-template-columns: 1fr 1fr; max-width: 940px;
+    margin-top: 34px; padding: 0;
+  }
+  .ct-list::before { left: 50%; margin-left: -1.5px; }
+  .ct-item { padding: 0 0 28px; }
+  .ct-item:nth-child(odd)  { grid-column: 1; padding-right: 60px; text-align: right; }
+  .ct-item:nth-child(even) { grid-column: 2; padding-left: 60px; margin-top: 64px; }
+  .ct-item:nth-child(odd) .ct-photo { margin-left: auto; }
+  .ct-item:nth-child(odd) .ct-badge  { left: auto; right: -30px; }
+  .ct-item:nth-child(even) .ct-badge { left: -30px; }
+  .ct-badge { width: 60px; height: 60px; font-size: 12px; }
+  .ct-role { font-size: 18px; }
+  .ct-org { font-size: 14px; }
+  .ct-desc { font-size: 13px; }
+  .ct-maps { margin-top: 40px; }
+}
+
+/* ---- Wide screens: the editorial composition ---- */
+@media (min-width: 1180px) {
+  .ct { padding: 36px 24px 56px; }
+  .ct:not(.ct--list) .ct-canvas {
+    display: block; container-type: inline-size;
+    width: 100%; max-width: 1600px; margin: 0 auto; aspect-ratio: 1774 / 960;
+  }
+  .ct:not(.ct--list) .ct-canvas .ct-axis,
+  .ct:not(.ct--list) .ct-canvas .ct-links {
+    display: block; position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+  }
+  .ct:not(.ct--list) .ct-canvas .ct-skyline,
+  .ct:not(.ct--list) .ct-canvas .ct-portrait,
+  .ct:not(.ct--list) .ct-canvas .ct-sign,
+  .ct:not(.ct--list) .ct-canvas .ct-maps,
+  .ct:not(.ct--list) .ct-canvas .ct-photo {
+    position: absolute; left: var(--x); top: var(--y); width: var(--w); height: var(--h);
+    max-width: none; margin: 0; aspect-ratio: auto; order: 0;
+    object-fit: contain; object-position: center;
+  }
+  .ct:not(.ct--list) .ct-canvas .ct-skyline { z-index: 0; object-position: center bottom; }
+  .ct:not(.ct--list) .ct-canvas .ct-maps { z-index: 0; }
+  .ct:not(.ct--list) .ct-canvas .ct-portrait { z-index: 3; object-position: center bottom; }
+  .ct:not(.ct--list) .ct-canvas .ct-sign { z-index: 3; }
+  .ct:not(.ct--list) .ct-canvas .ct-photo { z-index: 3; }
+
+  .ct:not(.ct--list) .ct-canvas .ct-list {
+    position: static; display: block; width: auto; max-width: none; margin: 0; padding: 0; order: 0;
+  }
+  .ct:not(.ct--list) .ct-canvas .ct-list::before { display: none; }
+  .ct:not(.ct--list) .ct-canvas .ct-item {
+    position: static; margin: 0; padding: 0; text-align: left; grid-column: auto; grid-row: auto;
+  }
+  .ct:not(.ct--list) .ct-canvas .ct-badge {
+    position: absolute; left: var(--cx); top: var(--cy); right: auto; translate: -50% -50%; z-index: 4;
+    width: clamp(50px, 4.9cqw, 72px); height: clamp(50px, 4.9cqw, 72px);
+    font-size: clamp(10px, 0.95cqw, 15px);
+  }
+  .ct:not(.ct--list) .ct-canvas .ct-text {
+    position: absolute; left: var(--tx); top: var(--ty); width: var(--tw); margin: 0; z-index: 4;
+    text-shadow: 0 0 6px #ffffff, 0 0 3px #ffffff;
+  }
+  .ct:not(.ct--list) .ct-canvas .ct-role { font-size: clamp(13px, 1.25cqw, 21px); }
+  .ct:not(.ct--list) .ct-canvas .ct-org { font-size: clamp(11.5px, 0.92cqw, 15px); }
+  .ct:not(.ct--list) .ct-canvas .ct-desc {
+    margin-top: 0.45em; font-size: clamp(11px, 0.8cqw, 13.5px); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  .ct-axis-line { stroke: var(--ct-ink); stroke-width: 3.2; stroke-dasharray: 0.01 9.5; stroke-linecap: round; fill: none; }
+  .ct-link { stroke: var(--color-accent); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; fill: none; }
+  .ct-dot { fill: var(--color-accent); }
+  .ct-dot-core { fill: #6b6f76; }
+}
+
+/* ---- Motion: plays once, when the section scrolls into view ---- */
+.ct-rise { transition: opacity 0.4s ease, translate 0.4s ease; transition-delay: calc(260ms + var(--i, 0) * 80ms); }
+.ct-rise-portrait { transition: opacity 0.6s ease, translate 0.6s ease; }
+.ct-pop { transition: opacity 0.25s ease, scale 0.25s ease; transition-delay: calc(200ms + var(--i, 0) * 80ms); }
+.ct-fade-slow { transition: opacity 0.7s ease 0.1s; }
+.ct-fade-late { transition: opacity 0.4s ease 0.9s; }
+.ct-axis { transition: clip-path 1s ease; }
+.ct-link { transition: stroke-dashoffset 0.3s ease; transition-delay: calc(300ms + var(--i, 0) * 250ms); }
+.ct-dot, .ct-dot-core {
+  transform-box: fill-box; transform-origin: center;
+  transition: opacity 0.25s ease, scale 0.25s ease; transition-delay: calc(250ms + var(--i, 0) * 250ms);
+}
+
+.ct-armed:not(.is-in) .ct-rise { opacity: 0; translate: 0 14px; }
+.ct-armed:not(.is-in) .ct-rise-portrait { opacity: 0; translate: 0 22px; }
+.ct-armed:not(.is-in) .ct-pop { opacity: 0; scale: 0.6; }
+.ct-armed:not(.is-in) .ct-fade-slow,
+.ct-armed:not(.is-in) .ct-fade-late { opacity: 0; }
+.ct-armed:not(.is-in) .ct-axis { clip-path: inset(0 100% 0 0); }
+.ct-armed:not(.is-in) .ct-link { stroke-dashoffset: 1; }
+.ct-armed:not(.is-in) .ct-dot,
+.ct-armed:not(.is-in) .ct-dot-core { opacity: 0; scale: 0.2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ct *, .ct *::before, .ct *::after { transition: none !important; animation: none !important; }
+  .ct-armed:not(.is-in) .ct-rise,
+  .ct-armed:not(.is-in) .ct-rise-portrait { opacity: 1; translate: none; }
+  .ct-armed:not(.is-in) .ct-pop { opacity: 1; scale: 1; }
+  .ct-armed:not(.is-in) .ct-fade-slow,
+  .ct-armed:not(.is-in) .ct-fade-late { opacity: 1; }
+  .ct-armed:not(.is-in) .ct-axis { clip-path: none; }
+  .ct-armed:not(.is-in) .ct-link { stroke-dashoffset: 0; }
+  .ct-armed:not(.is-in) .ct-dot,
+  .ct-armed:not(.is-in) .ct-dot-core { opacity: 1; scale: 1; }
+}

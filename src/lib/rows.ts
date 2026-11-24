@@ -28,7 +28,7 @@ export const ORDER: Record<Collection, string> = {
 const WRITABLE: Record<Collection, string[]> = {
   projects: ['slug','title','category','image','link','content','tags','gallery','hero_image','full_page_image','client','designer','start_date','intro_title','details_title','details_content','social_title','social_description','social_image','summary','industry','services','feedback_quote','feedback_name','feedback_role','cta_title','cta_button_text','cta_button_url','published','sort_order'],
   blogPosts: ['slug','title','date','excerpt','image','content','author','tags','social_title','social_description','social_image','sort_order'],
-  resume: ['year','role','company','description','sort_order'],
+  resume: ['year','role','company','description','image','sort_order'],
   testimonials: ['name','role','content','avatar','sort_order'],
   products: ['title','short_title','description','price','thumbnail','image','paddle_url','gallery1','gallery2','gallery3','gallery4','featured','published','sort_order'],
   contactSubmissions: ['is_read'],

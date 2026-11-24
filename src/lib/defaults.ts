@@ -90,8 +90,6 @@ export interface SiteConfig {
   wordmarkLight: string;
   wordmarkAccent: string;
   /** The "Current focus" cards on the home page (leave the title empty to hide them). */
-  currentFocusTitle: string;
-  currentFocusText: string;
   /** Logos of the businesses he has worked with (stored under site_settings.global). */
   clientLogos: ClientLogo[];
   /** While on, the home page and project pages show the "not available in your region" notice instead of the projects. */
@@ -114,7 +112,11 @@ export interface HeroConfig {
   /** Optional replacement for the built-in animated portrait on the home page. */
   heroPortrait: string;
   cvUrl: string;
-  resumeImage: string;
+  /** Career timeline artwork (all transparent PNG/WebP). Empty = built-in demo picture. */
+  timelinePortrait: string;
+  timelineSignature: string;
+  timelineSkyline: string;
+  timelineMaps: string;
 }
 
 /** Search / social-sharing settings (stored under site_settings.seo). */
@@ -228,8 +230,6 @@ export const DEFAULT_CONFIG: SiteConfig = {
   homeAccent: '#c3ed3a',
   wordmarkLight: '',
   wordmarkAccent: '',
-  currentFocusTitle: '',
-  currentFocusText: '',
   clientLogos: [],
   projectsHidden: true,
   teamMembers: [],
@@ -244,7 +244,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
 export const DEFAULT_HERO: HeroConfig = {
   heroPortrait: '',
   cvUrl: '',
-  resumeImage: '',
+  timelinePortrait: '',
+  timelineSignature: '',
+  timelineSkyline: '',
+  timelineMaps: '',
 };
 
 /** Built-in search/share defaults: one shared file, also read by api/page-meta.js (see src/lib/seo-defaults.json). */

@@ -11,8 +11,9 @@ interface Props { onToast: (type: 'success' | 'error', message: string) => void 
 
 type Form = {
   siteTitle: string; siteLogo: string; footerLogo: string; favicon: string;
-  heroPortrait: string; resumeImage: string; cvUrl: string;
-  wordmarkLight: string; wordmarkAccent: string; currentFocusTitle: string; currentFocusText: string;
+  heroPortrait: string; cvUrl: string;
+  timelinePortrait: string; timelineSignature: string; timelineSkyline: string; timelineMaps: string;
+  wordmarkLight: string; wordmarkAccent: string;
   brandTagline: string; globalCtaText: string; globalCtaUrl: string; heroCtaText: string; heroSecondaryText: string;
   heroStats: HeroStat[];
   aboutText: string; aboutTags: string; aboutVideoUrl: string;
@@ -73,8 +74,9 @@ export default function SettingsPanel({ onToast }: Props) {
     refresh().then(({ config: c, hero: h }) =>
       setF({
         siteTitle: c.siteTitle, siteLogo: c.siteLogo, footerLogo: c.footerLogo, favicon: c.favicon,
-        heroPortrait: h.heroPortrait, resumeImage: h.resumeImage, cvUrl: h.cvUrl,
-        wordmarkLight: c.wordmarkLight, wordmarkAccent: c.wordmarkAccent, currentFocusTitle: c.currentFocusTitle, currentFocusText: c.currentFocusText,
+        heroPortrait: h.heroPortrait, cvUrl: h.cvUrl,
+        timelinePortrait: h.timelinePortrait, timelineSignature: h.timelineSignature, timelineSkyline: h.timelineSkyline, timelineMaps: h.timelineMaps,
+        wordmarkLight: c.wordmarkLight, wordmarkAccent: c.wordmarkAccent,
         brandTagline: c.brandTagline, globalCtaText: c.globalCtaText, globalCtaUrl: c.globalCtaUrl, heroCtaText: c.heroCtaText, heroSecondaryText: c.heroSecondaryText,
         heroStats: c.heroStats,
         aboutText: c.aboutText, aboutTags: c.aboutTags.join(', '), aboutVideoUrl: c.aboutVideoUrl,
@@ -98,11 +100,12 @@ export default function SettingsPanel({ onToast }: Props) {
     setSaving(true);
     try {
       await patchSettings('hero', {
-        heroPortrait: f.heroPortrait, resumeImage: f.resumeImage, cvUrl: f.cvUrl.trim(),
+        heroPortrait: f.heroPortrait, cvUrl: f.cvUrl.trim(),
+        timelinePortrait: f.timelinePortrait, timelineSignature: f.timelineSignature, timelineSkyline: f.timelineSkyline, timelineMaps: f.timelineMaps,
       });
       await patchSettings('global', {
         siteTitle: f.siteTitle.trim(), wordmarkLight: f.wordmarkLight.trim(), wordmarkAccent: f.wordmarkAccent.trim(),
-        currentFocusTitle: f.currentFocusTitle.trim(), currentFocusText: f.currentFocusText.trim(), siteLogo: f.siteLogo, footerLogo: f.footerLogo, favicon: f.favicon,
+        siteLogo: f.siteLogo, footerLogo: f.footerLogo, favicon: f.favicon,
         brandTagline: f.brandTagline.trim(), globalCtaText: f.globalCtaText.trim(), globalCtaUrl: f.globalCtaUrl.trim(), heroCtaText: f.heroCtaText.trim(), heroSecondaryText: f.heroSecondaryText.trim(),
         heroStats: f.heroStats.filter((s) => s.value.trim() || s.label.trim()),
         aboutText: f.aboutText.trim(), aboutTags: f.aboutTags.split(',').map((t) => t.trim()).filter(Boolean), aboutVideoUrl: f.aboutVideoUrl.trim(),
@@ -183,11 +186,12 @@ export default function SettingsPanel({ onToast }: Props) {
           </div>
         </Card>
 
-        <Card title="Home page: current focus" hint="Two cards show it: the label on your resume picture and the purple card beside Featured Work. Empty title hides both.">
-          <Text id="s-focus" label="Current focus (title)" value={f.currentFocusTitle} onChange={set('currentFocusTitle')} placeholder="Strategic Brand Evolution" maxLength={80} />
-          <div>
-            <label htmlFor="s-focus-text" className={labelCls}>Short text under it (leave empty to use your latest resume entry)</label>
-            <textarea id="s-focus-text" rows={3} value={f.currentFocusText} onChange={(e) => set('currentFocusText')(e.target.value)} maxLength={300} className={inputCls} />
+        <Card title="Career timeline" hint="The artwork on the Journey section. Each job's own picture is set under Resume. Anything left empty shows a built-in demo picture. Use transparent PNG or WebP files.">
+          <div className="grid sm:grid-cols-2 gap-6">
+            <ImageField label="Centre portrait (about 4:5, transparent)" value={f.timelinePortrait} onChange={set('timelinePortrait')} maxSide={1200} />
+            <ImageField label="Handwritten signature (about 2:1, transparent)" value={f.timelineSignature} onChange={set('timelineSignature')} maxSide={800} />
+            <ImageField label="City skyline strip (very wide, about 2400 × 220)" value={f.timelineSkyline} onChange={set('timelineSkyline')} maxSide={2400} />
+            <ImageField label="Country maps (about 16:5, transparent)" value={f.timelineMaps} onChange={set('timelineMaps')} maxSide={1200} />
           </div>
         </Card>
 
@@ -197,7 +201,6 @@ export default function SettingsPanel({ onToast }: Props) {
             <Text id="s-video" label="Intro video (YouTube link or direct .mp4 link — optional)" value={f.aboutVideoUrl} onChange={set('aboutVideoUrl')} placeholder="https://www.youtube.com/watch?v=…" />
             <p className="text-xs text-amber-300 mt-2">For an .mp4 file, export it as H.264 video + AAC audio. Other formats (for example H.265/HEVC from some phones and screen recorders) may play only the sound in many browsers.</p>
           </div>
-          <ImageField label="Picture beside your resume (optional)" value={f.resumeImage} onChange={set('resumeImage')} maxSide={1200} />
         </Card>
 
         <Card title="Contact details" hint="Shown in the Contact section and the footer.">
