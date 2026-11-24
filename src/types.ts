@@ -74,6 +74,8 @@ export interface ResumeItem {
   role: string;
   company: string;
   desc: string;
+  /** Group-photo collage shown on the career timeline (transparent, landscape). */
+  image?: string;
   createdAt?: string;
   updatedAt?: string;
 }

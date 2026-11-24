@@ -39,9 +39,9 @@ function merge<T extends object>(defaults: T, saved: any, allowEmpty: (keyof T)[
 const GLOBAL_ALLOW_EMPTY: (keyof SiteConfig)[] = [
   'siteLogo', 'footerLogo', 'favicon', 'footerPortrait', 'copyrightText', 'aboutVideoUrl', 'globalCtaUrl', 'heroCtaText', 'heroSecondaryText',
   'capabilitiesEyebrow', 'servicesHeading', 'servicesIntro', 'founderRole', 'founderStory', 'founderCtaText', 'founderCtaUrl',
-  'officeAddress', 'contactEmail', 'officePhone', 'aboutText', 'gradientVia', 'currentFocusTitle', 'currentFocusText',
+  'officeAddress', 'contactEmail', 'officePhone', 'aboutText', 'gradientVia'
 ];
-const HERO_ALLOW_EMPTY: (keyof HeroConfig)[] = ['heroPortrait', 'cvUrl', 'resumeImage'];
+const HERO_ALLOW_EMPTY: (keyof HeroConfig)[] = ['heroPortrait', 'cvUrl', 'timelinePortrait', 'timelineSkyline', 'timelineMaps'];
 const SEO_ALLOW_EMPTY: (keyof SeoConfig)[] = ['ogImage', 'twitterHandle', 'titleTemplate'];
 
 /** No web address saved yet (Settings > SEO): use the address the visitor is on, so nothing about the site is typed into the code. */

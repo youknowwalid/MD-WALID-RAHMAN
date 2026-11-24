@@ -20,8 +20,8 @@ import { Project, BlogPost, Testimonial, ResumeItem } from '../types';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { RichClamp, RichText } from './RichText';
-import { stripFormatting } from '../lib/richtext';
 import Photo from './Photo';
+import CareerTimeline from './CareerTimeline';
 import ResourcesSection from './ResourcesSection';
 import Seo from './Seo';
 import ProjectsLocked from './ProjectsLocked';
@@ -208,28 +208,6 @@ const Avatar = ({ src, name, className }: { src: string; name: string; className
     </div>
   );
 
-/** One entry in the résumé. Its dot lights up as the entry arrives. */
-const TimelineItem = ({ item, last, delay }: { item: ResumeItem; last: boolean; delay: number } & React.Attributes) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.5 });
-  return (
-    <m.div
-      ref={ref}
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.7, delay, ease: EASE }}
-      className={cn('home-tl-item relative', inView && 'is-in', last ? 'pb-0' : 'pb-5')}
-    >
-      <span className="home-tl-dot" aria-hidden="true" />
-      <span className="text-[12px] font-medium uppercase tracking-[0.14em] text-text-muted">{item.year}</span>
-      <h3 className="mt-0.5 text-[19px] font-semibold uppercase leading-tight tracking-[-0.02em] text-text-main md:text-[21px]">{item.role}</h3>
-      <div className="mt-0.5 text-[15px] font-medium text-text-main/80">{item.company}</div>
-      {item.desc && <RichText text={item.desc} className="mt-1 max-w-xl text-[14px] leading-snug text-text-muted" />}
-    </m.div>
-  );
-};
-
 const MIN_FILL_MS = 3000;
 
 /** Home-page lists. Cards only need a few columns, so the long article/case-study text is not downloaded here. */
@@ -286,8 +264,6 @@ export default function Home() {
     };
   }, [stage, hash]);
 
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const timelineFillRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const toTopRef = useRef<HTMLButtonElement>(null);
 
@@ -331,14 +307,6 @@ export default function Home() {
       if (progressRef.current) progressRef.current.style.width = `${scrollable > 0 ? (y / scrollable) * 100 : 0}%`;
       toTopRef.current?.classList.toggle('is-on', y > 900);
 
-      const rail = timelineRef.current;
-      const fill = timelineFillRef.current;
-      if (rail && fill) {
-        const box = rail.getBoundingClientRect();
-        const filled = Math.min(Math.max(window.innerHeight * 0.62 - box.top, 0), Math.max(box.height - 16, 0));
-        fill.style.height = `${filled}px`;
-      }
-
       // `translate` rather than `transform`, so the clouds keep their own drifting animation.
       if (!reduceMotion && y < window.innerHeight * 1.5) {
         for (const cloud of clouds) {
@@ -354,7 +322,7 @@ export default function Home() {
       window.removeEventListener('scroll', update);
       window.removeEventListener('resize', update);
     };
-  }, [resume.length, reduceMotion]);
+  }, [reduceMotion]);
 
   // A soft light follows the pointer across the cards, the main buttons lean towards it,
   // and nothing else moves with it.
@@ -398,7 +366,6 @@ export default function Home() {
     .map((g) => ({ name: (g.name || '').trim(), short: (g.short || '').trim(), items: (g.items || []).map((x) => (x || '').trim()).filter(Boolean) }))
     .filter((g) => g.name && g.items.length > 0);
   const homeAccent = /^#[0-9a-fA-F]{6}$/.test(config.homeAccent || '') ? config.homeAccent : '';
-  const focusTitle = (config.currentFocusTitle || '').trim();
   const phoneDigits = config.officePhone.replace(/[^0-9+]/g, '');
   const ctaHref = safeUrl(config.globalCtaUrl) || (phoneDigits ? `https://wa.me/${phoneDigits.replace(/^\+/, '')}` : '/#contact');
   const ctaExternal = /^https?:/i.test(ctaHref);
@@ -454,7 +421,7 @@ export default function Home() {
 
   const featuredProject = projects[0];
   const guide = products[0];
-  // The side column holds the premium guide and the current focus, as in the design. With no
+  // The side column holds the premium guide. With no
   // products published, the next project takes the guide's place so the column is never half empty.
   const sideProject = guide ? undefined : projects[1];
   const remainingProjects = projects.slice(guide ? 1 : 2);
@@ -652,50 +619,17 @@ export default function Home() {
         </section>
 
         {/* RESUME SECTION */}
-        <section id="resume" className="bg-[linear-gradient(180deg,#ffffff,#f5f8fc)] px-6 py-10 md:py-14">
-          <div className="mx-auto max-w-7xl">
-            <Reveal>
-              <h2 className="mb-6 text-[2rem] font-medium leading-[1.05] tracking-[-0.045em] md:text-[2.6rem]">{title('resume')}</h2>
-            </Reveal>
-            <div className="grid items-stretch gap-8 lg:grid-cols-[1fr_400px] lg:gap-14">
-              <div>
-                {loaded && resume.length === 0 && <EmptyNote>Experience will be listed here soon.</EmptyNote>}
-                {resume.length > 0 && (
-                  <div className="home-tl" ref={timelineRef}>
-                    <div className="home-tl-rail" aria-hidden="true" />
-                    <div className="home-tl-fill" ref={timelineFillRef} aria-hidden="true" />
-                    {resume.map((item, i) => (
-                      <TimelineItem key={item.id || i} item={item} last={i === resume.length - 1} delay={Math.min(i * 0.05, 0.2)} />
-                    ))}
-                  </div>
-                )}
+        {resume.length > 0 ? (
+          <CareerTimeline items={resume} title={title('resume')} />
+        ) : (
+          loaded && (
+            <section id="resume" className="px-6 py-10 md:py-14" aria-label={title('resume')}>
+              <div className="mx-auto max-w-7xl">
+                <EmptyNote>Experience will be listed here soon.</EmptyNote>
               </div>
-
-              {hero.resumeImage && (
-                <Reveal from="right" delay={0.1} className="order-first lg:order-last">
-                  <div className="relative h-[260px] overflow-hidden rounded-[32px] sm:h-[360px] shadow-[0_30px_55px_-32px_rgba(13,17,23,0.5)] lg:h-full lg:min-h-[420px]">
-                    <Photo
-                      src={hero.resumeImage}
-                      widths={[640, 828, 1080]}
-                      sizes="(min-width: 1024px) 50vw, 100vw"
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-cover object-top"
-                      referrerPolicy="no-referrer"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    {focusTitle && (
-                      <div className="absolute inset-x-4 bottom-4 rounded-[16px] border border-white/15 bg-[#0d1117]/60 px-4 py-3 backdrop-blur-md">
-                        <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-accent">Current Focus</div>
-                        <div className="text-[17px] font-semibold tracking-[-0.02em] text-white">{focusTitle}</div>
-                      </div>
-                    )}
-                  </div>
-                </Reveal>
-              )}
-            </div>
-          </div>
-        </section>
+            </section>
+          )
+        )}
 
         {/* WHAT I CAN DO: categories as tabs, services as chips */}
         {capabilityGroups.length > 0 && (
@@ -803,21 +737,6 @@ export default function Home() {
                       </Reveal>
                     ) : null}
 
-                    {focusTitle && (
-                      <Reveal delay={0.22} className="hidden h-full lg:block">
-                        <div className="flex h-full flex-col justify-between rounded-[44px] bg-[linear-gradient(150deg,#e9e3fb,#c9d9fb)] p-9">
-                          <div>
-                            <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#0d1117]/60">Current focus</span>
-                            <h3 className="mt-3 text-[28px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#0d1117] md:text-[32px]">
-                              {focusTitle}
-                            </h3>
-                            <p className="mt-3 text-[16px] leading-relaxed text-[#0d1117]/75">
-                              {(config.currentFocusText || '').trim() || (resume[0] ? `${resume[0].role} at ${resume[0].company}. ${stripFormatting(resume[0].desc || '')}`.trim() : config.brandTagline)}
-                            </p>
-                          </div>
-                        </div>
-                      </Reveal>
-                    )}
                   </div>
                 </div>
 

@@ -398,36 +398,6 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   color: #ffffff;
 }
 
-/* ---- Résumé timeline ----------------------------------------------------- */
-.home-tl { position: relative; padding-left: 2.75rem; }
-.home-tl-rail,
-.home-tl-fill {
-  position: absolute;
-  left: 7px;
-  top: 0.5rem;
-  width: 2px;
-  border-radius: 2px;
-}
-.home-tl-rail { bottom: 0.5rem; background: rgba(13, 17, 23, 0.1); }
-.home-tl-fill { height: 0; background: linear-gradient(180deg, var(--color-accent), #16a34a); transition: height 0.15s linear; }
-.home-tl-dot {
-  position: absolute;
-  left: -2.75rem;
-  top: 0.4rem;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3px solid rgba(13, 17, 23, 0.18);
-  transition: background 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.5s, transform 0.5s;
-}
-.home-tl-item:hover .home-tl-dot,
-.home-tl-item:focus-within .home-tl-dot {
-  background: var(--color-accent);
-  border-color: #0d1117;
-  transform: scale(1.12);
-}
-
 /* The footer keeps the dark theme on the home page too: its brand mark is white
    lettering, which disappears on a white footer, and an ink band closes the page
    the way the ink header opens it. Restoring the site's own values is enough. */
@@ -529,13 +499,6 @@ main > section:nth-of-type(3n)::after { --glow: #f45901; right: -10%; left: auto
   mix-blend-mode: overlay;
   background: conic-gradient(from 0deg, transparent, rgba(195, 237, 58, 0.22), transparent 30%);
   animation: home-spin 9s linear infinite;
-}
-
-/* A résumé dot lights up as its entry arrives, not only on hover. */
-.home-tl-item.is-in .home-tl-dot {
-  background: var(--color-accent);
-  border-color: #0d1117;
-  transform: scale(1.12);
 }
 
 /* The header drops in on first paint. */

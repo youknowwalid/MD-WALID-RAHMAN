@@ -87,6 +87,7 @@ export const FORMS: Record<Exclude<Collection, 'contactSubmissions'>, { singular
       { name: 'company', label: 'Company', required: true, half: true },
       { name: 'year', label: 'Years', required: true, half: true, placeholder: '2020 - 2022' },
       { name: 'desc', label: 'Description', type: 'textarea', rows: 4, rich: true },
+      { name: 'image', label: 'Career timeline picture (optional)', type: 'image', maxSide: 1200, hint: 'Recommended: 1200 × 520 px, landscape (about 7:3), transparent PNG/WebP. Anything from 3:2 to 8:3 fits. Leave empty to show the built-in demo picture.' },
       order,
     ],
   },
