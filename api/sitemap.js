@@ -2,6 +2,7 @@
 // every project and blog post currently published in the database.
 import config from '../public-config.json' with { type: 'json' };
 import { loadSettings, rest, siteUrlOf } from './_site.js';
+import { cleanServices } from './_services.js';
 // The fixed pages and the key their SEO row (page_discovery_meta.route_key) is saved under.
 const PAGES = [
   { path: '/', key: 'home', priority: '1.0' },
@@ -64,7 +65,12 @@ export default async function handler(req, res) {
     projectsHidden(), fetchRows('projects'), fetchRows('blog_posts'), loadSettings(),
     rest('page_discovery_meta?select=route_key,robots_index&limit=1000').catch(() => []),
   ]);
+  const services = cleanServices(settings?.global?.servicePages);
   const dynamic = [
+    // The services page and one page per service (the ones the admin saved and did not hide).
+    ...(services.length ? [{ path: '/services', key: 'services', priority: '0.9' }] : []),
+    ...services.map((x) => ({ path: `/services/${x.slug}`, key: `service:${x.id}`, priority: '0.9' })),
+    ...(hidden ? [] : [{ path: '/projects', key: 'projects', priority: '0.7' }]),
     // While the admin's projects switch is on, projects are left out of the sitemap.
     ...(hidden ? [] : projects).map((r) => ({ path: `/projects/${encodeURIComponent(r.slug || r.id)}`, key: `project:${r.id}`, lastmod: r.updated_at, priority: '0.7' })),
     ...posts.map((r) => ({ path: `/blog/${encodeURIComponent(r.slug || r.id)}`, key: `blog:${r.id}`, lastmod: r.updated_at, priority: '0.6' })),

@@ -103,7 +103,7 @@ export function cleanSteps(items) {
  * @param {Rec | null} [a.author] the page's author_profiles row
  * @param {string} a.url        the page's canonical address
  * @param {string} a.path       the page's path ("/" for home)
- * @param {'home'|'blog'|'project'|'page'} a.kind
+ * @param {'home'|'blog'|'project'|'page'|'service'|'services'|'projects'} a.kind
  * @param {string} a.description the final meta description
  * @param {string} a.imageUrl   the final share image (absolute)
  * @param {string} [a.language]
@@ -132,17 +132,21 @@ export function buildGraph({ site, seo, global, discovery, page, meta, author, u
   });
 
   const chosen = SCHEMA_TYPES[meta?.schema_type] ? meta.schema_type : null;
-  const defaultType = kind === 'blog' ? 'Article' : kind === 'project' ? 'CreativeWork' : 'WebPage';
-  const pageType = chosen ? SCHEMA_TYPES[chosen] : defaultType;
+  const defaultType = kind === 'blog' ? 'Article' : kind === 'project' ? 'CreativeWork' : kind === 'service' ? 'Service' : kind === 'services' || kind === 'projects' ? 'CollectionPage' : 'WebPage';
+  // A service page or a list page is never plain "WebPage" just because the admin left the default type in place.
+  const pageType = chosen && !(chosen === 'WebPage' && defaultType !== 'WebPage') ? SCHEMA_TYPES[chosen] : defaultType;
   const isArticle = pageType === 'Article' || pageType === 'BlogPosting';
   const pageId = `${url}#webpage`;
   const name = page.title || seo.siteName;
+  // A list page (services, projects) lists its entries: [{ name, url }] with absolute addresses.
+  const items = (Array.isArray(page.items) ? page.items : []).map((it) => ({ name: text(it?.name), url: text(it?.url) })).filter((it) => it.name && isHttp(it.url));
   const primaryImage = image(`${url}#primaryimage`, imageUrl);
 
   // Breadcrumbs: Home, the section the page lives in, the page.
   const crumbs = [{ name: 'Home', url: `${site}/` }];
   if (kind === 'blog') crumbs.push({ name: 'Articles', url: `${site}/articles` });
-  if (kind === 'project') crumbs.push({ name: 'Projects', url: `${site}/#projects` });
+  if (kind === 'project') crumbs.push({ name: 'Projects', url: `${site}/projects` });
+  if (kind === 'service') crumbs.push({ name: 'Services', url: `${site}/services` });
   if (kind !== 'home') crumbs.push({ name, url });
 
   const authorId = authorIsFounder ? id.founder : author?.slug ? `${site}/#author-${author.slug}` : null;
@@ -191,8 +195,17 @@ export function buildGraph({ site, seo, global, discovery, page, meta, author, u
         }
       : {}),
     ...(pageType === 'CreativeWork' ? { creator: { '@id': id.entity }, publisher: { '@id': id.entity } } : {}),
+    ...(pageType === 'Service' ? { serviceType: text(page.serviceType) || name, provider: { '@id': id.entity } } : {}),
+    ...(items.length ? { mainEntity: { '@id': `${url}#list` } } : {}),
   };
   graph.push(pageNode);
+  if (items.length) {
+    graph.push({
+      '@type': 'ItemList',
+      '@id': `${url}#list`,
+      itemListElement: items.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.name, url: it.url })),
+    });
+  }
   if (primaryImage) graph.push(primaryImage);
 
   if (kind !== 'home') {

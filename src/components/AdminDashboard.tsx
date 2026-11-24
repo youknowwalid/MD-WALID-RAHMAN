@@ -3,7 +3,7 @@ import { AnimatePresence, m } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, FolderKanban, FileText,
-  Loader2, ChevronLeft, Users, Settings, Handshake, MessageSquare, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles, Search, CreditCard,
+  Loader2, ChevronLeft, Briefcase, Users, Settings, Handshake, MessageSquare, ShoppingCart, Palette, Globe, Receipt, Building2, UserRound, Sparkles, Search, CreditCard,
 } from 'lucide-react';
 import { SEOSettings } from './SEOSettings';
 import { BrandingSettings } from './BrandingSettings';
@@ -13,6 +13,7 @@ import ClientLogos from './admin/ClientLogos';
 import TeamMembers from './admin/TeamMembers';
 import HireOffers from './admin/HireOffers';
 import CapabilityGroups from './admin/CapabilityGroups';
+import ServicePages from './admin/ServicePages';
 import Inquiries from './admin/Inquiries';
 import Orders from './admin/Orders';
 import StoreSetup from './admin/StoreSetup';
@@ -31,6 +32,7 @@ const TABS = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'blogPosts', label: 'Blog', icon: FileText },
   { id: 'capabilities', label: 'What I Can Do', icon: Sparkles },
+  { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'resume', label: 'Resume', icon: FileText },
   { id: 'testimonials', label: 'Feedback', icon: Users },
   { id: 'clientLogos', label: 'Client Logos', icon: Building2 },
@@ -223,6 +225,7 @@ function Dashboard({ email }: { email: string }) {
         {activeTab === 'team' && <TeamMembers onToast={show} />}
         {activeTab === 'hire' && <HireOffers onToast={show} />}
         {activeTab === 'capabilities' && <CapabilityGroups onToast={show} />}
+        {activeTab === 'services' && <ServicePages onToast={show} />}
         {activeTab === 'seoSettings' && <SEOSettings onToast={show} />}
         {activeTab === 'discovery' && <DiscoveryPanel onToast={show} />}
         {activeTab === 'branding' && <BrandingSettings onToast={show} />}

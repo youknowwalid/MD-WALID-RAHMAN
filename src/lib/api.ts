@@ -128,6 +128,28 @@ export async function fetchHomeFaq(): Promise<{ question: string; answer: string
   }
 }
 
+/** What a page's search settings add to the page itself: its short answer, questions and answers, and any custom title. */
+export interface PageExtras { title: string; description: string; tldr: string; faq: { question: string; answer: string }[] }
+
+/** The saved search settings of one page (route key such as "service:<id>" or "services"), or null when none are saved. */
+export async function fetchPageExtras(routeKey: string): Promise<PageExtras | null> {
+  if (!backendConfigured) return null;
+  try {
+    const res = await request('page_discovery_meta?select=route_key,meta_title,meta_description,tldr_summary,faq_items&limit=200', { headers: headers() });
+    if (!res.ok) return null;
+    const rows = (await res.json()) as Record<string, any>[];
+    const row = rows.find((r) => r.route_key === routeKey);
+    if (!row) return null;
+    const t = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+    return {
+      title: t(row.meta_title), description: t(row.meta_description), tldr: t(row.tldr_summary),
+      faq: Array.isArray(row.faq_items) ? row.faq_items.map((x: any) => ({ question: t(x?.question), answer: t(x?.answer) })).filter((x: any) => x.question && x.answer) : [],
+    };
+  } catch {
+    return null;
+  }
+}
+
 export interface ContactMessage { name: string; email: string; subject: string; message: string }
 
 export type ContactResult = 'sent' | 'rate-limited' | 'error' | 'unavailable';

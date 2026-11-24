@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import { buildPageHtml, pickPage } from './_head.js';
 import { originOf } from './_site.js';
 import { canonicalPath } from './_graph.js';
+import { cleanServices, paragraphsOf } from './_services.js';
 import { rest, rpc } from './_site.js';
 
 const COLUMNS = {
@@ -44,6 +45,8 @@ const isUuid = (v) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]
 
 /** What an address is: { kind, key } (key = permalink for items). */
 export function routeOf(route) {
+  // The two list pages: what the admin saved (the services) or the projects switch decides what they show.
+  if (route === '/services' || route === '/projects') return { kind: route.slice(1), key: route.slice(1) };
   if (FIXED[route]) return { kind: route === '/' ? 'home' : 'fixed', key: FIXED[route] };
   if (isPrivate(route)) return { kind: 'private' };
   if (route === '/blog') return { kind: 'redirect', to: '/articles' };
@@ -51,6 +54,8 @@ export function routeOf(route) {
   if (route === '/products') return { kind: 'redirect', to: '/resources' };
   let m = /^\/projects\/([^/]+)$/.exec(route);
   if (m) return { kind: 'project', key: m[1] };
+  m = /^\/services\/([^/]+)$/.exec(route);
+  if (m) return { kind: 'service', key: m[1] };
   m = /^\/blog\/([^/]+)$/.exec(route);
   if (m) return { kind: 'blog', key: m[1] };
   return { kind: 'unknown' };
@@ -134,10 +139,11 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
     // One round of reads, all at once: the saved settings, a redirect for this address, and the page itself.
-    const [settingRows, redirects, item] = await Promise.all([
+    const [settingRows, redirects, item, projectList] = await Promise.all([
       rest('site_settings?select=key,value'),
       route === '/' ? [] : safe(rest(`url_redirects?select=destination_path,status_code&source_path=eq.${encodeURIComponent(route)}&is_active=eq.true&limit=1`), []),
       info.kind === 'project' || info.kind === 'blog' ? fetchItem(info.kind, info.key) : Promise.resolve(null),
+      info.kind === 'projects' ? safe(rest('projects?select=id,slug,title,summary&order=sort_order.asc,created_at.desc&limit=100'), []) : Promise.resolve([]),
     ]);
     const settings = {};
     for (const row of settingRows) if (row && typeof row.key === 'string') settings[row.key] = row.value;
@@ -164,6 +170,10 @@ export default async function handler(req, res) {
     }
 
     const common = { global: settings.global, discovery: settings.discovery };
+    // The services that have a page of their own (what the admin saved; hidden ones are left out).
+    const services = cleanServices(settings.global?.servicePages);
+    const service = info.kind === 'service' ? services.find((x) => x.slug === info.key) || null : null;
+    const projectsHidden = settings.global?.projectsHidden !== false;
 
     if (info.kind === 'private') {
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
@@ -171,14 +181,15 @@ export default async function handler(req, res) {
       return res.status(200).send(buildPageHtml(template, settings.seo, {}, route, { ...common, noindex: true }));
     }
 
-    if (info.kind === 'unknown' || (item === null && (info.kind === 'project' || info.kind === 'blog'))) {
+    if (info.kind === 'unknown' || (item === null && (info.kind === 'project' || info.kind === 'blog'))
+      || (info.kind === 'service' && !service) || (info.kind === 'services' && services.length === 0)) {
       res.setHeader('X-Robots-Tag', 'noindex');
       res.setHeader('Cache-Control', 'public, s-maxage=60');
       return res.status(404).send(buildPageHtml(template, settings.seo, {}, route, { ...common, noindex: true }));
     }
     if (item === undefined) return plain(); // the database did not answer: the app loads and asks for itself
 
-    if (info.kind === 'project' && settings.global?.projectsHidden !== false) {
+    if ((info.kind === 'project' || info.kind === 'projects') && projectsHidden) {
       // The admin's projects switch is on: no project details in the page, and not indexed.
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
       res.setHeader('Cache-Control', 'public, s-maxage=60');
@@ -186,7 +197,7 @@ export default async function handler(req, res) {
     }
 
     // The page's own SEO / AEO / GEO row, then its author.
-    const routeKey = info.kind === 'project' || info.kind === 'blog' ? `${info.kind}:${item.id}` : info.key;
+    const routeKey = info.kind === 'service' ? `service:${service.id}` : info.kind === 'project' || info.kind === 'blog' ? `${info.kind}:${item.id}` : info.key;
     const metaRows = await safe(rest(`page_discovery_meta?select=*&route_key=eq.${encodeURIComponent(routeKey)}&limit=1`), []);
     const meta = metaRows[0] || null;
     const authorRows = meta?.author_id && isUuid(meta.author_id)
@@ -202,20 +213,43 @@ export default async function handler(req, res) {
     let page = {};
     let path = route;
     let kind = 'page';
+    const site = String(settings.seo?.siteUrl || '').replace(/\/+$/, '');
     if (item) {
       page = pickPage(info.kind, item);
       path = PATHS[info.kind] + encodeURIComponent(info.key);
       kind = info.kind;
     } else if (info.kind === 'home') {
       kind = 'home';
+    } else if (service) {
+      // A service page: its own headline, summary and picture, all from what the admin saved.
+      page = { title: service.headline || service.name, description: service.summary || paragraphsOf(service.intro)[0] || '', image: service.image, type: 'website', serviceType: service.name };
+      path = `/services/${service.slug}`;
+      kind = 'service';
+    } else if (info.kind === 'services') {
+      const heading = String(settings.global?.servicesHeading || '').trim() || 'Services';
+      const intro = String(settings.global?.servicesIntro || '').trim();
+      page = {
+        title: heading, intro, description: paragraphsOf(intro)[0] || '', type: 'website',
+        items: services.map((x) => ({ name: x.name, url: `${site}/services/${x.slug}` })),
+      };
+      kind = 'services';
+    } else if (info.kind === 'projects') {
+      page = {
+        title: 'Projects', type: 'website',
+        items: projectList.map((p) => ({ name: String(p.title || '').trim(), url: `${site}/projects/${encodeURIComponent(p.slug || p.id)}` })),
+      };
+      kind = 'projects';
     }
     // The app only steps back from the head when this page's tags are complete: home, projects, articles,
     // and any page whose tags the admin wrote. Other fixed pages keep the app's own titles.
-    const owned = Boolean(item) || info.kind === 'home' || Boolean(meta);
+    const owned = Boolean(item) || info.kind === 'home' || Boolean(meta) || kind === 'service' || kind === 'services' || kind === 'projects';
 
     res.setHeader('Cache-Control', CACHE);
     return res.status(200).send(
-      buildPageHtml(template, settings.seo, page, path, { ...common, kind, meta, author, owned, withBody: info.kind === 'home' || info.kind === 'blog' }),
+      buildPageHtml(template, settings.seo, page, path, {
+        ...common, kind, meta, author, owned, services, service, projects: projectList,
+        withBody: info.kind === 'home' || info.kind === 'blog' || kind === 'service' || kind === 'services' || kind === 'projects',
+      }),
     );
   } catch (err) {
     console.error('render failed, serving the plain shell:', err);

@@ -8,6 +8,7 @@
 import seoDefaults from '../src/lib/seo-defaults.json' with { type: 'json' };
 import { statText } from './_site.js';
 import { buildGraph, canonicalPath, toScriptJson } from './_graph.js';
+import { buildProjectsHubMain, buildServiceMain, buildServicesHubMain, chipKey, chipLinks } from './_services.js';
 
 // The built-in defaults are the same file the app uses (src/lib/defaults.ts), so the two can never drift apart.
 const DEFAULT_SEO = {
@@ -106,7 +107,7 @@ export function buildArticleMain({ title, description, content, published }) {
  * The plain-HTML copy of a page that crawlers without JavaScript read (the app replaces it when it starts).
  * Built only from saved content: a heading with nothing saved under it is not written.
  */
-export function buildStaticMain({ seo, global, meta, description, faq = /** @type {{ question: string, answer: string }[]} */ ([]) }) {
+export function buildStaticMain({ seo, global, meta, description, faq = /** @type {{ question: string, answer: string }[]} */ ([]), services = /** @type {Record<string, any>[]} */ ([]) }) {
   const out = [];
   const name = clean(global?.sectionTitles?.heroName).replace(/[.\s]+$/, '') || seo.siteName;
   out.push(`<h1>${esc(name)}</h1>`);
@@ -124,7 +125,10 @@ export function buildStaticMain({ seo, global, meta, description, faq = /** @typ
     .filter((g) => g.items.length);
   if (groups.length) {
     out.push('<h2>What we do</h2>');
-    for (const g of groups) out.push(g.name ? `<h3>${esc(g.name)}</h3>` : '', `<ul>${g.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`);
+    // A chip that has a page of its own links to it (the same rule as the home page's chips).
+    const links = chipLinks(services);
+    const chip = (i) => (links[chipKey(i)] ? `<a href="${esc(links[chipKey(i)])}">${esc(i)}</a>` : esc(i));
+    for (const g of groups) out.push(g.name ? `<h3>${esc(g.name)}</h3>` : '', `<ul>${g.items.map((i) => `<li>${chip(i)}</li>`).join('')}</ul>`);
   }
 
   const facts = (Array.isArray(meta?.quotable_facts) ? meta.quotable_facts : []).map((f) => clean(typeof f === 'string' ? f : f?.text)).filter(Boolean);
@@ -159,7 +163,7 @@ export function buildNoscriptMain({ seo, global, description, heading = '' }) {
  * @param {Record<string, any>} page { title, description, image, type, published, modified, author }
  * @param {string} path the page's path ("/" for home, "/blog/my-post", ...)
  * @param {{
- *   kind?: 'home' | 'blog' | 'project' | 'page',
+ *   kind?: 'home' | 'blog' | 'project' | 'page' | 'service' | 'services' | 'projects',
  *   global?: Record<string, any>,
  *   discovery?: Record<string, any>,
  *   meta?: Record<string, any> | null,
@@ -167,6 +171,9 @@ export function buildNoscriptMain({ seo, global, description, heading = '' }) {
  *   noindex?: boolean,
  *   owned?: boolean,
  *   withBody?: boolean,
+ *   services?: Record<string, any>[],
+ *   service?: Record<string, any> | null,
+ *   projects?: Record<string, any>[],
  * }} [extra]
  *   kind: what the page is; global / discovery: saved site settings; meta / author: the page's SEO row and author profile;
  *   noindex: keep this page out of search (private pages); owned: this head is final, the app must not rewrite it when it starts;
@@ -174,7 +181,7 @@ export function buildNoscriptMain({ seo, global, description, heading = '' }) {
  */
 export function buildPageHtml(template, seoSettings, page, path, extra = {}) {
   if (!/<\/head>/i.test(template)) return template;
-  const { global, discovery, meta, author, noindex = false, owned = false, withBody = false } = extra;
+  const { global, discovery, meta, author, noindex = false, owned = false, withBody = false, services = [], service = null, projects = [] } = extra;
   const route0 = canonicalPath(path);
   const kind = extra.kind || (page.type === 'article' ? 'blog' : route0.startsWith('/projects/') ? 'project' : route0 === '/' ? 'home' : 'page');
   const seo = mergeSeo(seoSettings);
@@ -245,9 +252,13 @@ export function buildPageHtml(template, seoSettings, page, path, extra = {}) {
     .filter((i) => i.question && i.answer);
   const staticMain = !withBody ? ''
     : kind === 'blog' ? buildArticleMain({ title: page.title, description, content: page.content, published: page.published })
-    : buildStaticMain({ seo, global, meta, description, faq });
+    : kind === 'service' && service ? buildServiceMain({ service, tldr: meta?.tldr_summary, faq })
+    : kind === 'services' ? buildServicesHubMain({ heading: page.title, intro: page.intro || '', services })
+    : kind === 'projects' ? buildProjectsHubMain({ heading: page.title, projects })
+    : buildStaticMain({ seo, global, meta, description, faq, services });
   // A page's own heading in the no-JavaScript view; with a plain copy of the page present, no second top heading.
-  const noscriptMain = buildNoscriptMain({ seo, global, description, heading: kind === 'blog' ? page.title : '' }).replace(staticMain ? /<h1>([\s\S]*?)<\/h1>/ : /$^/, '<p><strong>$1</strong></p>');
+  const ownHeading = ['blog', 'service', 'services', 'projects'].includes(kind) ? page.title : '';
+  const noscriptMain = buildNoscriptMain({ seo, global, description, heading: ownHeading }).replace(staticMain ? /<h1>([\s\S]*?)<\/h1>/ : /$^/, '<p><strong>$1</strong></p>');
 
   let html = template
     .replace(/<script\b[^>]*\bid\s*=\s*["']aeo-jsonld-home[^"']*["'][^>]*>[\s\S]*?<\/script>\s*/gi, '')

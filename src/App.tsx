@@ -9,6 +9,9 @@ import Home from './components/Home';
 const ProjectDetail = lazy(() => import('./components/ProjectDetail'));
 const BlogDetail = lazy(() => import('./components/BlogDetail'));
 const ArticlesPage = lazy(() => import('./components/ArticlesPage'));
+const ServicesPage = lazy(() => import('./components/ServicesPage'));
+const ServiceDetail = lazy(() => import('./components/ServiceDetail'));
+const ProjectsPage = lazy(() => import('./components/ProjectsPage'));
 const ProjectsHiddenPage = lazy(() => import('./components/ProjectsHiddenPage'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const ResourcesPage = lazy(() => import('./components/ResourcesPage'));
@@ -62,7 +65,10 @@ export default function App() {
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/:projectId" element={<ProjectRoute />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/services/:slug" element={<ServiceDetail />} />
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/blog" element={<Navigate to="/articles" replace />} />
             <Route path="/blog/:blogId" element={<BlogDetail />} />

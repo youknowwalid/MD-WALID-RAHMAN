@@ -4,6 +4,7 @@ import * as admin from '../../../lib/admin';
 import { DiscoverySettings, FIXED_PAGES, PageMeta, auditPage, emptyMeta, normalizeMeta } from '../../../lib/discovery';
 import { useSiteConfig } from '../../../context/SiteConfigContext';
 import { friendlyError } from '../forms';
+import { cleanServices } from '../../../lib/services';
 import PageEditor, { PageTarget } from './PageEditor';
 import { Loading, ScoreBadge, Toaster } from './parts';
 
@@ -11,7 +12,7 @@ type Entry = PageTarget & { meta: PageMeta; hasRow: boolean };
 
 /** Every page that can be edited, with its score. Click one to edit its search, social and AI settings. */
 export default function Pages({ discovery, onToast }: { discovery: DiscoverySettings; onToast: Toaster }) {
-  const { seoConfig } = useSiteConfig();
+  const { seoConfig, config } = useSiteConfig();
   const [data, setData] = useState<{ posts: any[]; projects: any[]; metas: Record<string, any>[]; authors: admin.AuthorRow[] } | null>(null);
   const [open, setOpen] = useState<string | null>(null);
 
@@ -26,12 +27,21 @@ export default function Pages({ discovery, onToast }: { discovery: DiscoverySett
   const groups = useMemo(() => {
     if (!data) return [];
     const byKey = new Map(data.metas.map((r) => [r.route_key as string, r]));
-    const entry = (t: PageTarget): Entry => ({ ...t, meta: normalizeMeta(byKey.get(t.key)), hasRow: byKey.has(t.key) });
+    // A service with no saved row starts as a "Service" page (the editor's own default is a plain web page).
+    const entry = (t: PageTarget): Entry => {
+      const meta = normalizeMeta(byKey.get(t.key));
+      return { ...t, meta: t.kind === 'service' && !byKey.has(t.key) ? { ...meta, schema_type: 'Service' } : meta, hasRow: byKey.has(t.key) };
+    };
+    const services = cleanServices(config.servicePages, { includeHidden: true });
     const tmpl = (label: string) => (seoConfig.titleTemplate || '%s').replace('%s', label);
     return [
       { name: 'Main pages', items: FIXED_PAGES.map((p) => entry({
-        key: p.key, label: p.label, path: p.path, kind: p.key === 'home' ? 'home' : 'page',
+        key: p.key, label: p.label, path: p.path, kind: p.key === 'home' ? 'home' : p.key === 'services' || p.key === 'projects' ? p.key : 'page',
         fallbackTitle: p.key === 'home' ? seoConfig.defaultTitle : tmpl(p.label), fallbackDescription: seoConfig.defaultDescription, fallbackImage: seoConfig.ogImage, author: '',
+      })) },
+      { name: 'Services', items: services.map((x) => entry({
+        key: `service:${x.id}`, label: x.name, path: `/services/${x.slug}`, kind: 'service',
+        fallbackTitle: tmpl(x.headline || x.name), fallbackDescription: x.summary, fallbackImage: x.image || seoConfig.ogImage, author: '',
       })) },
       { name: 'Articles', items: data.posts.filter((p) => p.slug).map((p) => entry({
         key: `blog:${p.id}`, label: p.title, path: `/blog/${p.slug}`, kind: 'blog',
@@ -42,7 +52,7 @@ export default function Pages({ discovery, onToast }: { discovery: DiscoverySett
         fallbackTitle: tmpl(p.socialTitle || p.title), fallbackDescription: p.socialDescription || p.summary || '', fallbackImage: p.socialImage || p.heroImage || p.image || '', author: '',
       })) },
     ];
-  }, [data, seoConfig]);
+  }, [data, seoConfig, config.servicePages]);
 
   if (!data) return <Loading />;
   const current = groups.flatMap((g) => g.items).find((e) => e.key === open);

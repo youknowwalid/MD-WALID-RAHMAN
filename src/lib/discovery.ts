@@ -62,6 +62,8 @@ export const fromLines = (text: string) => text.split('\n').map((l) => l.trim())
 /** Pages that exist without an item behind them. The route key is what page_discovery_meta stores. */
 export const FIXED_PAGES = [
   { key: 'home', label: 'Home', path: '/' },
+  { key: 'services', label: 'Services', path: '/services' },
+  { key: 'projects', label: 'Projects', path: '/projects' },
   { key: 'articles', label: 'Articles', path: '/articles' },
   { key: 'resources', label: 'Resources', path: '/resources' },
   { key: 'terms-of-service', label: 'Terms of Service', path: '/terms-of-service' },

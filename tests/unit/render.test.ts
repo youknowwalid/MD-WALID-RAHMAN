@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import handler, { requestedPath, routeOf } from '../../api/render.js';
+import sitemapHandler from '../../api/sitemap.js';
+import llmsHandler from '../../api/llms.js';
+import { cleanServices as cleanServicesServer } from '../../api/_services.js';
+import { cleanServices } from '../../src/lib/services';
 
 // A tiny stand-in for the database, so the page renderer can be run end to end. Made-up data only.
 const POST_ID = '11111111-1111-4111-8111-111111111111';
@@ -197,5 +201,143 @@ describe('page renderer', () => {
     const res: any = { setHeader: (k: string, v: string) => { out.headers[k] = v; }, status(c: number) { out.status = c; return this; }, end() { return this; } };
     await handler({ method: 'POST', query: {}, url: '/' } as any, res);
     expect(out.status).toBe(405);
+  });
+});
+
+// ───────────────────────── Service pages and the Projects page ─────────────────────────
+const SERVICE_ID = '33333333-3333-4333-8333-333333333333';
+const HIDDEN_ID = '44444444-4444-4444-8444-444444444444';
+const savedServices = () => [
+  {
+    id: SERVICE_ID, slug: 'web-development', name: 'Web development', chip: 'Web & Software Development', summary: 'Fast custom websites.',
+    headline: 'Web development agency in Dhaka', intro: 'First paragraph.\n\nSecond paragraph.', image: 'https://acme.test/web.jpg',
+    included: ['Custom build', 'Launch support'], steps: [{ title: 'Talk', text: 'We talk first.' }],
+  },
+  { id: HIDDEN_ID, slug: 'hidden-one', name: 'Hidden one', hidden: true },
+];
+
+describe('service pages', () => {
+  const globalRow = () => rows.site_settings.find((r) => r.key === 'global').value;
+  beforeEach(() => {
+    Object.assign(globalRow(), {
+      servicesHeading: 'Our services', servicesIntro: 'What we do.',
+      capabilityGroups: [{ name: 'Tech', short: 'T', items: ['Web & Software Development', 'Another chip'] }],
+      servicePages: savedServices(),
+    });
+    rows.page_discovery_meta.push({
+      route_key: `service:${SERVICE_ID}`, meta_title: 'Web development agency in Dhaka | Acme', tldr_summary: 'A short answer.',
+      faq_items: [{ question: 'How long?', answer: 'It depends on the project.' }], schema_type: 'WebPage',
+    });
+  });
+
+  it('knows the service addresses', () => {
+    expect(routeOf('/services')).toEqual({ kind: 'services', key: 'services' });
+    expect(routeOf('/services/web-development')).toEqual({ kind: 'service', key: 'web-development' });
+    expect(routeOf('/projects')).toEqual({ kind: 'projects', key: 'projects' });
+  });
+
+  it('serves a service page with its own tags, text, questions and a Service in the structured data', async () => {
+    const r = await run('/services/web-development');
+    expect(r.status).toBe(200);
+    expect(r.title).toBe('Web development agency in Dhaka | Acme');
+    expect(r.canonical).toBe('https://acme.test/services/web-development');
+    expect(r.body).toContain('data-ssr-path="/services/web-development"');
+    expect(r.body).toContain('<h1>Web development agency in Dhaka</h1>');
+    expect(r.body).toContain('<p>A short answer.</p>');
+    expect(r.body).toContain('<p>First paragraph.</p>');
+    expect(r.body).toContain('<li>Custom build</li>');
+    expect(r.body).toContain('<h3>How long?</h3>');
+    expect(r.body).toContain('"@type":"Service"');
+    expect(r.body).toContain('"@type":"FAQPage"');
+    expect(r.body).toContain('https://acme.test/services');
+    expect(r.body).toContain('https://acme.test/web.jpg');
+  });
+
+  it('gives hidden and unknown services a real 404 that stays out of search', async () => {
+    for (const path of ['/services/hidden-one', '/services/nothing']) {
+      const r = await run(path);
+      expect(r.status).toBe(404);
+      expect(r.robots).toContain('noindex');
+    }
+  });
+
+  it('serves the services list with a linked list of every visible service', async () => {
+    const r = await run('/services');
+    expect(r.status).toBe(200);
+    expect(r.body).toContain('<h1>Our services</h1>');
+    expect(r.body).toContain('<a href="/services/web-development">Web development</a>');
+    expect(r.body).not.toContain('Hidden one');
+    expect(r.body).toContain('"@type":"ItemList"');
+    expect(r.body).toContain('"@type":"CollectionPage"');
+  });
+
+  it('has no services page at all while nothing is saved', async () => {
+    globalRow().servicePages = [];
+    expect((await run('/services')).status).toBe(404);
+    expect((await run('/services/web-development')).status).toBe(404);
+  });
+
+  it('links the home page chip that has a page of its own', async () => {
+    const r = await run('/');
+    expect(r.body).toContain('<a href="/services/web-development">Web &amp; Software Development</a>');
+    expect(r.body).toContain('<li>Another chip</li>');
+  });
+
+  it('keeps the services page and Projects page rules apart: projects stay hidden until the switch is off', async () => {
+    globalRow().projectsHidden = true;
+    const hidden = await run('/projects');
+    expect(hidden.robots).toContain('noindex');
+    globalRow().projectsHidden = false;
+    const shown = await run('/projects');
+    expect(shown.robots).toMatch(/^index/);
+    expect(shown.canonical).toBe('https://acme.test/projects');
+    expect(shown.body).toContain('<a href="/projects/case">Case</a>');
+    expect(shown.body).toContain('"@type":"CollectionPage"');
+  });
+
+  it('breadcrumbs a project through the Projects page, not a section of the home page', async () => {
+    const r = await run('/projects/case');
+    expect(r.body).toContain('https://acme.test/projects');
+    expect(r.body).not.toContain('/#projects');
+  });
+
+  async function fetchText(h: any, query: any = {}) {
+    const out = { body: '' };
+    const res: any = { setHeader() {}, status() { return this; }, send(b: string) { out.body = String(b); return this; }, end() { return this; } };
+    await h({ method: 'GET', query, url: '/x', headers: { host: 'acme.test' } } as any, res);
+    return out.body;
+  }
+
+  it('lists the services in the sitemap, and the projects page only while projects are shown', async () => {
+    globalRow().projectsHidden = true;
+    let xml = await fetchText(sitemapHandler);
+    expect(xml).toContain('<loc>https://acme.test/services</loc>');
+    expect(xml).toContain('<loc>https://acme.test/services/web-development</loc>');
+    expect(xml).not.toContain('hidden-one');
+    expect(xml).not.toContain('<loc>https://acme.test/projects</loc>');
+    globalRow().projectsHidden = false;
+    xml = await fetchText(sitemapHandler);
+    expect(xml).toContain('<loc>https://acme.test/projects</loc>');
+  });
+
+  it('leaves a service out of the sitemap when the admin switched it off for search', async () => {
+    rows.page_discovery_meta.find((m) => m.route_key === `service:${SERVICE_ID}`).robots_index = false;
+    const xml = await fetchText(sitemapHandler);
+    expect(xml).not.toContain('/services/web-development');
+  });
+
+  it('links every service in llms.txt', async () => {
+    const txt = await fetchText(llmsHandler);
+    expect(txt).toContain('## Services');
+    expect(txt).toContain('[Web development](https://acme.test/services/web-development): A short answer.');
+    const full = await fetchText(llmsHandler, { full: '1' });
+    expect(full).toContain('How long?');
+  });
+
+  it('reads the saved services the same way in the app and on the server', () => {
+    const saved = [...savedServices(), { id: 'not-a-uuid', slug: 'x', name: 'X' }, { id: SERVICE_ID, slug: 'web-development', name: 'Duplicate' }, null, 'text'];
+    expect(cleanServicesServer(saved)).toEqual(cleanServices(saved));
+    expect(cleanServices(saved).map((x) => x.slug)).toEqual(['web-development']);
+    expect(cleanServices(saved, { includeHidden: true }).map((x) => x.slug)).toEqual(['web-development', 'hidden-one']);
   });
 });

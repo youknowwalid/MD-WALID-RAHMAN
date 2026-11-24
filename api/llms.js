@@ -6,6 +6,7 @@
 // Both are Markdown, and both ask search engines not to index the file itself (the pages are what should rank).
 import { cleanFaq } from './_graph.js';
 import { descriptionOf, loadSettings, rest, siteNameOf, siteUrlOf, statText } from './_site.js';
+import { cleanServices } from './_services.js';
 
 const clean = (v) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '');
 const paragraphs = (v) => (typeof v === 'string' ? v.split(/\n\s*\n/).map(clean).filter(Boolean) : []);
@@ -29,6 +30,7 @@ export function buildLlmsTxt(settings, data = {}, full = false, req) {
   const email = clean(global.contactEmail);
   const listed = (kind, rows) =>
     (rows || []).filter((r) => meta[`${kind}:${r.id}`]?.robots_index !== false);
+  const services = listed('service', cleanServices(global.servicePages));
   const posts = listed('blog', data.posts);
   const projects = listed('project', data.projects);
 
@@ -43,11 +45,28 @@ export function buildLlmsTxt(settings, data = {}, full = false, req) {
   }
 
   lines.push('## Pages', `- [Home](${site}/): about, specialities, journey, featured work and contact`);
+  if (services.length) lines.push(`- [Services](${site}/services): every service, each with its own page`);
+  if (global.projectsHidden === false && projects.length) lines.push(`- [Projects](${site}/projects): featured work`);
   if (posts.length) lines.push(`- [Articles](${site}/articles): all articles`);
   lines.push(`- [Sitemap](${site}/sitemap.xml): every page`);
   if (!full) lines.push(`- [Full version](${site}/llms-full.txt): the same with answers and summaries`);
   lines.push('');
 
+  if (services.length) {
+    lines.push('## Services');
+    for (const x of services) {
+      const m = meta[`service:${x.id}`] || {};
+      const summary = clean(m.tldr_summary) || clean(m.meta_description) || clean(x.summary);
+      lines.push(`- [${x.name}](${site}/services/${x.slug})${summary ? `: ${summary}` : ''}`);
+    }
+    lines.push('');
+    if (full) {
+      for (const x of services) {
+        const faq = cleanFaq(meta[`service:${x.id}`]?.faq_items);
+        if (faq.length) lines.push(`### ${x.name}: questions and answers`, '', ...faq.flatMap((f) => [`**${f.question}**`, f.answer, '']));
+      }
+    }
+  }
   if (specialities.length) lines.push('## Specialities', ...specialities.map((s) => `- ${s}`), '');
 
   if (full) {
